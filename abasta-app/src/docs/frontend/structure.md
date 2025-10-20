@@ -1,0 +1,1 @@
+<!-- Explicació de l'estructura de directoris i fitxers -->
