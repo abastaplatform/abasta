@@ -1,0 +1,118 @@
+@use './variables' as *;
+
+@use 'bootstrap' as bs;
+
+body {
+  font-family: $font-family-sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// Smooth scroll
+html {
+  scroll-behavior: smooth;
+}
+
+// Custom button hover effects
+.btn {
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+// Custom card hover
+.card {
+  transition: all 0.3s ease;
+  
+  &.card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+}
+
+// Hero section
+.hero-section {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, lighten($primary, 45%) 0%, lighten($primary, 35%) 100%);
+}
+
+// Feature icon
+.feature-icon {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: lighten($primary, 45%);
+  border-radius: $border-radius-lg;
+  margin-bottom: $spacer;
+  
+  svg {
+    color: $primary;
+  }
+}
+
+// Process steps
+.process-step {
+  position: relative;
+  
+  &:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 32px;
+    left: 50%;
+    width: 2px;
+    height: calc(100% - 64px);
+    background: lighten($primary, 30%);
+    transform: translateX(-50%);
+  }
+}
+
+.step-number {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: $primary;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0 auto 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+// Navbar custom
+.navbar-custom {
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  
+  &.scrolled {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+// Footer
+.footer {
+  background: $dark;
+  color: white;
+  padding: 3rem 0 1rem;
+  
+  a {
+    color: lighten($dark, 40%);
+    text-decoration: none;
+    transition: color 0.3s ease;
+    
+    &:hover {
+      color: white;
+    }
+  }
+}

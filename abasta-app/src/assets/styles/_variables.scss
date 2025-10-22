@@ -1,0 +1,72 @@
+// Colors corporatius
+$primary: #0066cc;      
+$secondary: #6c757d;
+$success: #28a745;
+$info: #17a2b8;
+$warning: #ffc107;
+$danger: #dc3545;
+$light: #f8f9fa;
+$dark: #343a40;
+
+// Tipografia
+$font-family-sans-serif: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+$font-size-base: 1rem;
+$line-height-base: 1.5;
+
+// Headings
+$h1-font-size: 3rem;    // 48px
+$h2-font-size: 2.25rem; // 36px
+$h3-font-size: 1.5rem;  // 24px
+$h4-font-size: 1.25rem;
+$h5-font-size: 1rem;
+
+$headings-font-weight: 600;
+
+// Espaiats
+$spacer: 1rem;
+$spacers: (
+  0: 0,
+  1: $spacer * 0.25,  // 4px
+  2: $spacer * 0.5,   // 8px
+  3: $spacer,         // 16px
+  4: $spacer * 1.5,   // 24px
+  5: $spacer * 2,     // 32px
+  6: $spacer * 3,     // 48px
+  7: $spacer * 5      // 80px
+);
+
+// Border radius
+$border-radius: 0.5rem;      // 8px
+$border-radius-sm: 0.25rem;  // 4px
+$border-radius-lg: 0.75rem;  // 12px
+
+// Botons
+$btn-padding-y: 0.75rem;      // 12px
+$btn-padding-x: 2rem;         // 32px
+$btn-font-weight: 500;
+$btn-border-radius: $border-radius;
+$btn-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+// Cards
+$card-border-radius: $border-radius-lg;
+$card-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+// Forms
+$input-padding-y: 0.75rem;
+$input-padding-x: 1rem;
+$input-border-radius: $border-radius;
+$input-focus-border-color: $primary;
+$input-focus-box-shadow: 0 0 0 0.2rem rgba($primary, 0.25);
+
+// Navbar
+$navbar-padding-y: 1rem;
+$navbar-brand-font-size: 1.5rem;
+
+// Container max-widths
+$container-max-widths: (
+  sm: 540px,
+  md: 720px,
+  lg: 960px,
+  xl: 1200px,
+  xxl: 1400px
+);

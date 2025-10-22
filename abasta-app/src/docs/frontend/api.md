@@ -1,0 +1,1 @@
+<!-- Explicació ús de l'API -->

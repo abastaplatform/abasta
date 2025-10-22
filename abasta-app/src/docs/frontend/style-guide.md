@@ -1,0 +1,1 @@
+<!-- Definir les regles de codi -->
