@@ -5,14 +5,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Entitat que representa una empresa registrada en la plataforma.
+ * Entitat que representa una empresa registrada a la plataforma.
  * Cada empresa pot gestionar els seus propis usuaris, productes, proveïdors i comandes.
- * Al registrar-se, es crea auotmàticament un usuari administrador associat.
+ * En registrar-se, es crea automàticament un usuari administrador associat.
  *
  * @author Dani Garcia
  * @version 1.0
@@ -25,77 +24,77 @@ import java.util.List;
 @Builder
 public class Company {
 
-    /** Identificador único numérico autogenerado */
+    /** Identificador numèric únic autogenerat */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     /**
-     * Identificador UUID único para uso público.
-     * Se genera automáticamente al crear la empresa si no se proporciona.
+     * Identificador UUID únic per a ús públic.
+     * Es genera automàticament en crear l'empresa si no se'n proporciona cap.
      */
     @Column(nullable = false, unique = true)
     private String uuid;
 
-    /** Nombre comercial de la empresa */
+    /** Nom comercial de l'empresa */
     @Column(nullable = false)
     private String name;
 
     /**
-     * Número de identificación fiscal (NIF/CIF).
-     * Debe ser único en el sistema.
+     * Número d’identificació fiscal (NIF/CIF).
+     * Ha de ser únic dins del sistema.
      */
     @Column(name = "tax_id", nullable = false, unique = true, length = 50)
     private String taxId;
 
-    /** Email de contacto de la empresa */
+    /** Correu electrònic de contacte de l’empresa */
     @Column(nullable = false)
     private String email;
 
-    /** Teléfono de contacto (opcional) */
+    /** Telèfon de contacte (opcional) */
     @Column(length = 50)
     private String phone;
 
-    /** Dirección física completa de la empresa */
+    /** Adreça física completa de l’empresa */
     @Column(columnDefinition = "TEXT")
     private String address;
 
-    /** Ciudad donde se ubica la empresa */
+    /** Ciutat on es troba l’empresa */
     @Column(length = 100)
     private String city;
 
-    /** Código postal de la empresa */
+    /** Codi postal de l’empresa */
     @Column(name = "postal_code", length = 20)
     private String postalCode;
 
     /**
-     * Estado actual de la empresa.
-     * Por defecto se crea en estado PENDING hasta que se verifique el email del administrador.
+     * Estat actual de l’empresa.
+     * Per defecte es crea en estat PENDING fins que es verifiqui el correu de l’administrador.
      */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
     private CompanyStatus status = CompanyStatus.PENDING;
 
-    /** Fecha y hora de creación del registro (no modificable) */
+    /** Data i hora de creació del registre (no modificable) */
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    /** Fecha y hora de la última actualización */
+    /** Data i hora de l’última actualització */
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     /**
-     * Lista de usuarios asociados a esta empresa.
-     * Incluye el administrador y cualquier usuario adicional creado.
-     * Carga lazy para optimizar consultas.
+     * Llista d’usuaris associats a aquesta empresa.
+     * Inclou l’administrador i qualsevol altre usuari creat.
+     * Càrrega “lazy” per optimitzar les consultes.
      */
     @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<User> users;
 
     /**
-     * Método ejecutado automáticamente antes de persistir una nueva empresa.
-     * Inicializa las fechas de auditoría y genera el UUID si no existe.
+     * Mètode executat automàticament abans de persistir una nova empresa.
+     * Inicialitza les dates d’auditoria i genera el UUID si no existeix.
      */
     @PrePersist
     protected void onCreate() {
@@ -107,8 +106,8 @@ public class Company {
     }
 
     /**
-     * Método ejecutado automáticamente antes de actualizar una empresa existente.
-     * Actualiza la fecha de última modificación.
+     * Mètode executat automàticament abans d’actualitzar una empresa existent.
+     * Actualitza la data de l’última modificació.
      */
     @PreUpdate
     protected void onUpdate() {
@@ -116,21 +115,21 @@ public class Company {
     }
 
     /**
-     * Estados posibles de una empresa en la plataforma.
+     * Estats possibles d’una empresa a la plataforma.
      * <ul>
-     *   <li><b>ACTIVE:</b> Empresa activa y operativa</li>
-     *   <li><b>INACTIVE:</b> Empresa temporalmente desactivada</li>
-     *   <li><b>PENDING:</b> Empresa recién registrada pendiente de verificación de email</li>
+     *   <li><b>ACTIVE:</b> Empresa activa i operativa</li>
+     *   <li><b>INACTIVE:</b> Empresa temporalment desactivada</li>
+     *   <li><b>PENDING:</b> Empresa recentment registrada pendent de verificació del correu electrònic</li>
      * </ul>
      */
     public enum CompanyStatus {
-        /** Empresa activa y operativa */
+        /** Empresa activa i operativa */
         ACTIVE,
 
-        /** Empresa temporalmente desactivada */
+        /** Empresa temporalment desactivada */
         INACTIVE,
 
-        /** Empresa recién registrada pendiente de verificación */
+        /** Empresa recentment registrada pendent de verificació */
         PENDING
     }
 }

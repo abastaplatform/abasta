@@ -9,63 +9,30 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Repositorio para operaciones de acceso a datos de empresas.
- * Proporciona métodos estándar de JPA y consultas personalizadas
- * para la gestión de empresas en la plataforma.
+ * Repositori per operacions d'accés a dades de l'empresa.
+ * Proporciona mètodes estàndards de JPA i consultes personalitzades per la gestió de l'empresa a la plataforma
  *
- * @author Tu equipo
+ * @author Dani Garcia
  * @version 1.0
  */
 @Repository
 public interface CompanyRepository extends JpaRepository<Company, Long> {
 
     /**
-     * Busca una empresa por su identificador UUID.
+     * Cerca una empresa per el seu identificador UUID.
      *
-     * @param uuid Identificador UUID de la empresa
-     * @return Optional con la empresa si existe, vacío en caso contrario
+     * @param uuid Identificador UUID de l'empresa
+     * @return Optional amb l'empresa si existeix, buit en cas contrari
      */
     Optional<Company> findByUuid(String uuid);
 
     /**
-     * Busca una empresa por su número de identificación fiscal.
-     *
-     * @param taxId NIF/CIF de la empresa
-     * @return Optional con la empresa si existe, vacío en caso contrario
-     */
-    Optional<Company> findByTaxId(String taxId);
-
-    /**
-     * Busca una empresa por su email de contacto.
-     *
-     * @param email Email de la empresa
-     * @return Optional con la empresa si existe, vacío en caso contrario
-     */
-    Optional<Company> findByEmail(String email);
-
-    /**
-     * Obtiene todas las empresas filtradas por estado.
-     *
-     * @param status Estado de las empresas a buscar (ACTIVE, INACTIVE, PENDING)
-     * @return Lista de empresas con el estado especificado
-     */
-    List<Company> findByStatus(CompanyStatus status);
-
-    /**
-     * Verifica si existe una empresa con el taxId especificado.
-     * Útil para validaciones de duplicidad antes de crear empresas.
+     * Verifica si existeix una empresa amb el taxId especificat
+     * Útil per validacions de duplicitat abans de crear l'empresa.
      *
      * @param taxId NIF/CIF a verificar
-     * @return true si existe una empresa con ese taxId, false en caso contrario
+     * @return true si existeix una empresa amb aquest taxId, false en cas contrari
      */
     boolean existsByTaxId(String taxId);
 
-    /**
-     * Verifica si existe una empresa con el email especificado.
-     * Útil para validaciones de duplicidad antes de crear empresas.
-     *
-     * @param email Email a verificar
-     * @return true si existe una empresa con ese email, false en caso contrario
-     */
-    boolean existsByEmail(String email);
 }

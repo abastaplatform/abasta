@@ -1,7 +1,6 @@
 package cat.abasta_back_end.services.impl;
 
 import cat.abasta_back_end.dto.CompanyRegistrationDTO;
-import cat.abasta_back_end.dto.CompanyRequestDTO;
 import cat.abasta_back_end.dto.CompanyResponseDTO;
 import cat.abasta_back_end.entities.Company;
 import cat.abasta_back_end.entities.Company.CompanyStatus;
@@ -18,17 +17,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
- * Implementación del servicio de gestión de empresas.
- * Contiene la lógica de negocio para operaciones CRUD de empresas,
- * incluyendo validaciones de duplicidad, registro con administrador
- * y conversiones entre entidades y DTOs.
+ * Implementació del servei de gestió d'empreses
+ * Conté la lògica de negoci per operacions CRUD d'empresa.
+ * Inclou validacions de duplicitat, registre com administrador i conversions entre entitats i DTOs.
  *
- * @author Tu equipo
+ * @author Dani Garcia
  * @version 1.0
  */
 @Service
@@ -43,68 +39,6 @@ public class CompanyServiceImpl implements CompanyService {
 
     /**
      * {@inheritDoc}
-     *
-     * Valida que no exista otra empresa con el mismo taxId o email antes de crear.
-     */
-    @Override
-    public CompanyResponseDTO createCompany(CompanyRequestDTO companyRequestDTO) {
-        if (companyRepository.existsByTaxId(companyRequestDTO.getTaxId())) {
-            throw new DuplicateResourceException("Ya existe una empresa con el NIF/CIF: " + companyRequestDTO.getTaxId());
-        }
-        if (companyRepository.existsByEmail(companyRequestDTO.getEmail())) {
-            throw new DuplicateResourceException("Ya existe una empresa con el email: " + companyRequestDTO.getEmail());
-        }
-
-        Company company = mapToEntity(companyRequestDTO);
-        Company savedCompany = companyRepository.save(company);
-        return mapToResponseDTO(savedCompany);
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * Valida que el nuevo taxId no esté en uso por otra empresa si se modifica.
-     * Actualiza todos los campos excepto el UUID y las fechas de auditoría.
-     */
-    @Override
-    public CompanyResponseDTO updateCompany(Long id, CompanyRequestDTO companyRequestDTO) {
-        Company company = companyRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Empresa no encontrada con ID: " + id));
-
-        if (!company.getTaxId().equals(companyRequestDTO.getTaxId()) &&
-                companyRepository.existsByTaxId(companyRequestDTO.getTaxId())) {
-            throw new DuplicateResourceException("Ya existe una empresa con el NIF/CIF: " + companyRequestDTO.getTaxId());
-        }
-
-        company.setName(companyRequestDTO.getName());
-        company.setTaxId(companyRequestDTO.getTaxId());
-        company.setEmail(companyRequestDTO.getEmail());
-        company.setPhone(companyRequestDTO.getPhone());
-        company.setAddress(companyRequestDTO.getAddress());
-        company.setCity(companyRequestDTO.getCity());
-        company.setPostalCode(companyRequestDTO.getPostalCode());
-
-        if (companyRequestDTO.getStatus() != null) {
-            company.setStatus(companyRequestDTO.getStatus());
-        }
-
-        Company updatedCompany = companyRepository.save(company);
-        return mapToResponseDTO(updatedCompany);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public CompanyResponseDTO getCompanyById(Long id) {
-        Company company = companyRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Empresa no encontrada con ID: " + id));
-        return mapToResponseDTO(company);
-    }
-
-    /**
-     * {@inheritDoc}
      */
     @Override
     @Transactional(readOnly = true)
@@ -112,41 +46,6 @@ public class CompanyServiceImpl implements CompanyService {
         Company company = companyRepository.findByUuid(uuid)
                 .orElseThrow(() -> new ResourceNotFoundException("Empresa no encontrada con UUID: " + uuid));
         return mapToResponseDTO(company);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public List<CompanyResponseDTO> getAllCompanies() {
-        return companyRepository.findAll().stream()
-                .map(this::mapToResponseDTO)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public List<CompanyResponseDTO> getCompaniesByStatus(CompanyStatus status) {
-        return companyRepository.findByStatus(status).stream()
-                .map(this::mapToResponseDTO)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * Elimina la empresa y todos sus usuarios asociados en cascada.
-     */
-    @Override
-    public void deleteCompany(Long id) {
-        if (!companyRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Empresa no encontrada con ID: " + id);
-        }
-        companyRepository.deleteById(id);
     }
 
     /**
@@ -164,17 +63,16 @@ public class CompanyServiceImpl implements CompanyService {
     /**
      * {@inheritDoc}
      *
-     * Proceso de registro completo:
+     * Procés de registre complet:
      * <ol>
-     *   <li>Valida que no exista el taxId ni el email del admin</li>
-     *   <li>Crea la empresa con estado ACTIVE</li>
-     *   <li>Crea el usuario administrador con rol ADMIN</li>
-     *   <li>Genera un token de verificación con validez de 24 horas</li>
-     *   <li>Envía email de verificación al administrador</li>
+     *   <li>Valida que no existeixi el taxID ni l'email del admin</li>
+     *   <li>Crea l'empresa amb estat ACTIVE</li>
+     *   <li>Crea l'usuari administrador amb rol ADMIN</li>
+     *   <li>Genera un token de verificació amb validesa de 24 hores</li>
+     *   <li>Envia email de verificació a l'administrador</li>
      * </ol>
      *
-     * La cuenta del admin queda inactiva (emailVerified=false) hasta que
-     * verifique su email mediante el token enviado.
+     * El compte del admin queda inactiu(emailVerified=false) fins verificació mitjançant token enviat al correu.
      */
     @Override
     @Transactional
@@ -182,15 +80,15 @@ public class CompanyServiceImpl implements CompanyService {
 
         // Validar que el taxId no exista
         if (companyRepository.existsByTaxId(registrationDTO.getTaxId())) {
-            throw new DuplicateResourceException("El CIF/NIF ya está registrado");
+            throw new DuplicateResourceException("El CIF/NIF ja està registrat");
         }
 
-        // Validar que el email del admin no exista
+        // Validar que el email del admin no existeixi
         if (userRepository.existsByEmail(registrationDTO.getAdminEmail())) {
-            throw new DuplicateResourceException("El email del administrador ya está registrado");
+            throw new DuplicateResourceException("L'email de l'administrador ja extà registrat");
         }
 
-        // 1. Crear la empresa
+        // 1. Crear l'empresa
         Company company = Company.builder()
                 .name(registrationDTO.getCompanyName())
                 .taxId(registrationDTO.getTaxId())
@@ -204,7 +102,7 @@ public class CompanyServiceImpl implements CompanyService {
 
         company = companyRepository.save(company);
 
-        // 2. Crear el usuario administrador
+        // 2. Crear l'usuario administrador
         String verificationToken = UUID.randomUUID().toString();
 
         User admin = User.builder()
@@ -223,7 +121,7 @@ public class CompanyServiceImpl implements CompanyService {
 
         admin = userRepository.save(admin);
 
-        // 3. Enviar email de verificación
+        // 3. Enviar email de verificació
         emailService.sendCompanyAdminVerification(
                 admin.getEmail(),
                 verificationToken,
@@ -236,10 +134,10 @@ public class CompanyServiceImpl implements CompanyService {
     }
 
     /**
-     * Convierte una entidad Company a su DTO de respuesta.
+     * Converteix una entitat Company al seu DTO de resposta.
      *
      * @param company Entidad a convertir
-     * @return DTO con los datos de la empresa
+     * @return DTO amb les dades de l'empresa
      */
     private CompanyResponseDTO mapToResponseDTO(Company company) {
         return CompanyResponseDTO.builder()
@@ -258,23 +156,4 @@ public class CompanyServiceImpl implements CompanyService {
                 .build();
     }
 
-    /**
-     * Convierte un DTO de request a una entidad Company.
-     * Si no se especifica estado, asigna ACTIVE por defecto.
-     *
-     * @param dto DTO con los datos de la empresa
-     * @return Entidad Company lista para persistir
-     */
-    private Company mapToEntity(CompanyRequestDTO dto) {
-        return Company.builder()
-                .name(dto.getName())
-                .taxId(dto.getTaxId())
-                .email(dto.getEmail())
-                .phone(dto.getPhone())
-                .address(dto.getAddress())
-                .city(dto.getCity())
-                .postalCode(dto.getPostalCode())
-                .status(dto.getStatus() != null ? dto.getStatus() : CompanyStatus.ACTIVE)
-                .build();
-    }
 }
