@@ -68,68 +68,6 @@ public class CompanyController {
     }
 
     /**
-     * Obté totes les empreses registrades.
-     *
-     * @return ResponseEntity amb el llistat de totes les empreses
-     */
-    @GetMapping
-    public ResponseEntity<ApiResponseDTO<List<CompanyResponseDTO>>> getAllCompanies() {
-        List<CompanyResponseDTO> companies = companyService.getAllCompanies();
-        return ResponseEntity.ok(ApiResponseDTO.success(companies, "Empreses recuperades exitosament"));
-    }
-
-    /**
-     * Obté una empresa per el seu identificador numéric.
-     *
-     * @param id Identificador únic de l'empresa
-     * @return ResponseEntity amb les dades de l'empresa
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponseDTO<CompanyResponseDTO>> getCompanyById(@PathVariable Long id) {
-        CompanyResponseDTO company = companyService.getCompanyById(id);
-        return ResponseEntity.ok(ApiResponseDTO.success(company, "Empresa recuperada exitosament"));
-    }
-
-    /**
-     * Obté una empresa per el seu UUID.
-     *
-     * @param uuid Identificador UUID de l'empresa
-     * @return ResponseEntity amb les dades de l'empresa
-     */
-    @GetMapping("/uuid/{uuid}")
-    public ResponseEntity<ApiResponseDTO<CompanyResponseDTO>> getCompanyByUuid(@PathVariable String uuid) {
-        CompanyResponseDTO company = companyService.getCompanyByUuid(uuid);
-        return ResponseEntity.ok(ApiResponseDTO.success(company, "Empresa recuperada exitosament"));
-    }
-
-    /**
-     * Obté totes les empreses filtrades per estat.
-     *
-     * @param status Estat de les empreses a consultar (ACTIVE, INACTIVE, SUSPENDED)
-     * @return ResponseEntity amb el llistat d'empreses que coincideixen amb l'estat
-     */
-    @GetMapping("/status/{status}")
-    public ResponseEntity<ApiResponseDTO<List<CompanyResponseDTO>>> getCompaniesByStatus(@PathVariable Company.CompanyStatus status) {
-        List<CompanyResponseDTO> companies = companyService.getCompaniesByStatus(status);
-        return ResponseEntity.ok(ApiResponseDTO.success(companies, "Empreses recuperades exitosament"));
-    }
-
-    /**
-     * Actualitza les dades d'una empresa existent.
-     *
-     * @param id Identificador de l'empresa a actualitzar
-     * @param companyRequestDTO Noves dades de l'empresa
-     * @return ResponseEntity amb l'empresa actualitzada
-     */
-    @PutMapping("/{id}")
-    public ResponseEntity<ApiResponseDTO<CompanyResponseDTO>> updateCompany(
-            @PathVariable Long id,
-            @Valid @RequestBody CompanyRequestDTO companyRequestDTO) {
-        CompanyResponseDTO updated = companyService.updateCompany(id, companyRequestDTO);
-        return ResponseEntity.ok(ApiResponseDTO.success(updated, "Empresa actualitzada exitosament"));
-    }
-
-    /**
      * Canvia l'estat d'una empresa (ACTIVE, INACTIVE, SUSPENDED).
      *
      * @param id Identificador de l'empresa
@@ -144,15 +82,5 @@ public class CompanyController {
         return ResponseEntity.ok(ApiResponseDTO.success(updated, "Estat de l'empresa actualitzat"));
     }
 
-    /**
-     * Elimina una empresa de la plataforma.
-     *
-     * @param id Identificador de l'empresa a eliminar
-     * @return ResponseEntity amb confirmació de l'eliminació
-     */
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponseDTO<Void>> deleteCompany(@PathVariable Long id) {
-        companyService.deleteCompany(id);
-        return ResponseEntity.ok(ApiResponseDTO.success(null, "Empresa eliminada exitosament"));
-    }
+
 }
