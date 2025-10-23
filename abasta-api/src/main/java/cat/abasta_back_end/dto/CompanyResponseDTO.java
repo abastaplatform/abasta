@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 /**
  * DTO de resposta amb la informació completa d'una empresa.
- * Utilitzat per retornar dades d'empresa en las respostes de l'API, excloent-hi informació sensible i relacions complexes de l'entitat.
+ * Utilitzat per retornar dades d'empresa en les respostes de l'API, excloent-hi informació delicada i relacions complexes de l'entitat.
  *
  * @author Dani Garcia
  * @version 1.0
@@ -23,7 +23,7 @@ public class CompanyResponseDTO {
     /** Identificador únic númeric de l'empresa */
     private Long id;
 
-    /** Identificador UUID de l'empresa, utilitzat per l'identificació pública */
+    /** Identificador UUID de l'empresa, utilitzat per la identificació pública */
     private String uuid;
 
     /** Nom comercial de l'empresa */

@@ -51,7 +51,7 @@ public class PasswordResetDTO {
      * </ul>
      * </p>
      */
-    @NotBlank(message = "El token es obligatorio")
+    @NotBlank(message = "El token es obligatori")
     private String token;
 
     /**

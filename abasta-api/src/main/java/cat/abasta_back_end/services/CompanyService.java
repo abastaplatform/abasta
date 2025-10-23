@@ -27,22 +27,20 @@ public interface CompanyService {
     CompanyResponseDTO registerCompanyWithAdmin(CompanyRegistrationDTO registrationDTO);
 
     /**
-     * Obté una empresa per el seu UUID
+     * Obté una empresa pel seu UUID
      *
      * @param uuid UUID de l'empresa
      * @return DTO amb les dades de l'empresa
-     * @throws ResourceNotFoundException si l'empresa no existeix
      */
     CompanyResponseDTO getCompanyByUuid(String uuid);
 
     /**
-     * Cambia el estado de una empresa.
-     * Permite activar, desactivar o suspender una empresa.
+     * Canvía l'estat d'una empresa.
+     * Permet activar, desactivar o suspendre una empresa.
      *
-     * @param id Identificador de la empresa
-     * @param status Nuevo estado a asignar (ACTIVE, INACTIVE, PENDING)
-     * @return DTO con los datos actualizados de la empresa
-     * @throws ResourceNotFoundException si la empresa no existe
+     * @param id Identificador de l'empresa
+     * @param status Nou estat per assignar (ACTIVE, INACTIVE, PENDING)
+     * @return DTO amb les dades actualitzades de l'empresa
      */
     CompanyResponseDTO changeCompanyStatus(Long id, Company.CompanyStatus status);
 }

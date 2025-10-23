@@ -1,11 +1,9 @@
 package cat.abasta_back_end.repositories;
 
 import cat.abasta_back_end.entities.Company;
-import cat.abasta_back_end.entities.Company.CompanyStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 /**

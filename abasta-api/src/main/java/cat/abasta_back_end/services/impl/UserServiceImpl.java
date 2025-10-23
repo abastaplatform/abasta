@@ -2,8 +2,10 @@ package cat.abasta_back_end.services.impl;
 
 import cat.abasta_back_end.dto.PasswordResetDTO;
 import cat.abasta_back_end.entities.User;
+import cat.abasta_back_end.entities.Company;
 import cat.abasta_back_end.exceptions.BadRequestException;
 import cat.abasta_back_end.exceptions.ResourceNotFoundException;
+import cat.abasta_back_end.repositories.CompanyRepository;
 import cat.abasta_back_end.repositories.UserRepository;
 import cat.abasta_back_end.services.EmailService;
 import cat.abasta_back_end.services.UserService;
@@ -17,7 +19,7 @@ import java.util.UUID;
 
 /**
  * Implementació del servei UserService.
- * Proporciona la lògica de negoci per a la gestió d'usuaris, incloent
+ * Proporciona la lògica de negoci per a la gestió d'usuaris, incloent-hi
  * restabliment de contrasenyes i verificació d'emails.
  *
  * <p>Totes les operacions són transaccionals per garantir la consistència de les dades.</p>
@@ -32,6 +34,7 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final CompanyRepository companyRepository;
     private final EmailService emailService;
 
     /**
@@ -43,7 +46,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * {@inheritDoc}
-     *
+     * <p>
      * Genera un token UUID únic i estableix una data d'expiració d'1 hora.
      */
     @Override
@@ -61,7 +64,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * {@inheritDoc}
-     *
+     * <p>
      * La nova contrasenya s'encripta abans de ser desada.
      * Després de restablir la contrasenya, el token i la seva data d'expiració s'eliminen.
      */
@@ -78,7 +81,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * {@inheritDoc}
-     *
+     * <p>
      * Després de verificar l'email, s'envia un correu de benvinguda.
      * Si l'usuari és ADMIN i la seva empresa està en estat PENDING, l'empresa s'activa.
      */
@@ -106,7 +109,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * {@inheritDoc}
-     *
+     * <p>
      * Genera un nou token de verificació amb una validesa de 24 hores.
      */
     @Override
