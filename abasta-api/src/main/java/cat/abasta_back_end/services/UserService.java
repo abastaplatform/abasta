@@ -4,7 +4,6 @@ import cat.abasta_back_end.dto.PasswordResetDTO;
 
 /**
  * Interfície de servei per gestionar operacions relacionades amb usuaris.
- * Proporciona funcionalitats per al restabliment de contrasenyes i verificació d'emails.
  *
  * @author Enrique Pérez
  * @version 1.0
