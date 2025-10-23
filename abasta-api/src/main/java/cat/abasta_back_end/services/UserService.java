@@ -12,7 +12,7 @@ import cat.abasta_back_end.dto.PasswordResetDTO;
 public interface UserService {
 
     /**
-     * Autentica un usuari a la plataforma mitjançant les seves credencials (correu electrònic i contrasenya).
+     * Autentica un usuari a la plataforma mitjançant les seves credencials (correu electrònic i la contrasenya).
      * Si les credencials són correctes, retorna un token o la informació necessària per mantenir la sessió iniciada.
      *
      * @param loginDTO l'objecte que conté les credencials d'inici de sessió (correu electrònic i contrasenya)

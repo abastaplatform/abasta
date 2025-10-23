@@ -78,7 +78,7 @@ public class UserServiceImpl implements UserService {
     /**
      * Autentica un usuari mitjançant les seves credencials d'accés.
      * <p>
-     * El procés d'autenticació inclou les següents validacions:
+     * El procés d'autenticació inclou aquestes validacions:
      * <ul>
      *   <li>Comprova que l'usuari existeixi segons l'email proporcionat.</li>
      *   <li>Verifica que el compte estigui actiu.</li>
