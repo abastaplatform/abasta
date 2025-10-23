@@ -42,6 +42,19 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByValidVerificationToken(@Param("token") String token, @Param("now") LocalDateTime now);
 
     /**
+     * Cerca un usuari amb un token de restabliment de contrasenya vàlid que no hagi expirat.
+     * Utilitza una consulta JPQL per verificar que el token coincideix i que la data d'expiració
+     * és posterior a la data i hora actual proporcionada.
+     *
+     * @param token el token de restabliment de contrasenya a validar
+     * @param now   la data i hora actual per comprovar si el token ha expirat
+     * @return un Optional que conté l'usuari si el token és vàlid, o Optional.empty() en cas contrari
+     */
+    @Query("SELECT u FROM User u WHERE u.passwordResetToken = :token AND u.passwordResetExpires > :now")
+    Optional<User> findByValidResetToken(@Param("token") String token, @Param("now") LocalDateTime now);
+
+
+    /**
      * Verifica si existeix un usuari amb l'email especificat.
      *
      * @param email l'adreça de correu electrònic a comprovar
