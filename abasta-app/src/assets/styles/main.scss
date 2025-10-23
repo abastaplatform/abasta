@@ -1,6 +1,76 @@
 @use './variables' as *;
 
-@use 'bootstrap' as bs;
+@use 'bootstrap' with (
+  // Colors corporatius
+  $primary: $primary,
+  $secondary: $secondary,
+  $success: $success,
+  $info: $info,
+  $warning: $warning,
+  $danger: $danger,
+  $light: $light,
+  $dark: $dark,
+
+  // Tipografia
+  $font-size-base: 1rem,
+  $line-height-base: 1.5,
+
+  // Headings
+  $h1-font-size: 3rem,
+  // 48px
+  $h2-font-size: 2.25rem,
+  // 36px
+  $h3-font-size: 1.5rem,
+  // 24px
+  $h4-font-size: 1.25rem,
+  $h5-font-size: 1rem,
+
+  $headings-font-weight: 600,
+
+  // Espaiats
+  $spacer: $spacer,
+  $spacers: $spacers,
+
+  // Border radius
+  $border-radius: $border-radius,
+  // 8px
+  $border-radius-sm: $border-radius-sm,
+  // 4px
+  $border-radius-lg: $border-radius-lg,
+
+  // 12px
+  // Botons
+  $btn-padding-y: 0.75rem,
+  // 12px
+  $btn-padding-x: 2rem,
+  // 32px
+  $btn-font-weight: 500,
+  $btn-border-radius: $border-radius,
+  $btn-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1),
+  // Cards
+  $card-border-radius: $border-radius-lg,
+  $card-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1),
+  // Forms
+  $input-padding-y: 0.75rem,
+  $input-padding-x: 1rem,
+  $input-border-radius: $border-radius,
+  $input-focus-border-color: $primary,
+  $input-focus-box-shadow: 0 0 0 0.2rem rgba($primary, 0.25),
+  // Navbar
+  $navbar-padding-y: 1rem,
+  $navbar-brand-font-size: 1.5rem,
+
+  // Container max-widths
+  $container-max-widths: (
+      sm: 540px,
+      md: 720px,
+      lg: 960px,
+      xl: 1200px,
+      xxl: 1400px
+    )
+);
+
+$ternary: $ternary;
 
 body {
   font-family: $font-family-sans-serif;
@@ -16,7 +86,7 @@ html {
 // Custom button hover effects
 .btn {
   transition: all 0.3s ease;
-  
+
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -26,7 +96,7 @@ html {
 // Custom card hover
 .card {
   transition: all 0.3s ease;
-  
+
   &.card-hover:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
@@ -38,7 +108,11 @@ html {
   min-height: 80vh;
   display: flex;
   align-items: center;
-  background: linear-gradient(135deg, lighten($primary, 45%) 0%, lighten($primary, 35%) 100%);
+  background: linear-gradient(
+    135deg,
+    lighten($primary, 45%) 0%,
+    lighten($primary, 35%) 100%
+  );
 }
 
 // Feature icon
@@ -51,7 +125,7 @@ html {
   background: lighten($primary, 45%);
   border-radius: $border-radius-lg;
   margin-bottom: $spacer;
-  
+
   svg {
     color: $primary;
   }
@@ -60,7 +134,7 @@ html {
 // Process steps
 .process-step {
   position: relative;
-  
+
   &:not(:last-child)::after {
     content: '';
     position: absolute;
@@ -94,7 +168,7 @@ html {
   background: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
-  
+
   &.scrolled {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
@@ -105,12 +179,12 @@ html {
   background: $dark;
   color: white;
   padding: 3rem 0 1rem;
-  
+
   a {
     color: lighten($dark, 40%);
     text-decoration: none;
     transition: color 0.3s ease;
-    
+
     &:hover {
       color: white;
     }
