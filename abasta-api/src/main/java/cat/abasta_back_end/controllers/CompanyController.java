@@ -2,7 +2,7 @@ package cat.abasta_back_end.controllers;
 
 import cat.abasta_back_end.dto.ApiResponseDTO;
 import cat.abasta_back_end.dto.CompanyRegistrationDTO;
-import cat.abasta_back_end.entities.Company;
+import cat.abasta_back_end.dto.CompanyResponseDTO;
 import cat.abasta_back_end.services.CompanyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
