@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * DTO genèric per estandaritzar les respostes de la API REST.
+ * DTO genèric per estandarditzar les respostes de l'API REST.
  * Proporciona una estructura uniforme per a totes les respostes HTTP,
  * incloent-hi indicadors d'èxit, missatges descriptius i dades de resposta.
  *
@@ -27,7 +27,7 @@ public class ApiResponseDTO<T> {
     /** Missatge descriptiu de l'operació realitzada */
     private String message;
 
-    /** Ddes de resposta de tius genèric. Pot ser null en cas d'error o eliminació. */
+    /** Dades de resposta de tipus genèric. Pot ser null en cas d'error o eliminació. */
     private T data;
 
     /** Marca temporal de quan s'ha generat la resposta */
@@ -39,7 +39,7 @@ public class ApiResponseDTO<T> {
      *
      * @param <T> Tipus de dades de la resposta
      * @param data Dades a incloure en la resposta
-     * @param message Missatge descriptiu del èxit de l'operació
+     * @param message Missatge descriptiu de l'èxit de l'operació
      * @return ApiResponseDTO configurat com a resposta exitosa
      */
     public static <T> ApiResponseDTO<T> success(T data, String message) {

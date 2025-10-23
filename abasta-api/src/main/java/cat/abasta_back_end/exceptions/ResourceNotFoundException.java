@@ -13,7 +13,7 @@ package cat.abasta_back_end.exceptions;
  *         .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat amb ID: " + id));
  * </pre>
  *
- * @autor Enrique Pérez
+ * @author Enrique Pérez
  * @since 1.0
  */
 public class ResourceNotFoundException extends RuntimeException {
