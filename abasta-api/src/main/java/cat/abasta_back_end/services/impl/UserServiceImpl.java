@@ -76,6 +76,53 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     /**
+     * Autentica un usuari mitjançant les seves credencials d'accés.
+     * <p>
+     * El procés d'autenticació inclou les següents validacions:
+     * <ul>
+     *   <li>Comprova que l'usuari existeixi segons l'email proporcionat.</li>
+     *   <li>Verifica que el compte estigui actiu.</li>
+     *   <li>Comprova que l'email hagi estat verificat.</li>
+     *   <li>Valida que la contrasenya introduïda coincideixi amb la guardada a la base de dades.</li>
+     * </ul>
+     * Si totes les validacions són correctes, s'actualitza la data de l'últim inici de sessió
+     * i es genera un token JWT per a l'usuari autenticat.
+     *
+     * @param loginDTO l'objecte que conté les credencials d'inici de sessió (correu electrònic i contrasenya)
+     * @return un {@link LoginResponseDTO} amb el token JWT generat, el seu tipus ("Bearer") i la informació de l'usuari
+     * @throws BadRequestException si les credencials són incorrectes, l'usuari està inactiu o no ha verificat el correu electrònic
+     */
+    @Override
+    public LoginResponseDTO login(LoginRequestDTO loginDTO) {
+        User user = userRepository.findByEmail(loginDTO.getEmail())
+                .orElseThrow(() -> new BadRequestException("Credencials invàlides"));
+
+        if (!user.getIsActive()) {
+            throw new BadRequestException("L'usuari està inactiu");
+        }
+
+        if (!user.getEmailVerified()) {
+            throw new BadRequestException("Has de verificar el teu correu electrònic abans d'iniciar sessió. Revisa la teva safata d'entrada.");
+        }
+
+        if (!passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())) {
+            throw new BadRequestException("Credencials invàlides");
+        }
+
+        user.setLastLogin(LocalDateTime.now());
+        userRepository.save(user);
+
+        String token = jwtUtil.generateToken(user.getEmail());
+
+        return LoginResponseDTO.builder()
+                .token(token)
+                .type("Bearer")
+                .user(mapToResponseDTO(user))
+                .build();
+    }
+
+
+    /**
      * {@inheritDoc}
      *
      * <p>Genera un token UUID únic i estableix una data d'expiració d'1 hora.
