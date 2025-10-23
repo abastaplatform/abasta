@@ -22,7 +22,7 @@ import java.util.UUID;
 /**
  * Implementació del servei de gestió d'empreses
  * Conté la lògica de negoci per operacions CRUD d'empresa.
- * Inclou validacions de duplicitat, registre com administrador i conversions entre entitats i DTOs.
+ * Inclou validacions de duplicitat, registre com a administrador i conversions entre entitats i DTOs.
  *
  * @author Dani Garcia
  * @version 1.0
@@ -44,7 +44,7 @@ public class CompanyServiceImpl implements CompanyService {
     @Transactional(readOnly = true)
     public CompanyResponseDTO getCompanyByUuid(String uuid) {
         Company company = companyRepository.findByUuid(uuid)
-                .orElseThrow(() -> new ResourceNotFoundException("Empresa no encontrada con UUID: " + uuid));
+                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb UUID: " + uuid));
         return mapToResponseDTO(company);
     }
 
@@ -54,7 +54,7 @@ public class CompanyServiceImpl implements CompanyService {
     @Override
     public CompanyResponseDTO changeCompanyStatus(Long id, CompanyStatus status) {
         Company company = companyRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Empresa no encontrada con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb ID: " + id));
         company.setStatus(status);
         Company updatedCompany = companyRepository.save(company);
         return mapToResponseDTO(updatedCompany);
@@ -72,20 +72,20 @@ public class CompanyServiceImpl implements CompanyService {
      *   <li>Envia email de verificació a l'administrador</li>
      * </ol>
      *
-     * El compte del admin queda inactiu(emailVerified=false) fins verificació mitjançant token enviat al correu.
+     * El compte del admin queda inactiu (emailVerified=false) fins verificació mitjançant token enviat al correu.
      */
     @Override
     @Transactional
     public CompanyResponseDTO registerCompanyWithAdmin(CompanyRegistrationDTO registrationDTO) {
 
-        // Validar que el taxId no exista
+        // Validar que el taxId no existeixi
         if (companyRepository.existsByTaxId(registrationDTO.getTaxId())) {
             throw new DuplicateResourceException("El CIF/NIF ja està registrat");
         }
 
-        // Validar que el email del admin no existeixi
+        // Validar que l'email del admin no existeixi
         if (userRepository.existsByEmail(registrationDTO.getAdminEmail())) {
-            throw new DuplicateResourceException("L'email de l'administrador ja extà registrat");
+            throw new DuplicateResourceException("L'email de l'administrador ja està registrat");
         }
 
         // 1. Crear l'empresa
@@ -102,7 +102,7 @@ public class CompanyServiceImpl implements CompanyService {
 
         company = companyRepository.save(company);
 
-        // 2. Crear l'usuario administrador
+        // 2. Crear l'usuari administrador
         String verificationToken = UUID.randomUUID().toString();
 
         User admin = User.builder()
@@ -136,7 +136,7 @@ public class CompanyServiceImpl implements CompanyService {
     /**
      * Converteix una entitat Company al seu DTO de resposta.
      *
-     * @param company Entidad a convertir
+     * @param company entitat a convertir
      * @return DTO amb les dades de l'empresa
      */
     private CompanyResponseDTO mapToResponseDTO(Company company) {

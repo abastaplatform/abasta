@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * DTO per el registre complet d'una nova empresa amb usuari administrador.
+ * DTO pel registre complet d'una nova empresa amb usuari administrador.
  * Utilitzant el procés de registre públic d'empresa a la plataforma.
  * Conté les dades de l'empresa com les dades del primer usuari administrador, creat automàticament.
  *
@@ -22,12 +22,12 @@ public class CompanyRegistrationDTO {
 
     // ========== Dades de l'empresa ==========
 
-    /** Nomb comercial de l'empresa */
+    /** Nom comercial de l'empresa */
     @NotBlank(message = "El nom de l'empresa és obligatori")
     @Size(max = 255, message = "El nom no pot excedir 255 caràcters")
     private String companyName;
 
-    /** CIF o NIF d'identificación fiscal de l'empresa */
+    /** CIF o NIF d'identificació fiscal de l'empresa */
     @NotBlank(message = "El CIF/NIF és obligatori")
     @Size(max = 20, message = "El CIF no pot excedir 20 caràcters")
     private String taxId;
@@ -53,7 +53,7 @@ public class CompanyRegistrationDTO {
 
     /**
      * Email de l'usuari administrador.
-     * S'utilizarà per el login i per enviar l'email de verificació.
+     * S'utilitzarà per al login i per enviar l'email de verificació.
      */
     @NotBlank(message = "L'email de l'administrador és obligatori")
     @Email(message = "L'email ha de ser vàlid")
