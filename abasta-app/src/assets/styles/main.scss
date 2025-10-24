@@ -85,7 +85,9 @@ html {
 
 // Custom button hover effects
 .btn {
+  color: white;
   transition: all 0.3s ease;
+  font-weight: 600;
 
   &:hover {
     transform: translateY(-2px);
@@ -98,6 +100,7 @@ html {
   transition: all 0.3s ease;
 
   &.card-hover:hover {
+    color: white;
     transform: translateY(-4px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   }

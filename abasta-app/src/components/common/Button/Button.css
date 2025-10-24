@@ -1,0 +1,10 @@
+.cta-button {
+  background: linear-gradient(160deg, #6A36FF 0%, #AC5FE6 100%);
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 0.5rem;
+}
+
+.cta-button:hover{
+    color: white;
+}
