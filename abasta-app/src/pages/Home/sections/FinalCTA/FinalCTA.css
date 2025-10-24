@@ -1,0 +1,24 @@
+.cta-abasta {
+  background-color: #eaf4ff;
+  border-radius: 1rem;
+  margin: 3rem auto;
+  max-width: 700px;
+  width: 100%;
+  padding: 3rem 1rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.cta-title {
+  color: #0d1b73;
+  font-weight: 600;
+}
+
+.cta-subtitle {
+  color: #4a5568;
+  font-size: 1rem;
+}
+

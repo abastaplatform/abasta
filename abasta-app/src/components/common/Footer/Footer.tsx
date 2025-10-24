@@ -7,7 +7,7 @@ const Footer: React.FC = () => {
       <div className="container">
         <div className="row align-items-start">
 
-          <div className="col-4 col-md-4 d-flex flex-column justify-content-between text-start mb-2 mb-md-0" style={{ height: "150px" }}>
+          <div className="col-6 col-md-4 d-flex flex-column justify-content-between text-start mb-2 mb-md-0" style={{ height: "150px" }}>
             <div>
               <h3 className="footer-title mb-2">Abasta</h3>
               <p className="footer-description mb-0 text-break">
@@ -24,7 +24,7 @@ const Footer: React.FC = () => {
             </p>
           </div>
 
-          <div className="col-4 col-md-4 text-center mb-2 mb-md-0">
+          <div className="col-6 col-md-4 text-center mb-2 mb-md-0">
             <div className="footer-logo">
               LOGO
             </div>
@@ -34,7 +34,7 @@ const Footer: React.FC = () => {
             </p>
           </div>
 
-          <div className="col-4 col-md-4 text-start mb-2 mb-md-0">
+          <div className="col-6 col-md-4 text-start mb-2 mb-md-0">
             <ul className="footer-menu">
               <li><a href="#">Inici</a></li>
               <li><a href="#">Beneficis</a></li>
