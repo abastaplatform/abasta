@@ -1,6 +1,9 @@
 package cat.abasta_back_end.services.impl;
 
+import cat.abasta_back_end.dto.LoginRequestDTO;
+import cat.abasta_back_end.dto.LoginResponseDTO;
 import cat.abasta_back_end.dto.PasswordResetDTO;
+import cat.abasta_back_end.dto.UserResponseDTO;
 import cat.abasta_back_end.entities.User;
 import cat.abasta_back_end.entities.Company;
 import cat.abasta_back_end.exceptions.BadRequestException;
@@ -212,5 +215,48 @@ public class UserServiceImpl implements UserService {
 
         // Reenviar email
         emailService.sendEmailVerification(user.getEmail(), verificationToken, user.getFirstName());
+    }
+
+    /**
+     * Mapeja una entitat User a un DTO UserResponseDTO per enviar al client.
+     * Aquest mètode extreu només les dades segures i públiques de l'usuari,
+     * excloent informació delicada com contrasenyes o tokens.
+     *
+     * <p>El mapeig inclou:
+     * <ul>
+     *   <li>Identificadors (ID i UUID)</li>
+     *   <li>Informació de l'empresa (ID i nom)</li>
+     *   <li>Dades personals (nom, cognoms, email, telèfon)</li>
+     *   <li>Estat del compte (rol, actiu, email verificat)</li>
+     *   <li>Timestamps (últim login, creació, actualització)</li>
+     * </ul>
+     * </p>
+     *
+     * <p><strong>Nota:</strong> Aquest mètode assumeix que l'usuari té una empresa associada.
+     * Si un usuari pot no tenir empresa, caldria afegir validacions null-safe per evitar
+     * NullPointerException.</p>
+     *
+     * @param user l'entitat User de la base de dades
+     * @return UserResponseDTO amb les dades públiques de l'usuari
+     * @throws NullPointerException si l'usuari no té una empresa associada (company és null)
+     * @see UserResponseDTO
+     */
+    private UserResponseDTO mapToResponseDTO(User user) {
+        return UserResponseDTO.builder()
+                .id(user.getId())
+                .uuid(user.getUuid())
+                .companyId(user.getCompany().getId())
+                .companyName(user.getCompany().getName())
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .role(user.getRole())
+                .phone(user.getPhone())
+                .isActive(user.getIsActive())
+                .emailVerified(user.getEmailVerified())
+                .lastLogin(user.getLastLogin())
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
+                .build();
     }
 }
