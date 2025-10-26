@@ -54,7 +54,7 @@ const Navbar = () => {
             <ul className="navbar-nav ms-auto align-items-lg-center gap-2">
               <li className="nav-item">
                 <Link
-                  className="nav-link text-light"
+                  className="btn btn-outline-0 bg-transparent"
                   to="/login"
                   onClick={closeMenu}
                 >
