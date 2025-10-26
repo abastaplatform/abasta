@@ -1,18 +1,20 @@
 .hero-section {
   background: linear-gradient(90deg, #1a237e 0%, #3348c2 50%, #2a3eaf 100%);
   padding: 2rem 1rem;
+  position: relative;
+  overflow: hidden;
 
   .hero-bg {
     position: absolute;
     left: 0;
-    top: 0;
+    bottom: 0;
     height: 100%;
     width: auto;
     z-index: 0;
+    object-fit: cover;
   }
 
   .container {
-    position: relative;
     z-index: 1;
   }
 
