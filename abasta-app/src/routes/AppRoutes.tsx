@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 
 import PublicLayout from '../layouts/PublicLayout';
+import PrivateLayout from '../layouts/PrivateLayout';
 
 import HomePage from '../pages/Home';
 import LoginForm from '../components/auth/LoginForm/LoginForm';
@@ -15,7 +16,7 @@ const AppRoutes = () => {
         <Route path="/recover" element={<div>Recover page</div>} />
       </Route>
 
-      <Route element={<PublicLayout />}>
+      <Route element={<PrivateLayout />}>
         <Route path="/dashboard" element={<div>Dashboard page</div>} />
       </Route>
     </Routes>

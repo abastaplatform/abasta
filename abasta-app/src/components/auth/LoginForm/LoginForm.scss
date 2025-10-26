@@ -1,8 +1,15 @@
 .login-container {
   min-height: 100vh;
-  background: #ffffff;
   position: relative;
   padding-top: 2rem;
+
+  .login-illustration {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    z-index: 0;
+  }
 
   .login-card {
     width: 100%;

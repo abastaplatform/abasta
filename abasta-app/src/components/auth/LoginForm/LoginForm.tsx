@@ -23,7 +23,11 @@ const LoginForm: React.FC = () => {
   return (
     <div className="login-container d-flex align-items-start justify-content-center">
       <Topbar />
-
+      <img
+        src="/images/benefits-1.png"
+        alt="Background illustration"
+        className="login-illustration d-none d-md-block"
+      />
       <div className="login-card p-4 mt-5">
         <h2 className="text-primary mb-1">Iniciar sessió</h2>
         <p className="login-subtitle mb-4">Accedeix al teu compte</p>
