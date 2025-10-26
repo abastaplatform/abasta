@@ -11,7 +11,8 @@ const AppRoutes = () => {
       <Route element={<PublicLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginForm />} />
-        <Route path="/registrer" element={<div>Register page</div>} />
+        <Route path="/register" element={<div>Register page</div>} />
+        <Route path="/recover" element={<div>Recover page</div>} />
       </Route>
 
       <Route element={<PublicLayout />}>

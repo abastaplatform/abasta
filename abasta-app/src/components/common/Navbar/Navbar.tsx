@@ -53,11 +53,7 @@ const Navbar = () => {
           >
             <ul className="navbar-nav ms-auto align-items-lg-center gap-2">
               <li className="nav-item">
-                <Link
-                  className="btn btn-outline-0 bg-transparent"
-                  to="/login"
-                  onClick={closeMenu}
-                >
+                <Link className="btn btn-outline-0 bg-transparent" to="/login">
                   Inicia sessió
                 </Link>
               </li>
@@ -65,7 +61,6 @@ const Navbar = () => {
                 <Link
                   className="btn btn-outline-light bg-transparent"
                   to="/register"
-                  onClick={closeMenu}
                 >
                   Registra't
                 </Link>
