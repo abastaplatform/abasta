@@ -56,6 +56,7 @@ CREATE DATABASE abasta_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 <details>
 <summary>Script de creació de taules</summary>
+
 ```sql
 CREATE TABLE companies (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
