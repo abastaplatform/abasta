@@ -11,6 +11,11 @@ const AppRoutes = () => {
       <Route element={<PublicLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginForm />} />
+        <Route path="/registrer" element={<div>Register page</div>} />
+      </Route>
+
+      <Route element={<PublicLayout />}>
+        <Route path="/dashboard" element={<div>Dashboard page</div>} />
       </Route>
     </Routes>
   );
