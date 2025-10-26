@@ -28,3 +28,6 @@ abasta-db/*.db
 abasta-db/*.sqlite
 abasta-db/backups/
 abasta-db/temp/
+
+node_modules/
+package-lock.json

@@ -1,18 +1,24 @@
-import { useState } from 'react';
-import { Form } from 'react-bootstrap';
+import { Alert, Form } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+
+import { useLoginForm } from '../../../hooks/useLoginForm';
+
 import './LoginForm.scss';
 
 import Button from '../../common/Button/Button';
 import Topbar from '../../common/Topbar/Topbar';
 
 const LoginForm: React.FC = () => {
-  const [showPassword, setShowPassword] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Enviar login');
-  };
+  const {
+    register,
+    handleSubmit,
+    errors,
+    showPassword,
+    setShowPassword,
+    isLoading,
+    error,
+    setError,
+  } = useLoginForm();
 
   return (
     <div className="login-container d-flex align-items-start justify-content-center">
@@ -22,6 +28,13 @@ const LoginForm: React.FC = () => {
         <h2 className="text-primary mb-1">Iniciar sessió</h2>
         <p className="login-subtitle mb-4">Accedeix al teu compte</p>
 
+        {error && (
+          <Alert variant="danger" dismissible onClose={() => setError('')}>
+            <i className="bi bi-exclamation-circle me-2"></i>
+            {error}
+          </Alert>
+        )}
+
         <Form onSubmit={handleSubmit}>
           {/* Email */}
           <Form.Group controlId="formEmail" className="mb-3 text-start">
@@ -29,8 +42,19 @@ const LoginForm: React.FC = () => {
             <Form.Control
               type="email"
               placeholder="mattsmith@mail.com"
-              required
+              {...register('email', {
+                required: 'El correu electrònic és obligatori',
+                pattern: {
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  message: 'Correu electrònic no vàlid',
+                },
+              })}
+              isInvalid={!!errors.email}
+              disabled={isLoading}
             />
+            <Form.Control.Feedback type="invalid">
+              {errors.email?.message}
+            </Form.Control.Feedback>
           </Form.Group>
 
           {/* Password */}
@@ -43,7 +67,15 @@ const LoginForm: React.FC = () => {
               <Form.Control
                 type={showPassword ? 'text' : 'password'}
                 placeholder="······"
-                required
+                {...register('password', {
+                  required: 'La contrasenya és obligatòria',
+                  minLength: {
+                    value: 6,
+                    message: 'La contrasenya ha de tenir almenys 6 caràcters',
+                  },
+                })}
+                isInvalid={!!errors.password}
+                disabled={isLoading}
               />
               <button
                 type="button"
@@ -52,16 +84,25 @@ const LoginForm: React.FC = () => {
                 aria-label={
                   showPassword ? 'Ocultar contrasenya' : 'Mostrar contrasenya'
                 }
+                disabled={isLoading}
               >
                 <i
                   className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`}
                 />
               </button>
+              <Form.Control.Feedback type="invalid">
+                {errors.password?.message}
+              </Form.Control.Feedback>
             </div>
           </Form.Group>
 
           <span className="d-flex justify-content-center">
-            <Button title="Iniciar sessió" type="submit" />
+            <Button
+              title={isLoading ? 'Iniciant sessió...' : 'Iniciar sessió'}
+              type="submit"
+              disabled={isLoading}
+              isLoading={isLoading}
+            />
           </span>
         </Form>
 
