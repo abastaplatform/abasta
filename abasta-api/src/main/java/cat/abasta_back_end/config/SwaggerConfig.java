@@ -18,8 +18,8 @@ import java.util.List;
  * Proporciona una interfície web interactiva per explorar i provar tots els endpoints
  * de l'aplicació amb suport per a autenticació JWT.
  *
- * <p>Swagger UI està disponible a: <code>http://localhost:8080/swagger-ui.html</code></p>
- * <p>Documentació OpenAPI JSON: <code>http://localhost:8080/v3/api-docs</code></p>
+ * <p>Swagger UI està disponible a: <code>https://deveps.ddns.net/abasta/swagger-ui.html</code></p>
+ * <p>Documentació OpenAPI JSON: <code>https://deveps.ddns.net/abasta/v3/api-docs</code></p>
  *
  * <p>Aquesta configuració inclou:
  * <ul>
@@ -33,7 +33,7 @@ import java.util.List;
  *
  * <p><strong>Com utilitzar Swagger UI:</strong></p>
  * <ol>
- *   <li>Accedeix a http://localhost:8080/swagger-ui.html</li>
+ *   <li>Accedeix a <a href="https://deveps.ddns.net/abasta/swagger-ui.html">swagger-ui.html</a></li>
  *   <li>Fes login utilitzant l'endpoint POST /api/auth/login</li>
  *   <li>Copia el token JWT de la resposta</li>
  *   <li>Clica el botó "Authorize" (icona de cadenat) a la part superior</li>
@@ -53,9 +53,9 @@ public class SwaggerConfig {
     /**
      * URL del frontend de l'aplicació configurada a application.properties.
      * S'utilitza per configurar CORS i referències a la documentació.
-     * Valor per defecte: http://localhost:5173 (entorn de desenvolupament amb Vite/React)
+     * Valor per defecte: https://deveps.ddns.net/abasta (amb Vite/React)
      */
-    @Value("${app.frontend.url:http://localhost:5173}")
+    @Value("${app.frontend.url:https://deveps.ddns.net/abasta}")
     private String frontendUrl;
 
     /**
@@ -117,8 +117,13 @@ public class SwaggerConfig {
 
         // Servidor local
         Server localServer = new Server()
-                .url("http://localhost:8080")
+                .url("http://localhost:8084")
                 .description("Servidor de desenvolupament local");
+
+        // Servidor de producció
+        Server productionServer = new Server()
+                .url(frontendUrl)
+                .description("Servidor de producció");
 
         // Informació de l'API
         Info info = new Info()
@@ -150,14 +155,14 @@ public class SwaggerConfig {
                 .contact(new Contact()
                         .name("Equip Abasta")
                         .email("abasta.platform@gmail.com")
-                        .url("https://deveps.ddns.net/abasta"))
+                        .url(frontendUrl))
                 .license(new License()
                         .name("Apache 2.0")
                         .url("https://www.apache.org/licenses/LICENSE-2.0.html"));
 
         return new OpenAPI()
                 .info(info)
-                .servers(List.of(localServer))
+                .servers(List.of(localServer, productionServer))
                 .addSecurityItem(securityRequirement)
                 .schemaRequirement("Bearer Authentication", securityScheme);
     }

@@ -53,9 +53,9 @@ public class EmailServiceImpl implements EmailService {
 
     /**
      * URL del frontend de l'aplicació per generar enllaços de verificació.
-     * S'obté de la propietat app.frontend.url amb valor per defecte http://localhost:5173.
+     * S'obté de la propietat app.frontend.url amb valor per defecte https://deveps.ddns.net/abasta.
      */
-    @Value("${app.frontend.url:http://localhost:5173}")
+    @Value("${app.frontend.url:https://deveps.ddns.net/abasta}")
     private String frontendUrl;
 
     /**

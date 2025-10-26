@@ -52,6 +52,7 @@ public class SecurityConfig {
     /**
      * Configura CORS (Cross-Origin Resource Sharing) per permetre peticions des de dominis específics.
      * Permet peticions des de localhost:5173 i localhost:3000 (entorns de desenvolupament frontend).
+     * I també permet peticions des de https://deveps.ddns.net (entorn de producció).
      *
      * @return la configuració de CORS per a l'aplicació
      */
@@ -59,7 +60,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOriginPatterns(Arrays.asList("http://localhost:5173*", "http://localhost:3000*"));
+        config.setAllowedOriginPatterns(Arrays.asList("http://localhost:5173*", "https://deveps.ddns.net"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setAllowCredentials(true);
