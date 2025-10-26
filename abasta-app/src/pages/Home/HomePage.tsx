@@ -1,4 +1,3 @@
-import 'bootstrap/dist/css/bootstrap.min.css';
 import Carousel from '../../components/common/Carousel';
 import FinalCTA from './sections/FinalCTA/FinalCTA';
 import Footer from '../../components/common/Footer/Footer';
