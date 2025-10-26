@@ -17,14 +17,6 @@ import java.util.Optional;
 public interface CompanyRepository extends JpaRepository<Company, Long> {
 
     /**
-     * Cerca una empresa per el seu identificador UUID.
-     *
-     * @param uuid Identificador UUID de l'empresa
-     * @return Optional amb l'empresa si existeix, buit en cas contrari
-     */
-    Optional<Company> findByUuid(String uuid);
-
-    /**
      * Verifica si existeix una empresa amb el taxId especificat
      * Útil per validacions de duplicitat abans de crear l'empresa.
      *
