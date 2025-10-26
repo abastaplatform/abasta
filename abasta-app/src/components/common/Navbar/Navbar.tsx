@@ -149,7 +149,7 @@ const Navbar = () => {
               </div>
             </div>
             <button
-              className="btn btn-outline-light w-100 mt-2"
+              className="btn btn-outline-light w-100 mt-2 bg-transparent"
               onClick={() => {
                 handleLogout();
                 closeMenu();
