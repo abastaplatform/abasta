@@ -72,11 +72,7 @@ const Navbar = () => {
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm sticky-top">
       <div className="container-fluid px-3 px-lg-4">
-        <Link
-          className="navbar-brand fw-bold"
-          to="/dashboard"
-          onClick={closeMenu}
-        >
+        <Link className="navbar-brand fw-bold" to="/" onClick={closeMenu}>
           Abasta
         </Link>
 
