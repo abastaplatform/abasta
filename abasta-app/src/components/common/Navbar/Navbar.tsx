@@ -63,7 +63,7 @@ const Navbar = () => {
               </li>
               <li className="nav-item">
                 <Link
-                  className="btn btn-outline-light"
+                  className="btn btn-outline-light bg-transparent"
                   to="/register"
                   onClick={closeMenu}
                 >
