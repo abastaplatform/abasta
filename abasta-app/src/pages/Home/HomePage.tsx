@@ -1,11 +1,12 @@
-import "bootstrap/dist/css/bootstrap.min.css";
-import Carousel from "../../components/common/Carousel";
-import FinalCTA from "./sections/FinalCTA/FinalCTA";
-import Footer from "../../components/common/Footer/Footer";
+import 'bootstrap/dist/css/bootstrap.min.css';
+import Carousel from '../../components/common/Carousel';
+import FinalCTA from './sections/FinalCTA/FinalCTA';
+import Footer from '../../components/common/Footer/Footer';
 
 const HomePage = () => {
   return (
-    <div className="">
+    <div>
+      {' '}
       {/* Contingut principal */}
       <main className="flex-fill text-center mt-5">
         <h1>Welcome to the Home Page!</h1>
@@ -16,6 +17,5 @@ const HomePage = () => {
     </div>
   );
 };
-
 
 export default HomePage;
