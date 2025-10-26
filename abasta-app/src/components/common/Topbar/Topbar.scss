@@ -1,0 +1,32 @@
+.topbar {
+  position: absolute;
+  top: 20px;
+  left: 24px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+
+  .back-button {
+    color: #fff;
+    background: #b9b9b9;
+    border-radius: 50%;
+    text-decoration: none;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    height: 40px;
+    width: 40px;
+    justify-content: center;
+
+    i {
+      font-size: 1.4rem;
+      color: #fff;
+      line-height: 1;
+    }
+
+    &:hover {
+      opacity: 0.95;
+      text-decoration: none;
+    }
+  }
+}

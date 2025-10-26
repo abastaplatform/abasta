@@ -1,0 +1,63 @@
+.hero-section {
+  background: linear-gradient(90deg, #1a237e 0%, #3348c2 50%, #2a3eaf 100%);
+  padding: 2rem 1rem;
+  position: relative;
+  overflow: hidden;
+
+  .hero-bg {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 100%;
+    width: auto;
+    z-index: 0;
+    object-fit: cover;
+  }
+
+  .container {
+    z-index: 1;
+  }
+
+  @media (min-width: 576px) {
+    padding: 3rem 2rem;
+  }
+
+  @media (min-width: 768px) {
+    padding: 4rem 3rem;
+  }
+
+  @media (min-width: 992px) {
+    padding: 5rem 4rem;
+  }
+
+  @media (min-width: 1200px) {
+    padding: 6rem 16rem;
+  }
+}
+
+.logo {
+  width: 200px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+
+  @media (min-width: 576px) {
+    width: 220px;
+    padding: 1.5rem;
+  }
+
+  @media (min-width: 768px) {
+    width: 250px;
+    padding: 2rem;
+  }
+
+  @media (min-width: 992px) {
+    width: 280px;
+    padding: 2.5rem;
+  }
+
+  @media (min-width: 1200px) {
+    width: 300px;
+    padding: 3rem;
+  }
+}

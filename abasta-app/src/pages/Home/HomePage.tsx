@@ -1,21 +1,19 @@
-import "bootstrap/dist/css/bootstrap.min.css";
-import Carousel from "../../components/common/Carousel";
-import FinalCTA from "./sections/FinalCTA/FinalCTA";
-import Footer from "../../components/common/Footer/Footer";
+import HeroSection from './sections/HeroSection/HeroSection';
+import Carousel from '../../components/common/Carousel';
+import FinalCTA from './sections/FinalCTA/FinalCTA';
+import BenefitsSection from './sections/BenefitsSection/BenefitsSection';
+import HowItWorksSection from './sections/HowItWorksSection/HowItWorksSection';
 
 const HomePage = () => {
   return (
-    <div className="">
-      {/* Contingut principal */}
-      <main className="flex-fill text-center mt-5">
-        <h1>Welcome to the Home Page!</h1>
-      </main>
+    <div>
+      <HeroSection />
+      <BenefitsSection />
+      <HowItWorksSection />
       <Carousel />
       <FinalCTA />
-      <Footer />
     </div>
   );
 };
-
 
 export default HomePage;

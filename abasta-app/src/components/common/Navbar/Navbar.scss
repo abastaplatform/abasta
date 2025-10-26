@@ -1,0 +1,128 @@
+@use '../../../assets/styles/variables' as *;
+
+.navbar {
+  background: linear-gradient(90deg, #1a237e 0%, #3348c2 50%, #2a3eaf 100%);
+  transition: all 0.3s ease;
+
+  .navbar-brand {
+    font-size: 1.5rem;
+    letter-spacing: -0.5px;
+  }
+
+  .nav-link.active {
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80%;
+      height: 2px;
+      background: currentColor;
+    }
+  }
+
+  .navbar-toggler {
+    &:focus {
+      box-shadow: none;
+      outline: none;
+    }
+
+    i {
+      color: #ffffffcc;
+      transition:
+        color 0.3s ease,
+        transform 0.3s ease;
+    }
+
+    &:hover i {
+      color: #fff;
+      transform: scale(1.1);
+    }
+  }
+
+  // User avatar
+  .user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+
+  // Dropdown adjustments
+  .dropdown-menu {
+    margin-top: 0.5rem;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+    .dropdown-item {
+      padding: 0.625rem 1.25rem;
+      transition: background-color 0.2s ease;
+
+      &:hover {
+        background-color: rgba($primary, 0.1);
+      }
+
+      i {
+        width: 20px;
+      }
+    }
+  }
+
+  // Mobile menu
+  @media (max-width: 991.98px) {
+    .navbar-collapse {
+      margin-top: 1rem;
+
+      &.show {
+        padding-bottom: 1.5rem;
+      }
+    }
+
+    .nav-link {
+      padding: 0.75rem 0;
+    }
+
+    .btn-primary {
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+  }
+
+  // Sticky navbar effect
+  &.sticky-top {
+    &.scrolled {
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    }
+  }
+}
+
+// Public navbar
+.navbar-light {
+  .nav-link {
+    transition: color 0.3s ease;
+
+    &:hover {
+      color: $primary;
+    }
+  }
+}
+
+// Private navbar
+.navbar-dark {
+  .nav-link {
+    transition: all 0.3s ease;
+
+    &:hover,
+    &.active {
+      color: white;
+    }
+  }
+}

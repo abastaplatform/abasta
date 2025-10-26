@@ -1,0 +1,35 @@
+.benefits-section {
+  padding: 2rem 1rem;
+  position: relative;
+  overflow: hidden;
+
+  .benefits-bg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: auto;
+    width: 100%;
+    z-index: 0;
+    object-fit: cover;
+  }
+
+  .container {
+    z-index: 1;
+  }
+
+  @media (min-width: 576px) {
+    padding: 3rem 2rem;
+  }
+
+  @media (min-width: 768px) {
+    padding: 4rem 3rem;
+  }
+
+  @media (min-width: 992px) {
+    padding: 5rem 4rem;
+  }
+
+  @media (min-width: 1200px) {
+    padding: 6rem 16rem;
+  }
+}
