@@ -1,0 +1,33 @@
+.how-it-works-section {
+  padding: 2rem 1rem;
+  background-color: #f3f4fa;
+  position: relative;
+  overflow: hidden;
+
+  .hiw-bg {
+    width: 100%;
+    z-index: 0;
+  }
+
+  .image-container {
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+  }
+
+  @media (min-width: 576px) {
+    padding: 3rem 2rem;
+  }
+
+  @media (min-width: 768px) {
+    padding: 4rem 3rem;
+  }
+
+  @media (min-width: 992px) {
+    padding: 5rem 4rem;
+  }
+
+  @media (min-width: 1200px) {
+    padding: 6rem 16rem;
+  }
+}
