@@ -3,10 +3,8 @@ package cat.abasta_back_end.services.impl;
 import cat.abasta_back_end.dto.CompanyRegistrationDTO;
 import cat.abasta_back_end.dto.CompanyResponseDTO;
 import cat.abasta_back_end.entities.Company;
-import cat.abasta_back_end.entities.Company.CompanyStatus;
 import cat.abasta_back_end.entities.User;
 import cat.abasta_back_end.exceptions.DuplicateResourceException;
-import cat.abasta_back_end.exceptions.ResourceNotFoundException;
 import cat.abasta_back_end.repositories.CompanyRepository;
 import cat.abasta_back_end.repositories.UserRepository;
 import cat.abasta_back_end.services.CompanyService;
@@ -36,29 +34,6 @@ public class CompanyServiceImpl implements CompanyService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public CompanyResponseDTO getCompanyByUuid(String uuid) {
-        Company company = companyRepository.findByUuid(uuid)
-                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb UUID: " + uuid));
-        return mapToResponseDTO(company);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public CompanyResponseDTO changeCompanyStatus(Long id, CompanyStatus status) {
-        Company company = companyRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb ID: " + id));
-        company.setStatus(status);
-        Company updatedCompany = companyRepository.save(company);
-        return mapToResponseDTO(updatedCompany);
-    }
 
     /**
      * {@inheritDoc}
