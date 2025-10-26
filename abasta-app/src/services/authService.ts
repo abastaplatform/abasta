@@ -2,9 +2,11 @@ import type { User } from '../types/user.types';
 import api from './api';
 
 interface LoginResponse {
-  token: string;
   type: string;
-  user: User;
+  data: {
+    token: string;
+    user: User;
+  };
 }
 
 interface RegisterRequest {
@@ -29,8 +31,8 @@ class AuthService {
       password,
     });
 
-    localStorage.setItem('token', response.token);
-    localStorage.setItem('user', JSON.stringify(response.user));
+    localStorage.setItem('token', response.data.token);
+    localStorage.setItem('user', JSON.stringify(response.data.user));
 
     return response;
   }

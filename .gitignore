@@ -1,5 +1,6 @@
 # Ignore Node.js dependencies for abasta-app
 abasta-app/node_modules/
+abasta-app/package-lock.json
 
 # Ignore environment files
 .env

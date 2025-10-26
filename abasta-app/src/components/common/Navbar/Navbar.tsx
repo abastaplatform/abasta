@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/useAuth';
 import './Navbar.scss';
 
 const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
 
@@ -21,10 +21,6 @@ const Navbar = () => {
 
   const closeMenu = () => {
     setIsMenuOpen(false);
-  };
-
-  const isActiveLink = (path: string) => {
-    return location.pathname === path ? 'active' : '';
   };
 
   // Not auth users Navbar
@@ -100,11 +96,7 @@ const Navbar = () => {
           {/* Navigation links */}
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
             <li className="nav-item">
-              <Link
-                className={`nav-link ${isActiveLink('/dashboard')}`}
-                to="/dashboard"
-                onClick={closeMenu}
-              >
+              <Link className={`nav-link`} to="/dashboard" onClick={closeMenu}>
                 Inici
               </Link>
             </li>

@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const login = async (email: string, password: string): Promise<void> => {
     try {
       const response = await authService.login(email, password);
-      setUser(response.user);
+      setUser(response.data.user);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Login error:', error);
