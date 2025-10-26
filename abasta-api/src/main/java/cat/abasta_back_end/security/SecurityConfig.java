@@ -52,6 +52,7 @@ public class SecurityConfig {
     /**
      * Configura CORS (Cross-Origin Resource Sharing) per permetre peticions des de dominis específics.
      * Permet peticions des de localhost:5173 i localhost:3000 (entorns de desenvolupament frontend).
+     * I també permet peticions des de https://deveps.ddns.net (entorn de producció).
      *
      * @return la configuració de CORS per a l'aplicació
      */
@@ -59,7 +60,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOriginPatterns(Arrays.asList("http://localhost:5173*", "http://localhost:3000*"));
+        config.setAllowedOriginPatterns(Arrays.asList("http://localhost:5173*", "https://deveps.ddns.net"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setAllowCredentials(true);
@@ -79,18 +80,33 @@ public class SecurityConfig {
      * @throws Exception si es produeix un error durant la configuració
      */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/users/verify-email/**").permitAll()
-                        .requestMatchers("/api/users/resend-verification").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/companies/public").permitAll()
+                        // Swagger endpoints - públics
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/swagger-ui.html").permitAll()
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-resources/**").permitAll()
+                        .requestMatchers("/webjars/**").permitAll()
+
+                        // Auth endpoints - públics
+                        .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/forgot-password").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/reset-password").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/verify-email").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/resend-verification").permitAll()
+
+                        // Companies - públics per al registre
+                        .requestMatchers(HttpMethod.POST, "/api/companies/register").permitAll()
+
+                        // Tots els altres endpoints requereixen autenticació
+                        .requestMatchers("/api/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
