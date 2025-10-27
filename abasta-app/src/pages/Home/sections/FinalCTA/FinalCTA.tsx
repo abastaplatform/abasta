@@ -8,7 +8,7 @@ const FinalCTA: React.FC = () => {
   return (
     <section className="cta-abasta d-flex justify-content-center align-items-center text-center py-5">
       <div className="container">
-        <h1 className="cta-title mb-3">Preparat per començar?</h1>
+        <h2 className="cta-title mb-3">Preparat per començar?</h2>
         <p className="cta-subtitle mb-4">
           Uneix-te a Abasta i transforma la gestió<br/>
           de la teva empresa avui mateix

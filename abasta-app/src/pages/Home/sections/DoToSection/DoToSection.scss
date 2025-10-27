@@ -1,0 +1,51 @@
+.do-to-section {
+  padding: 2rem 1rem;
+  position: relative;
+  overflow: hidden;
+
+  .hiw-bg {
+    width: 100%;
+    z-index: 0;
+  }
+
+  .image-container {
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+  }
+   h2 {
+    color: #1a237e;
+    font-weight: 700;
+  }
+
+  .gradient-btn {
+    background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
+    color: #fff;
+    border: none;
+    padding: 10px 28px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+
+    &:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+  }
+
+  @media (min-width: 576px) {
+    padding: 3rem 2rem;
+  }
+
+  @media (min-width: 768px) {
+    padding: 4rem 3rem;
+  }
+
+  @media (min-width: 992px) {
+    padding: 5rem 4rem;
+  }
+
+  @media (min-width: 1200px) {
+    padding: 6rem 16rem;
+  }
+}
