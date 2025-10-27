@@ -1,0 +1,54 @@
+.multi-card-carousel {
+    overflow: hidden; 
+    
+    .carousel-item .col-lg-4 .carousel-card {
+        max-width: 100%;
+        width: 100%;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+    
+    .multi-card-carousel {
+        overflow: hidden; 
+    }
+    
+    .multi-card-carousel .carousel-item .row {
+        display: flex;
+        flex-wrap: nowrap;
+        width: 150%; 
+        margin-left: 0;
+        margin-right: 0;
+    }
+    
+    .multi-card-carousel .carousel-item .row .col-md-6 {
+        flex: 0 0 33.333333%;
+        max-width: 33.333333%;
+        
+        padding-left: 0.5rem; 
+        padding-right: 0.5rem;
+    }
+
+    .multi-card-carousel .carousel-item .row .col-md-6 .carousel-card {
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
+
+@media (max-width: 767.98px) {
+    
+    .multi-card-carousel .carousel-item .row {
+        display: flex;
+        flex-wrap: nowrap;
+        width: 300%; 
+    }
+
+    .multi-card-carousel .carousel-item .row .col-12 {
+        flex: 0 0 33.333333%;
+        max-width: 33.333333%; 
+        padding-left: 0.5rem; 
+        padding-right: 0.5rem;
+    }
+    
+}
