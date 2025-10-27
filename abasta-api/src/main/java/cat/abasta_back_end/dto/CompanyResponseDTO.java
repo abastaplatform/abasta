@@ -20,9 +20,6 @@ import java.time.LocalDateTime;
 @Builder
 public class CompanyResponseDTO {
 
-    /** Identificador únic númeric de l'empresa */
-    private Long id;
-
     /** Identificador UUID de l'empresa, utilitzat per la identificació pública */
     private String uuid;
 
