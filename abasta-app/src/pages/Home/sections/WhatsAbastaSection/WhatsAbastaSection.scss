@@ -1,0 +1,15 @@
+.section-abasta {
+  padding: 3rem 0;
+
+  &__list {
+    max-width: 600px;
+    margin: 0 auto;
+    list-style: none;
+    padding: 0;
+    text-align: left;
+
+    li {
+      margin-bottom: 0.8rem;
+    }
+  }
+}
