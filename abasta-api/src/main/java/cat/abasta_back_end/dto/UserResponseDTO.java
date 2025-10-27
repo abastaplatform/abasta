@@ -25,7 +25,6 @@ import java.time.LocalDateTime;
  * <p>Exemple d'ús típic:
  * <pre>
  * UserResponseDTO userDTO = UserResponseDTO.builder()
- *     .id(user.getId())
  *     .uuid(user.getUuid())
  *     .email(user.getEmail())
  *     .firstName(user.getFirstName())
@@ -51,9 +50,8 @@ import java.time.LocalDateTime;
  * <p>Estructura JSON de la resposta:
  * <pre>
  * {
- *   "id": 1,
  *   "uuid": "550e8400-e29b-41d4-a716-446655440000",
- *   "companyId": 5,
+ *   "companyUuid": "550e8400-e29b-41d4-a716-446655440000",
  *   "companyName": "Abasta Tech SL",
  *   "email": "joan.garcia@example.com",
  *   "firstName": "Joan",
@@ -71,23 +69,15 @@ import java.time.LocalDateTime;
  *
  * @author Enrique Pérez
  * @version 1.0
- * @since 2025
  * @see User
  * @see LoginResponseDTO
+ * @since 2025
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class UserResponseDTO {
-
-    /**
-     * Identificador únic numèric de l'usuari a la base de dades.
-     * Aquest és l'identificador principal utilitzat internament per l'aplicació.
-     *
-     * <p>Es genera automàticament per la base de dades quan es crea un usuari nou.</p>
-     */
-    private Long id;
 
     /**
      * Identificador únic universal (UUID) de l'usuari.
@@ -106,7 +96,7 @@ public class UserResponseDTO {
      * <p>Aquest camp pot ser null si l'usuari no està associat a cap empresa
      * o si és un usuari del sistema.</p>
      */
-    private Long companyId;
+    private String companyUuid;
 
     /**
      * Nom de l'empresa a la qual pertany l'usuari.

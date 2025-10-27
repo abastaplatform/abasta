@@ -116,7 +116,6 @@ public class CompanyServiceImpl implements CompanyService {
      */
     private CompanyResponseDTO mapToResponseDTO(Company company) {
         return CompanyResponseDTO.builder()
-                .id(company.getId())
                 .uuid(company.getUuid())
                 .name(company.getName())
                 .taxId(company.getTaxId())
