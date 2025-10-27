@@ -18,11 +18,13 @@ const HomePage = () => {
       <span id="how-it-works">
         <HowItWorksSection />
       </span>
-      <span id="features"></span>
-      <span id="sectors"></span>
-      <span id="testimonials">
+      <span id="features">
         <DoToSection />
+      </span>
+      <span id="sectors">
         <WhatsAbastaSection />
+      </span>
+      <span id="testimonials">
         <Carousel />
       </span>
 
