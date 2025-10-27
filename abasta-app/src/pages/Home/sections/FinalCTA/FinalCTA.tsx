@@ -2,10 +2,7 @@ import "./FinalCTA.css";
 import { Link } from 'react-router-dom';
 import Button from"../../../../components/common/Button/Button";
 
-const FinalCTA: React.FC = () => {
-  const handleClick= () => {
-    console.log("TEST Button")
-  }
+const FinalCTA = () => {
   return (
     <section className="cta-abasta d-flex justify-content-center align-items-center text-center py-5">
       <div className="container">
