@@ -14,6 +14,11 @@ const AppRoutes = () => {
         <Route path="/login" element={<LoginForm />} />
         <Route path="/register" element={<div>Register page</div>} />
         <Route path="/recover" element={<div>Recover page</div>} />
+        <Route path="/reset" element={<div>Reset page</div>} />
+        <Route path="/privacy" element={<div>Privacy page</div>} />
+        <Route path="/terms" element={<div>Terms page</div>} />
+        <Route path="/cookies" element={<div>Cookies page</div>} />
+        <Route path="/accessibility" element={<div>Accessibility page</div>} />
       </Route>
 
       <Route element={<PrivateLayout />}>
