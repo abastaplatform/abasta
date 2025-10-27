@@ -78,6 +78,10 @@ class AuthService {
   isAuthenticated(): boolean {
     return !!this.getToken();
   }
+
+  async verifyEmail(token: string): Promise<void> {
+    return api.post('/auth/verify-email', { token }).then(() => {});
+  }
 }
 
 export default new AuthService();
