@@ -8,6 +8,7 @@ import LoginForm from '../components/auth/LoginForm/LoginForm';
 import RegisterForm from '../components/auth/RegisterForm/RegisterForm';
 import VerifyEmail from '../components/auth/VerifyEmail/VerifyEmail';
 import RecoverPasswordForm from '../components/auth/RecoverPasswordForm/RecoverPasswordForm';
+import ResetPasswordForm from '../components/auth/ResetPasswordForm/ResetPasswordForm';
 
 const AppRoutes = () => {
   return (
@@ -18,7 +19,7 @@ const AppRoutes = () => {
         <Route path="/register" element={<RegisterForm />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/recover" element={<RecoverPasswordForm />} />
-        <Route path="/reset" element={<div>Reset page</div>} />
+        <Route path="/reset-password" element={<ResetPasswordForm />} />
         <Route path="/privacy" element={<div>Privacy page</div>} />
         <Route path="/terms" element={<div>Terms page</div>} />
         <Route path="/cookies" element={<div>Cookies page</div>} />
