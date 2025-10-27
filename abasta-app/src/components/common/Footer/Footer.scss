@@ -1,0 +1,143 @@
+@use '../../../assets/styles/variables' as *;
+
+.footer-abasta {
+  background: linear-gradient(90deg, #1a237e 0%, #3348c2 50%, #2a3eaf 100%);
+  color: #ffffff;
+  margin-top: auto;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+
+  .footer-title {
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: #ffffff;
+    margin-bottom: 1rem;
+  }
+
+  .footer-subtitle {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #ffffff;
+    margin-bottom: 1rem;
+  }
+
+  .footer-description {
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.5;
+  }
+
+  .footer-menu {
+    li {
+      margin-bottom: 0.5rem;
+
+      a {
+        color: rgba(255, 255, 255, 0.85);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-block;
+
+        &:hover {
+          color: #ffffff;
+          transform: translateX(4px);
+        }
+      }
+    }
+  }
+
+  .footer-contact {
+    li {
+      color: rgba(255, 255, 255, 0.85);
+      margin-bottom: 0.5rem;
+
+      a {
+        color: rgba(255, 255, 255, 0.85);
+        text-decoration: none;
+        transition: color 0.3s ease;
+
+        &:hover {
+          color: #ffffff;
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+
+  .footer-divider {
+    border-color: rgba(255, 255, 255, 0.2);
+    opacity: 1;
+  }
+
+  .footer-copyright {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.875rem;
+  }
+
+  .footer-social {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+
+    @media (min-width: 768px) {
+      justify-content: flex-end;
+    }
+
+    a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      transition: all 0.3s ease;
+      text-decoration: none;
+
+      i {
+        font-size: 1.125rem;
+      }
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-3px);
+      }
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    padding-left: 0;
+
+    .container {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+
+    .footer-title {
+      font-size: 1.25rem;
+    }
+
+    .footer-subtitle {
+      font-size: 0.9375rem;
+    }
+
+    .row {
+      text-align: center;
+
+      .col-6 {
+        text-align: left;
+      }
+    }
+
+    .footer-menu,
+    .footer-contact {
+      padding-left: 0;
+    }
+  }
+
+  @media (min-width: 768px) and (max-width: 991.98px) {
+    .footer-social {
+      justify-content: center;
+      margin-top: 1rem;
+    }
+  }
+}
