@@ -63,7 +63,7 @@ CREATE TABLE companies (
     uuid VARCHAR(255) NOT NULL UNIQUE,
     name VARCHAR(255) NOT NULL,
     tax_id VARCHAR(50) UNIQUE NOT NULL COMMENT 'NIF/CIF',
-    email VARCHAR(255) NOT NULL,
+    email VARCHAR(255),
     phone VARCHAR(50),
     address TEXT,
     city VARCHAR(100),
@@ -223,7 +223,7 @@ Requisits de validació:
 - Almenys 1 lletra majúscula
 - Almenys 1 lletra minúscula
 - Almenys 1 número
-- Almenys 1 caràcter especial (@#$%^&+=)
+- Almenys 1 caràcter especial (@#$%^&+=...)
 
 **Exemples vàlids:**
 - `Password123@`
@@ -237,10 +237,7 @@ Requisits de validació:
     - S'envia després del registre
     - Conté l'enllaç de verificació amb token
 
-2. **Email de benvinguda**
-    - S'envia després de verificar l'email correctament
-
-3. **Email de recuperació de contrasenya** (caducitat: 1h)
+2. **Email de recuperació de contrasenya** (caducitat: 1h)
     - S'envia quan l'usuari sol·licita recuperar la contrasenya
     - Conté l'enllaç per restablir-la
 
@@ -259,8 +256,7 @@ graph TD
     J --> K{És ADMIN?}
     K -->|Sí| L[Activar empresa status=ACTIVE]
     K -->|No| M[Finalitzar]
-    L --> N[Enviar email de benvinguda]
-    N --> M
+    L --> M
 ```
 
 ## 🧪 Exemples d'Ús

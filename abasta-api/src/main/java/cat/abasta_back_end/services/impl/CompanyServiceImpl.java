@@ -72,7 +72,7 @@ public class CompanyServiceImpl implements CompanyService {
                 .address(registrationDTO.getCompanyAddress())
                 .city(registrationDTO.getCompanyCity())
                 .postalCode(registrationDTO.getCompanyPostalCode())
-                .status(Company.CompanyStatus.ACTIVE)
+                .status(Company.CompanyStatus.PENDING)
                 .build();
 
         company = companyRepository.save(company);
@@ -116,7 +116,6 @@ public class CompanyServiceImpl implements CompanyService {
      */
     private CompanyResponseDTO mapToResponseDTO(Company company) {
         return CompanyResponseDTO.builder()
-                .id(company.getId())
                 .uuid(company.getUuid())
                 .name(company.getName())
                 .taxId(company.getTaxId())
