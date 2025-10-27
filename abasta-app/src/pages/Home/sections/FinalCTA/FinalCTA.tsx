@@ -1,4 +1,5 @@
 import "./FinalCTA.css";
+import { Link } from 'react-router-dom';
 import Button from"../../../../components/common/Button/Button";
 
 const FinalCTA: React.FC = () => {
@@ -13,7 +14,9 @@ const FinalCTA: React.FC = () => {
           Uneix-te a Abasta i transforma la gestió<br/>
           de la teva empresa avui mateix
         </p>
-          <Button title="Registra la teva empresa"  onClick={handleClick}/>
+          <Link to="/register">
+            <Button title="Registra la teva empresa" />
+          </Link>
       </div>
     </section>
   );
