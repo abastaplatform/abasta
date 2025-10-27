@@ -12,8 +12,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * Implementació del servei d'enviament de correus electrònics.
- * Gestiona l'enviament de diferents tipus de correus relacionats amb l'autenticació,
- * verificació i benvinguda d'usuaris i empreses.
+ * Gestiona l'enviament de diferents tipus de correus relacionats amb l'autenticació i la verificació.
  *
  * <p>Utilitza JavaMailSender per enviar correus HTML amb format professional.
  * Tots els correus inclouen plantilles HTML responsives amb estils inline.</p>
@@ -23,7 +22,6 @@ import org.springframework.stereotype.Service;
  *   <li>Recuperació de contrasenya amb enllaç temporal</li>
  *   <li>Verificació d'email per a usuaris estàndard</li>
  *   <li>Verificació d'empresa per a administradors</li>
- *   <li>Correus de benvinguda després de verificar el compte</li>
  * </ul>
  * </p>
  *
@@ -82,33 +80,6 @@ public class EmailServiceImpl implements EmailService {
         } catch (MessagingException e) {
             log.error("Error en enviar l'email de recuperació: {}", e.getMessage());
             throw new RuntimeException("Error en enviar l'email de recuperació");
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     * <p>
-     * Envia un correu HTML de benvinguda després que l'usuari hagi verificat
-     * el seu compte correctament. Aquest correu no conté cap acció requerida.
-     *
-     * <p>Si hi ha un error en l'enviament, es registra però no es llança excepció
-     * per no interrompre el flux de verificació de l'usuari.</p>
-     */
-    @Override
-    public void sendWelcomeEmail(String to, String userName) {
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-            helper.setFrom(fromEmail);
-            helper.setTo(to);
-            helper.setSubject("¡Benvingut a Abasta!");
-            helper.setText(buildWelcomeEmailBody(userName), true); // true = HTML
-
-            mailSender.send(message);
-            log.info("Email de benvinguda enviat a: {}", to);
-        } catch (MessagingException e) {
-            log.error("Error en enviar l'email de benvinguda: {}", e.getMessage());
         }
     }
 
@@ -190,7 +161,7 @@ public class EmailServiceImpl implements EmailService {
      * @return el cos HTML del correu com a String
      */
     private String buildPasswordResetEmailBody(String token, String userName) {
-        String resetLink = frontendUrl + "/reset-password?token=" + token;
+        String resetLink = frontendUrl + "/recover?token=" + token;
 
         return """
                  <!DOCTYPE html>
@@ -267,87 +238,6 @@ public class EmailServiceImpl implements EmailService {
                         </body>
                         </html>
                 \s""".formatted(userName, resetLink, resetLink);
-    }
-
-    /**
-     * Construeix el cos HTML del correu de benvinguda.
-     *
-     * <p>La plantilla HTML inclou:
-     * <ul>
-     *   <li>Capçalera amb missatge de benvinguda</li>
-     *   <li>Missatge personalitzat amb el nom de l'usuari</li>
-     *   <li>Informació sobre les funcionalitats disponibles</li>
-     *   <li>Enllaç al dashboard de l'aplicació</li>
-     *   <li>Peu de pàgina amb informació de contacte</li>
-     * </ul>
-     * </p>
-     *
-     * @param userName el nom de l'usuari per personalitzar el missatge
-     * @return el cos HTML del correu com a String
-     */
-    private String buildWelcomeEmailBody(String userName) {
-        String dashboardLink = frontendUrl + "/dashboard";
-
-        return """
-                 <!DOCTYPE html>
-                        <html lang="ca">
-                        <head>
-                            <meta charset="UTF-8">
-                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                            <title>Benvingut a Abasta</title>
-                        </head>
-                        <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
-                            <table width="100%%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px;">
-                                <tr>
-                                    <td align="center">
-                                        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                            <!-- Header -->
-                                            <tr>
-                                                <td style="background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%); padding: 40px 20px; text-align: center;">
-                                                    <h1 style="color: #ffffff; margin: 0; font-size: 28px;">🎉 Benvingut a Abasta!</h1>
-                                                </td>
-                                            </tr>
-                
-                                            <!-- Body -->
-                                            <tr>
-                                                <td style="padding: 40px 30px;">
-                                                    <h2 style="color: #333333; margin-top: 0;">Hola %s!</h2>
-                                                    <p style="color: #666666; font-size: 16px; line-height: 1.6;">
-                                                        El teu compte ha estat verificat amb èxit. Ara pots accedir a totes les funcionalitats de la plataforma.
-                                                    </p>
-                
-                                                    <!-- Button -->
-                                                    <table width="100%%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
-                                                        <tr>
-                                                            <td align="center">
-                                                                <a href="%s" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%); color: #ffffff; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
-                                                                    Anar al Tauler
-                                                                </a>
-                                                            </td>
-                                                        </tr>
-                                                    </table>
-                
-                                                    <p style="color: #666666; font-size: 14px; line-height: 1.6; margin-top: 30px;">
-                                                        Estem emocionats de tenir-te amb nosaltres. Si tens alguna pregunta, no dubtis a contactar-nos.
-                                                    </p>
-                                                </td>
-                                            </tr>
-                
-                                            <!-- Footer -->
-                                            <tr>
-                                                <td style="background-color: #f8f8f8; padding: 20px 30px; text-align: center; border-top: 1px solid #eeeeee;">
-                                                    <p style="color: #999999; font-size: 12px; margin: 0;">
-                                                        © 2025 Abasta. Tots els drets reservats.
-                                                    </p>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                            </table>
-                        </body>
-                        </html>
-                \s""".formatted(userName, dashboardLink);
     }
 
     /**
