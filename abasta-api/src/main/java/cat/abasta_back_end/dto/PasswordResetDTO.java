@@ -67,7 +67,7 @@ public class PasswordResetDTO {
      *       <li>Una lletra majúscula (A-Z)</li>
      *       <li>Una lletra minúscula (a-z)</li>
      *       <li>Un dígit numèric (0-9)</li>
-     *       <li>Un caràcter especial (@#$%^&+=)</li>
+     *       <li>Un caràcter especial (@#$%^&+=...)</li>
      *     </ul>
      *   </li>
      * </ul>
@@ -76,8 +76,8 @@ public class PasswordResetDTO {
      * <p>Aquesta contrasenya s'encriptarà amb BCrypt abans de ser desada a la base de dades.</p>
      */
     @NotBlank(message = "La contrasenya és obligatòria")
-    @Size(min = 8, message = "La contrasenya ha de tenir al menys 8 caràcters")
-    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=]).*$",
-            message = "La contrasenya ha de contenir al menys una majúscula, una minúscula, un número y un caràcter especial")
+    @Size(min = 8, message = "La contrasenya ha de tenir un mínim de 8 caràcters")
+    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9\\s]).*$",
+            message = "La contrasenya ha de contenir un mínim d'una majúscula, una minúscula, un número i un caràcter especial")
     private String newPassword;
 }

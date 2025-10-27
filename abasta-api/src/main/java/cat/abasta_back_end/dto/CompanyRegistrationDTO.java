@@ -65,7 +65,7 @@ public class CompanyRegistrationDTO {
      */
     @NotBlank(message = "La contrasenya és obligatòria")
     @Size(min = 8, message = "La contrasenya ha de tenir un mínim de 8 caràcters")
-    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=]).*$",
+    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9\\s]).*$",
             message = "La contrasenya ha de contenir un mínim d'una majúscula, una minúscula, un número i un caràcter especial")
     private String adminPassword;
 
