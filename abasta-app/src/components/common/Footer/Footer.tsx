@@ -82,7 +82,7 @@ const Footer: React.FC = () => {
             </p>
           </div>
           <div className="col-md-4 text-center text-md-end">
-            <div className="footer-social">
+            {/* <div className="footer-social">
               <a
                 href="https://linkedin.com"
                 target="_blank"
@@ -99,7 +99,7 @@ const Footer: React.FC = () => {
               >
                 <i className="bi bi-twitter-x"></i>
               </a>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
