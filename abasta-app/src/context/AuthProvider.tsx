@@ -36,8 +36,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const register = async (data: RegisterCompanyData): Promise<void> => {
     try {
-      const response = await authService.register(data);
-      setUser(response.user);
+      await authService.register(data);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Register error:', error);

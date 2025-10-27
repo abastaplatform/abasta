@@ -19,9 +19,19 @@ interface RegisterRequest {
 }
 
 interface RegisterResponse {
-  token: string;
-  type: string;
-  user: User;
+  success: boolean;
+  message: string;
+  data?: {
+    company?: {
+      id: number;
+      uuid: string;
+      name: string;
+      taxId: string;
+      status: string;
+      createdAt: string;
+      updatedAt: string;
+    };
+  };
 }
 
 class AuthService {
@@ -38,11 +48,10 @@ class AuthService {
   }
 
   async register(data: RegisterRequest): Promise<RegisterResponse> {
-    const response = await api.post<RegisterResponse>('/auth/register', data);
-
-    localStorage.setItem('token', response.token);
-    localStorage.setItem('user', JSON.stringify(response.user));
-
+    const response = await api.post<RegisterResponse>(
+      '/companies/register',
+      data
+    );
     return response;
   }
 

@@ -74,8 +74,8 @@ const LoginForm: React.FC = () => {
                 {...register('password', {
                   required: 'La contrasenya és obligatòria',
                   minLength: {
-                    value: 6,
-                    message: 'La contrasenya ha de tenir almenys 6 caràcters',
+                    value: 8,
+                    message: 'La contrasenya ha de tenir almenys 8 caràcters',
                   },
                 })}
                 isInvalid={!!errors.password}
