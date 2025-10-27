@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 
 interface RegisterFormInputs {
@@ -16,29 +15,30 @@ export const useRegisterForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const { register: registerUser } = useAuth();
-  const navigate = useNavigate();
 
   const {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm<RegisterFormInputs>({ mode: 'onBlur' });
 
   const onSubmit = async (data: RegisterFormInputs) => {
     setIsLoading(true);
     setError('');
-    setSuccess('');
 
     try {
       await registerUser(data);
-      setSuccess(
-        'Compte creat correctament! Revisa el teu correu electrònic per verificar el teu compte.'
-      );
+      setIsSubmitted(true);
+      reset();
 
-      setTimeout(() => navigate('/login'), 4000);
+      setTimeout(() => {
+        setShowSuccess(true);
+      }, 2000);
     } catch (err) {
       console.error('Register error:', err);
       setError('Error en el registre. Torna-ho a provar.');
@@ -56,6 +56,7 @@ export const useRegisterForm = () => {
     isLoading,
     error,
     setError,
-    success,
+    isSubmitted,
+    showSuccess,
   };
 };
