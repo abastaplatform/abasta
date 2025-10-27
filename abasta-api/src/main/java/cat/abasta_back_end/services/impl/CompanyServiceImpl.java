@@ -72,7 +72,7 @@ public class CompanyServiceImpl implements CompanyService {
                 .address(registrationDTO.getCompanyAddress())
                 .city(registrationDTO.getCompanyCity())
                 .postalCode(registrationDTO.getCompanyPostalCode())
-                .status(Company.CompanyStatus.ACTIVE)
+                .status(Company.CompanyStatus.PENDING)
                 .build();
 
         company = companyRepository.save(company);
