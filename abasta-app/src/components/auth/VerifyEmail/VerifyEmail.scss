@@ -1,0 +1,13 @@
+.verify-container {
+  position: relative;
+  min-height: 100vh;
+  background-color: #f9fafb;
+
+  .verify-card {
+    width: 100%;
+    max-width: 420px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+}

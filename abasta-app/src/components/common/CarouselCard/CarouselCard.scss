@@ -1,0 +1,34 @@
+.carousel-card {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  text-align: center;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+  }
+  &__text {
+    line-height: 1.8;
+  }
+
+  &__img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 3px solid var(--bs-primary);
+    object-fit: cover;
+  }
+
+  &__name {
+    font-size: 1rem;
+  }
+
+  &__role {
+    font-size: 0.9rem;
+  }
+}
