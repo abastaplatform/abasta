@@ -21,14 +21,6 @@ public interface EmailService {
     void sendPasswordResetEmail(String to, String token, String userName);
 
     /**
-     * Envia un correu electrònic de benvinguda a un nou usuari.
-     *
-     * @param to l'adreça de correu electrònic del destinatari
-     * @param userName el nom de l'usuari
-     */
-    void sendWelcomeEmail(String to, String userName);
-
-    /**
      * Envia un correu electrònic de verificació d'email a un usuari.
      *
      * @param to l'adreça de correu electrònic del destinatari

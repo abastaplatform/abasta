@@ -165,8 +165,7 @@ public class UserServiceImpl implements UserService {
     /**
      * {@inheritDoc}
      *
-     * <p>Després de verificar l'email, s'envia un correu de benvinguda.
-     * Si l'usuari és ADMIN i la seva empresa està en estat PENDING, l'empresa
+     * <p>Si l'usuari és ADMIN i la seva empresa està en estat PENDING, l'empresa
      * s'activa automàticament, cosa que permet que altres usuaris puguin unir-se.</p>
      */
     @Override
@@ -188,7 +187,6 @@ public class UserServiceImpl implements UserService {
         }
 
         userRepository.save(user);
-        emailService.sendWelcomeEmail(user.getEmail(), user.getFirstName());
     }
 
     /**
@@ -224,8 +222,8 @@ public class UserServiceImpl implements UserService {
      *
      * <p>El mapeig inclou:
      * <ul>
-     *   <li>Identificadors (ID i UUID)</li>
-     *   <li>Informació de l'empresa (ID i nom)</li>
+     *   <li>Identificador (UUID)</li>
+     *   <li>Informació de l'empresa (UUID i nom)</li>
      *   <li>Dades personals (nom, cognoms, email, telèfon)</li>
      *   <li>Estat del compte (rol, actiu, email verificat)</li>
      *   <li>Timestamps (últim login, creació, actualització)</li>
@@ -243,9 +241,8 @@ public class UserServiceImpl implements UserService {
      */
     private UserResponseDTO mapToResponseDTO(User user) {
         return UserResponseDTO.builder()
-                .id(user.getId())
                 .uuid(user.getUuid())
-                .companyId(user.getCompany().getId())
+                .companyUuid(user.getCompany().getUuid())
                 .companyName(user.getCompany().getName())
                 .email(user.getEmail())
                 .firstName(user.getFirstName())
