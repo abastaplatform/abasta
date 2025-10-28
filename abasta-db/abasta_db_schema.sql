@@ -15,7 +15,7 @@ CREATE TABLE companies (
     uuid VARCHAR(255) NOT NULL UNIQUE,
     name VARCHAR(255) NOT NULL,
     tax_id VARCHAR(50) UNIQUE NOT NULL COMMENT 'NIF/CIF',
-    email VARCHAR(255) NOT NULL,
+    email VARCHAR(255),
     phone VARCHAR(50),
     address TEXT,
     city VARCHAR(100),
