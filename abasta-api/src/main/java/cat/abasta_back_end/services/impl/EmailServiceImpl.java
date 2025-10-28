@@ -161,7 +161,7 @@ public class EmailServiceImpl implements EmailService {
      * @return el cos HTML del correu com a String
      */
     private String buildPasswordResetEmailBody(String token, String userName) {
-        String resetLink = frontendUrl + "/recover?token=" + token;
+        String resetLink = frontendUrl + "/reset-password?token=" + token;
 
         return """
                  <!DOCTYPE html>
