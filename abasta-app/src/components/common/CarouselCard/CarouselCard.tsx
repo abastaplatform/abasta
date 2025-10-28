@@ -22,9 +22,9 @@ const CarouselCard = ({ text, name, role, img, color }: CarouselCardProps) => {
             style={{ borderColor: color }}
           />
           <div>
-            <h6 className="carousel-card__name mb-0 fw-semibold text-primary">
+            <h2 className="carousel-card__name mb-0 fw-semibold text-primary">
               {name}
-            </h6>
+            </h2>
             <p className="carousel-card__role mb-0">{role}</p>
           </div>
         </div>

@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 const HeroSection = () => {
   return (
     <section className="hero-section d-flex align-items-center">
-      <img src="/images/hero-1.png" className="hero-bg" />
+      <img src="/images/hero-1.png" className="hero-bg" alt='Imatge secció Hero'/>
       <div className="container text-center">
         <div className="row g-4">
           <div className="col-12 col-md-5">

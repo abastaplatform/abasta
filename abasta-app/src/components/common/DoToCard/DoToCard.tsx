@@ -16,7 +16,7 @@ const DoToCard = ({ title, description, image }: DoToCardProps) => {
             <img src={image} alt={title} className="do-to-card-image" />
           </div>
         )}
-        <h5 className="title mb-2">{title}</h5>
+        <h3 className="title mb-2">{title}</h3>
         <p className="description mb-0">{description}</p>
       </div>
     </Card>

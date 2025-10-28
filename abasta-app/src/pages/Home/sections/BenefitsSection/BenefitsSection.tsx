@@ -6,7 +6,7 @@ import Button from '../../../../components/common/Button/Button';
 const BenefitsSection = () => {
   return (
     <section className="benefits-section d-flex align-items-center">
-      <img src="/images/benefits-1.png" className="benefits-bg" />
+      <img src="/images/benefits-1.png" className="benefits-bg" alt='Imatge secció beneficis'/>
 
       <div className="container">
         <div className="row">
