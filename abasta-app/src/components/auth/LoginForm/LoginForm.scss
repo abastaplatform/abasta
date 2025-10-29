@@ -46,6 +46,10 @@
         outline: none;
         box-shadow: none;
       }
+
+      .form-control.is-invalid {
+        background-image: none;
+      }
     }
   }
 }
@@ -65,12 +69,6 @@
   display: block;
   font-size: 0.875rem;
   margin-top: 0.25rem;
-}
-
-.password-wrapper {
-  .invalid-feedback {
-    margin-top: 0.25rem;
-  }
 }
 
 @media (max-width: 576px) {

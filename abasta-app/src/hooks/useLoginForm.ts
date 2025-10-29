@@ -32,8 +32,13 @@ export const useLoginForm = () => {
       await login(data.email, data.password);
       navigate('/dashboard');
     } catch (err) {
-      setError('Correu o contrasenya incorrectes. Torna-ho a provar.');
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : 'Error al iniciar sessió. Torna-ho a provar.';
+
       console.error('Login error:', err);
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

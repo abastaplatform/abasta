@@ -1,17 +1,11 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import api from '../services/api';
 import { useSearchParams } from 'react-router-dom';
+import { useAuth } from '../context/useAuth';
 
 interface ResetFormInputs {
   password: string;
   repeatPassword: string;
-}
-
-interface ResetResponse {
-  success: boolean;
-  message: string;
-  timestamp?: string;
 }
 
 export const useResetPasswordForm = () => {
@@ -24,12 +18,14 @@ export const useResetPasswordForm = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState('');
-  const [serverMessage, setServerMessage] = useState<string | null>(null);
+
+  const { resetPassword } = useAuth();
 
   const {
     register,
     handleSubmit,
     formState: { errors },
+    watch,
   } = useForm<ResetFormInputs>({
     mode: 'onBlur',
   });
@@ -37,31 +33,29 @@ export const useResetPasswordForm = () => {
   const onSubmit = async (data: ResetFormInputs) => {
     setIsLoading(true);
     setError('');
-    setServerMessage(null);
 
     if (data.password !== data.repeatPassword) {
+      setError('Les contrasenyes no coincideixen.');
       setIsLoading(false);
-      return setError('Les contrasenyes no coincideixen.');
+      return;
     }
 
     try {
-      const response = await api.post<ResetResponse>('/auth/reset-password', {
-        token,
-        newPassword: data.password,
-      });
+      await resetPassword(token, data.password);
 
-      if (response.success) {
-        setServerMessage(response.message);
-        setIsSubmitted(true);
+      setIsSubmitted(true);
 
-        setTimeout(() => setShowSuccess(true), 2000);
-      } else {
-        setError(response.message || 'No s’ha pogut restablir la contrasenya.');
-        setServerMessage(response.message);
-      }
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      setTimeout(() => {
+        setShowSuccess(true);
+      }, 2000);
     } catch (err) {
-      setError('No s’ha pogut restablir la contrasenya. Torna-ho a provar.');
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "No s'ha pogut restablir la contrasenya. Torna-ho a provar.";
+
+      console.error('Password reset error:', err);
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -77,9 +71,10 @@ export const useResetPasswordForm = () => {
     setShowRepeatPassword,
     isLoading,
     error,
-    serverMessage,
     setError,
     isSubmitted,
     showSuccess,
+    token,
+    password: watch('password'),
   };
 };

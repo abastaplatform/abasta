@@ -1,11 +1,13 @@
 import { Alert, Form, Spinner } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useResetPasswordForm } from '../../../hooks/useResetPasswordForm';
 
 import Button from '../../common/Button/Button';
 import Topbar from '../../common/Topbar/Topbar';
 
 import './ResetPasswordForm.scss';
+import benefits from '../../../assets/images/benefits-1.png';
+import { useEffect } from 'react';
 
 const ResetPasswordForm: React.FC = () => {
   const {
@@ -21,13 +23,25 @@ const ResetPasswordForm: React.FC = () => {
     setError,
     isSubmitted,
     showSuccess,
+    token,
+    password,
   } = useResetPasswordForm();
+
+  useEffect(() => {
+    if (isSubmitted || error) {
+      window.scrollTo(0, 0);
+    }
+  }, [isSubmitted, error]);
+
+  if (!token) {
+    return <Navigate to="/recover" replace />;
+  }
 
   return (
     <div className="reset-container d-flex align-items-start justify-content-center">
       <Topbar />
       <img
-        src="/images/benefits-1.png"
+        src={benefits}
         alt="Background illustration"
         className="reset-illustration d-none d-md-block"
       />
@@ -89,14 +103,17 @@ const ResetPasswordForm: React.FC = () => {
                     placeholder="········"
                     {...register('password', {
                       required: 'La contrasenya és obligatòria',
-                      minLength: {
-                        value: 8,
-                        message: 'Ha de tenir almenys 8 caràcters',
+                      pattern: {
+                        value:
+                          /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9\s]).{8,}$/,
+                        message:
+                          'Ha de tenir almenys 8 caràcters, una majúscula, una minúscula, un número i un caràcter especial',
                       },
                     })}
                     isInvalid={!!errors.password}
                     disabled={isLoading}
                   />
+
                   <button
                     type="button"
                     className="btn-eye"
@@ -112,11 +129,10 @@ const ResetPasswordForm: React.FC = () => {
                       className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`}
                     />
                   </button>
-
-                  <Form.Control.Feedback type="invalid">
-                    {errors.password?.message}
-                  </Form.Control.Feedback>
                 </div>
+                <Form.Control.Feedback type="invalid">
+                  {errors.password?.message}
+                </Form.Control.Feedback>
               </Form.Group>
 
               {/* Repeat Password */}
@@ -131,6 +147,9 @@ const ResetPasswordForm: React.FC = () => {
                     placeholder="········"
                     {...register('repeatPassword', {
                       required: 'Cal repetir la contrasenya',
+                      validate: value =>
+                        value === password ||
+                        'Les contrasenyes no coincideixen',
                     })}
                     isInvalid={!!errors.repeatPassword}
                     disabled={isLoading}
@@ -150,10 +169,10 @@ const ResetPasswordForm: React.FC = () => {
                       className={`bi ${showRepeatPassword ? 'bi-eye-slash' : 'bi-eye'}`}
                     />
                   </button>
-                  <Form.Control.Feedback type="invalid">
-                    {errors.repeatPassword?.message}
-                  </Form.Control.Feedback>
                 </div>
+                <Form.Control.Feedback type="invalid">
+                  {errors.repeatPassword?.message}
+                </Form.Control.Feedback>
               </Form.Group>
 
               <span className="d-flex justify-content-center">

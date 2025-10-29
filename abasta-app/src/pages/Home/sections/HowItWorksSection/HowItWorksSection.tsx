@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import Button from '../../../../components/common/Button/Button';
 import HowItWorksCard from '../../../../components/common/HowItWorksCard/HowItWorksCard';
 import './HowItWorksSection.scss';
+import howItWorks from '../../../../assets/images/how-it-works-1.png';
 
 const HowItWorksSection = () => {
   return (
@@ -10,21 +11,25 @@ const HowItWorksSection = () => {
         <h2 className="text-primary text-center mb-5">Cóm funciona?</h2>
         <div className="row images-container">
           <div className="col-12">
-            <img src="/images/how-it-works-1.png" className="hiw-bg" alt='Imatge secció HowItWorks'/>
+            <img
+              src={howItWorks}
+              className="hiw-bg"
+              alt="Imatge secció HowItWorks"
+            />
           </div>
-          <div className="col-4 text-center mb-4">
+          <div className="col-12 col-md-4 text-center mb-4">
             <HowItWorksCard
               title="Dona d’alta la teva empresa"
               description="Crea el teu compte i configura les dades bàsiques."
             />
           </div>
-          <div className="col-4 text-center mb-4">
+          <div className="col-12 col-md-4  text-center mb-4">
             <HowItWorksCard
               title="Introdueix productes i proveïdors"
               description="Afegeix els teus articles i la xarxa de proveïdors."
             />
           </div>
-          <div className="col-4 text-center mb-4">
+          <div className="col-12 col-md-4  text-center mb-4">
             <HowItWorksCard
               title="Crea comandes i envia-les "
               description="Genera comandes en un clic i envia-les directament."

@@ -24,24 +24,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const login = async (email: string, password: string): Promise<void> => {
-    try {
-      const response = await authService.login(email, password);
-      setUser(response.data.user);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      console.error('Login error:', error);
-      throw new Error(error.message || 'Correu o contrasenya incorrectes');
-    }
+    const response = await authService.login(email, password);
+    setUser(response.data.user);
   };
 
   const register = async (data: RegisterCompanyData): Promise<void> => {
-    try {
-      await authService.register(data);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      console.error('Register error:', error);
-      throw new Error(error.message || 'Error al registrar-se');
-    }
+    await authService.register(data);
+  };
+
+  const requestPasswordReset = async (email: string): Promise<void> => {
+    await authService.requestPasswordReset(email);
+  };
+
+  const resetPassword = async (
+    token: string,
+    newPassword: string
+  ): Promise<void> => {
+    await authService.resetPassword(token, newPassword);
+  };
+
+  const verifyEmail = async (token: string): Promise<void> => {
+    await authService.verifyEmail(token);
   };
 
   const logout = (): void => {
@@ -57,6 +60,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         isLoading,
         login,
         register,
+        requestPasswordReset,
+        resetPassword,
+        verifyEmail,
         logout,
       }}
     >

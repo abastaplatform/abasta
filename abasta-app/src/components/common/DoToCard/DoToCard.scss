@@ -14,7 +14,7 @@
   }
 
   .icon-wrapper {
-    width: 70px;             
+    width: 70px;
     height: 70px;
     margin: 0 auto 15px auto;
     border-radius: 20px;
@@ -23,6 +23,7 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
   }
 
   .do-to-card-image {
@@ -47,4 +48,3 @@
     max-width: 220px;
   }
 }
-

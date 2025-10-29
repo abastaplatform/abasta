@@ -1,12 +1,18 @@
 import { Link } from 'react-router-dom';
 import BenefitCard from '../../../../components/common/BenefitCard/BenefitCard';
-import './BenefitsSection.scss';
 import Button from '../../../../components/common/Button/Button';
+
+import './BenefitsSection.scss';
+import benefits from '../../../../assets/images/benefits-1.png';
 
 const BenefitsSection = () => {
   return (
     <section className="benefits-section d-flex align-items-center">
-      <img src="/images/benefits-1.png" className="benefits-bg" alt='Imatge secció beneficis'/>
+      <img
+        src={benefits}
+        className="benefits-bg"
+        alt="Imatge secció beneficis"
+      />
 
       <div className="container">
         <div className="row">
