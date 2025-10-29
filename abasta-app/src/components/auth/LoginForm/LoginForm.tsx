@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useLoginForm } from '../../../hooks/useLoginForm';
 
 import './LoginForm.scss';
+import benefits from '../../../assets/images/benefits-1.png';
 
 import Button from '../../common/Button/Button';
 import Topbar from '../../common/Topbar/Topbar';
@@ -24,7 +25,7 @@ const LoginForm: React.FC = () => {
     <div className="login-container d-flex align-items-start justify-content-center">
       <Topbar />
       <img
-        src="/images/benefits-1.png"
+        src={benefits}
         alt="Background illustration"
         className="login-illustration d-none d-md-block"
       />

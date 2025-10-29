@@ -6,6 +6,7 @@ import Button from '../../common/Button/Button';
 import Topbar from '../../common/Topbar/Topbar';
 
 import './RegisterForm.scss';
+import benefits from '../../../assets/images/benefits-1.png';
 
 const RegisterForm: React.FC = () => {
   const {
@@ -25,7 +26,7 @@ const RegisterForm: React.FC = () => {
     <div className="register-container d-flex align-items-start justify-content-center">
       <Topbar />
       <img
-        src="/images/benefits-1.png"
+        src={benefits}
         alt="Background illustration"
         className="register-illustration d-none d-md-block"
       />

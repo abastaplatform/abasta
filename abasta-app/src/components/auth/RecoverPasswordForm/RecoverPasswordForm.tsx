@@ -6,6 +6,7 @@ import Button from '../../common/Button/Button';
 import Topbar from '../../common/Topbar/Topbar';
 
 import './RecoverPasswordForm.scss';
+import benefits from '../../../assets/images/benefits-1.png';
 
 const RecoverPasswordForm: React.FC = () => {
   const {
@@ -24,7 +25,7 @@ const RecoverPasswordForm: React.FC = () => {
     <div className="recover-container d-flex align-items-start justify-content-center">
       <Topbar />
       <img
-        src="/images/benefits-1.png"
+        src={benefits}
         alt="Background illustration"
         className="recover-illustration d-none d-md-block"
       />
