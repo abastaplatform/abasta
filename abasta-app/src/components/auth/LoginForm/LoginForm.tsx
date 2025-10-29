@@ -76,7 +76,7 @@ const LoginForm: React.FC = () => {
                   required: 'La contrasenya és obligatòria',
                   minLength: {
                     value: 8,
-                    message: 'La contrasenya ha de tenir almenys 8 caràcters',
+                    message: 'La contrasenya és massa curta',
                   },
                 })}
                 isInvalid={!!errors.password}
@@ -95,10 +95,10 @@ const LoginForm: React.FC = () => {
                   className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`}
                 />
               </button>
-              <Form.Control.Feedback type="invalid">
-                {errors.password?.message}
-              </Form.Control.Feedback>
             </div>
+            <Form.Control.Feedback type="invalid">
+              {errors.password?.message}
+            </Form.Control.Feedback>
           </Form.Group>
 
           <span className="d-flex justify-content-center">

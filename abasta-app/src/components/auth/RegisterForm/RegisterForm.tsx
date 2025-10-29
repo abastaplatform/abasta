@@ -178,9 +178,11 @@ const RegisterForm: React.FC = () => {
                   placeholder="Introdueix la teva contrasenya"
                   {...register('adminPassword', {
                     required: 'La contrasenya és obligatòria',
-                    minLength: {
-                      value: 8,
-                      message: 'Ha de tenir almenys 8 caràcters',
+                    pattern: {
+                      value:
+                        /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9\s]).{8,}$/,
+                      message:
+                        'Ha de tenir almenys 8 caràcters, una majúscula, una minúscula, un número i un caràcter especial',
                     },
                   })}
                   isInvalid={!!errors.adminPassword}
@@ -199,10 +201,10 @@ const RegisterForm: React.FC = () => {
                     className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`}
                   />
                 </button>
-                <Form.Control.Feedback type="invalid">
-                  {errors.adminPassword?.message}
-                </Form.Control.Feedback>
               </div>
+              <Form.Control.Feedback type="invalid">
+                {errors.adminPassword?.message}
+              </Form.Control.Feedback>
             </Form.Group>
 
             <span className="d-flex justify-content-center">
