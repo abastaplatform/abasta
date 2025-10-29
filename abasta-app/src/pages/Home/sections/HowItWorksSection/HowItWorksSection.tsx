@@ -10,7 +10,7 @@ const HowItWorksSection = () => {
         <h2 className="text-primary text-center mb-5">Cóm funciona?</h2>
         <div className="row images-container">
           <div className="col-12">
-            <img src="/images/how-it-works-1.png" className="hiw-bg" />
+            <img src="/images/how-it-works-1.png" className="hiw-bg" alt='Imatge secció HowItWorks'/>
           </div>
           <div className="col-4 text-center mb-4">
             <HowItWorksCard

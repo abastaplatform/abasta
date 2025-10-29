@@ -10,14 +10,14 @@ const Footer: React.FC = () => {
       <div className="container py-5">
         <div className="row g-4 mb-4">
           <div className="col-lg-3 col-md-6">
-            <h5 className="footer-title mb-3">Abasta</h5>
+            <h2 className="footer-title mb-3">Abasta</h2>
             <p className="footer-description mb-0">
               Simplifica la gestió de comandes i proveïdors.
             </p>
           </div>
 
           <div className="col-lg-2 col-md-6 col-6">
-            <h6 className="footer-subtitle mb-3">Empresa</h6>
+            <h3 className="footer-subtitle mb-3">Empresa</h3>
             <ul className="footer-menu list-unstyled">
               <li>
                 <HashLink smooth to="/#home">
@@ -43,7 +43,7 @@ const Footer: React.FC = () => {
           </div>
 
           <div className="col-lg-2 col-md-6 col-6">
-            <h6 className="footer-subtitle mb-3">Legal</h6>
+            <h3 className="footer-subtitle mb-3">Legal</h3>
             <ul className="footer-menu list-unstyled">
               <li>
                 <Link to="/privacy">Política de privacitat</Link>
@@ -61,7 +61,7 @@ const Footer: React.FC = () => {
           </div>
 
           <div className="col-lg-5 col-md-6">
-            <h6 className="footer-subtitle mb-3">Contacte</h6>
+            <h3 className="footer-subtitle mb-3">Contacte</h3>
             <ul className="footer-contact list-unstyled">
               <li>
                 <a href="mailto:abasta.platform@gmail.com">

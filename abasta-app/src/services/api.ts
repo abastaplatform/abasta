@@ -5,7 +5,8 @@ class ApiService {
   private defaultHeaders: HeadersInit;
 
   constructor() {
-    this.baseUrl = env.apiUrl || 'http://localhost:8080/api';
+    this.baseUrl = env.apiUrl;
+    //this.baseUrl = env.apiUrl || 'https://deveps.ddns.net/abasta/api';
     this.defaultHeaders = {
       'Content-Type': 'application/json',
     };
