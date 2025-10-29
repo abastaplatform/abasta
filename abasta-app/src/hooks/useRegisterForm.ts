@@ -40,8 +40,13 @@ export const useRegisterForm = () => {
         setShowSuccess(true);
       }, 2000);
     } catch (err) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : 'Error en el registre. Torna-ho a provar.';
+
       console.error('Register error:', err);
-      setError('Error en el registre. Torna-ho a provar.');
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

@@ -7,6 +7,7 @@ import Topbar from '../../common/Topbar/Topbar';
 
 import './RegisterForm.scss';
 import benefits from '../../../assets/images/benefits-1.png';
+import { useEffect } from 'react';
 
 const RegisterForm: React.FC = () => {
   const {
@@ -21,6 +22,12 @@ const RegisterForm: React.FC = () => {
     isSubmitted,
     showSuccess,
   } = useRegisterForm();
+
+  useEffect(() => {
+    if (isSubmitted || error) {
+      window.scrollTo(0, 0);
+    }
+  }, [isSubmitted, error]);
 
   return (
     <div className="register-container d-flex align-items-start justify-content-center">

@@ -1,6 +1,7 @@
+import { useEffect } from 'react';
+import { useRecoverPasswordForm } from '../../../hooks/useRecoverPasswordForm';
 import { Alert, Form, Spinner } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { useRecoverPasswordForm } from '../../../hooks/useRecoverPasswordForm';
 
 import Button from '../../common/Button/Button';
 import Topbar from '../../common/Topbar/Topbar';
@@ -18,8 +19,13 @@ const RecoverPasswordForm: React.FC = () => {
     setError,
     isSubmitted,
     showSuccess,
-    serverMessage,
   } = useRecoverPasswordForm();
+
+  useEffect(() => {
+    if (isSubmitted || error) {
+      window.scrollTo(0, 0);
+    }
+  }, [isSubmitted, error]);
 
   return (
     <div className="recover-container d-flex align-items-start justify-content-center">
@@ -49,7 +55,7 @@ const RecoverPasswordForm: React.FC = () => {
             ) : (
               <>
                 <h4 className="text-success mb-2">
-                  {serverMessage || 'Correu enviat correctament!'}
+                  Correu enviat correctament!
                 </h4>
                 <p className="text-muted">
                   Hem enviat un correu electrònic amb un enllaç per restablir la
@@ -74,7 +80,7 @@ const RecoverPasswordForm: React.FC = () => {
             {error && (
               <Alert variant="danger" dismissible onClose={() => setError('')}>
                 <i className="bi bi-exclamation-circle me-2"></i>
-                {error} {serverMessage && ` - ${serverMessage}`}
+                {error}
               </Alert>
             )}
 

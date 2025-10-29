@@ -1,5 +1,5 @@
 import { Alert, Form, Spinner } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useResetPasswordForm } from '../../../hooks/useResetPasswordForm';
 
 import Button from '../../common/Button/Button';
@@ -7,6 +7,7 @@ import Topbar from '../../common/Topbar/Topbar';
 
 import './ResetPasswordForm.scss';
 import benefits from '../../../assets/images/benefits-1.png';
+import { useEffect } from 'react';
 
 const ResetPasswordForm: React.FC = () => {
   const {
@@ -22,7 +23,19 @@ const ResetPasswordForm: React.FC = () => {
     setError,
     isSubmitted,
     showSuccess,
+    token,
+    password,
   } = useResetPasswordForm();
+
+  useEffect(() => {
+    if (isSubmitted || error) {
+      window.scrollTo(0, 0);
+    }
+  }, [isSubmitted, error]);
+
+  if (!token) {
+    return <Navigate to="/recover" replace />;
+  }
 
   return (
     <div className="reset-container d-flex align-items-start justify-content-center">
@@ -134,6 +147,9 @@ const ResetPasswordForm: React.FC = () => {
                     placeholder="········"
                     {...register('repeatPassword', {
                       required: 'Cal repetir la contrasenya',
+                      validate: value =>
+                        value === password ||
+                        'Les contrasenyes no coincideixen',
                     })}
                     isInvalid={!!errors.repeatPassword}
                     disabled={isLoading}
