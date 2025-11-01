@@ -62,3 +62,24 @@ CREATE TABLE users (
     INDEX idx_password_reset_token (password_reset_token)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Usuaris de les empreses';
+
+-- ============================================================================
+-- TABLA: PRODUCTS
+-- ============================================================================
+CREATE TABLE products (
+   id BIGINT PRIMARY KEY AUTO_INCREMENT,
+   uuid VARCHAR(255) NOT NULL UNIQUE,
+   supplier_id BIGINT NOT NULL,
+   category VARCHAR(255),
+   name VARCHAR(255) NOT NULL,
+   description TEXT,
+   price DECIMAL(10, 2) NOT NULL,
+   unit VARCHAR(50) COMMENT 'kg, litres, unitats, caixes, etc.',
+   image_url VARCHAR(500),
+   is_active BOOLEAN DEFAULT TRUE,
+   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+   FOREIGN KEY (supplier_id) REFERENCES suppliers(id),
+   INDEX idx_supplier_id (supplier_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Catàleg de productes per proveïdor';
