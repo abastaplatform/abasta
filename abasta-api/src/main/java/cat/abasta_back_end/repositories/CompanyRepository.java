@@ -25,4 +25,11 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
      */
     boolean existsByTaxId(String taxId);
 
+    /**
+     * Cerca una empresa pel seu identificador únic UUID.
+     *
+     * @param uuid l'identificador únic (UUID) de l'empresa a cercar
+     * @return un Optional que conté l'empresa si existeix, o Optional.empty() si no es troba
+     */
+    Optional<Company> findByUuid(String uuid);
 }

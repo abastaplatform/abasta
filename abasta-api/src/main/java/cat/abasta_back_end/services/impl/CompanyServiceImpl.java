@@ -1,10 +1,12 @@
 package cat.abasta_back_end.services.impl;
 
 import cat.abasta_back_end.dto.CompanyRegistrationDTO;
+import cat.abasta_back_end.dto.CompanyRequestDTO;
 import cat.abasta_back_end.dto.CompanyResponseDTO;
 import cat.abasta_back_end.entities.Company;
 import cat.abasta_back_end.entities.User;
 import cat.abasta_back_end.exceptions.DuplicateResourceException;
+import cat.abasta_back_end.exceptions.ResourceNotFoundException;
 import cat.abasta_back_end.repositories.CompanyRepository;
 import cat.abasta_back_end.repositories.UserRepository;
 import cat.abasta_back_end.services.CompanyService;
@@ -106,6 +108,70 @@ public class CompanyServiceImpl implements CompanyService {
 
         // 4. Retornar la empresa creada
         return mapToResponseDTO(company);
+    }
+
+    /**
+     * Obté la informació d'una empresa pel seu identificador UUID.
+     * Operació de només lectura que recupera una empresa de la base de dades
+     * i la converteix al DTO de resposta.
+     *
+     * @param uuid l'identificador únic (UUID) de l'empresa a recuperar
+     * @return CompanyResponseDTO amb la informació completa de l'empresa
+     * @throws ResourceNotFoundException si no existeix cap empresa amb l'UUID proporcionat
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public CompanyResponseDTO getCompanyByUuid(String uuid) {
+        Company company = companyRepository.findByUuid(uuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb UUID: " + uuid));
+        return mapToResponseDTO(company);
+    }
+
+    /**
+     * Actualitza la informació d'una empresa existent.
+     * Modifica les dades d'una empresa identificada pel seu UUID, validant que no es
+     * produeixi duplicació del NIF/CIF si aquest canvia. Tots els camps proporcionats
+     * al DTO s'actualitzen, excepte l'estat que només es modifica si es proporciona explícitament.
+     *
+     * <p>Validacions realitzades:
+     * <ul>
+     *   <li>Verifica que l'empresa existeixi</li>
+     *   <li>Comprova que el nou NIF/CIF no estigui ja assignat a una altra empresa</li>
+     *   <li>Actualitza l'estat només si es proporciona al DTO</li>
+     * </ul>
+     * </p>
+     *
+     * @param uuid l'identificador únic (UUID) de l'empresa a actualitzar
+     * @param companyRequestDTO objecte amb les noves dades de l'empresa
+     * @return CompanyResponseDTO amb la informació actualitzada de l'empresa
+     * @throws ResourceNotFoundException si no existeix cap empresa amb l'UUID proporcionat
+     * @throws DuplicateResourceException si el nou NIF/CIF ja està assignat a una altra empresa
+     */
+    @Override
+    @Transactional
+    public CompanyResponseDTO updateCompany(String uuid, CompanyRequestDTO companyRequestDTO) {
+        Company company = companyRepository.findByUuid(uuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb ID: " + uuid));
+
+        if (!company.getTaxId().equals(companyRequestDTO.getTaxId()) &&
+                companyRepository.existsByTaxId(companyRequestDTO.getTaxId())) {
+            throw new DuplicateResourceException("Ja existeix una empresa amb el NIF/CIF: " + companyRequestDTO.getTaxId());
+        }
+
+        company.setName(companyRequestDTO.getName());
+        company.setTaxId(companyRequestDTO.getTaxId());
+        company.setEmail(companyRequestDTO.getEmail());
+        company.setPhone(companyRequestDTO.getPhone());
+        company.setAddress(companyRequestDTO.getAddress());
+        company.setCity(companyRequestDTO.getCity());
+        company.setPostalCode(companyRequestDTO.getPostalCode());
+
+        if (companyRequestDTO.getStatus() != null) {
+            company.setStatus(companyRequestDTO.getStatus());
+        }
+
+        Company updatedCompany = companyRepository.save(company);
+        return mapToResponseDTO(updatedCompany);
     }
 
     /**
