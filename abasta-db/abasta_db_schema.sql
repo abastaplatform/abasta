@@ -64,6 +64,31 @@ CREATE TABLE users (
 COMMENT='Usuaris de les empreses';
 
 -- ============================================================================
+-- TAULA: SUPPLIERS
+-- ============================================================================
+CREATE TABLE suppliers (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    uuid VARCHAR(255) NOT NULL UNIQUE,
+    company_id BIGINT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    contact_name VARCHAR(255),
+    email VARCHAR(255),
+    phone VARCHAR(50),
+    address TEXT,
+    notes TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (company_id) REFERENCES companies(id),
+
+    INDEX idx_company_id (company_id),
+    INDEX idx_company_active (company_id, is_active),
+    INDEX idx_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Proveïdors de les empreses';
+
+-- ============================================================================
 -- TABLA: PRODUCTS
 -- ============================================================================
 CREATE TABLE products (
