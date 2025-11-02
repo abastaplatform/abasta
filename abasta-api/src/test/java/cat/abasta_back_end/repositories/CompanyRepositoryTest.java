@@ -163,4 +163,30 @@ class CompanyRepositoryTest {
         assertThat(existsUpper).isTrue();
         assertThat(existsLower).isFalse();
     }
+
+    @Test
+    @DisplayName("FindByUuid hauria de retornar empresa quan UUID existeix")
+    void findByUuid_ShouldReturnCompany_WhenUuidExists() {
+        // Given
+        Company savedCompany = entityManager.persistAndFlush(testCompany);
+        String uuid = savedCompany.getUuid();
+
+        // When
+        Optional<Company> found = companyRepository.findByUuid(uuid);
+
+        // Then
+        assertThat(found).isPresent();
+        assertThat(found.get().getName()).isEqualTo("Empresa Test SL");
+        assertThat(found.get().getUuid()).isEqualTo(uuid);
+    }
+
+    @Test
+    @DisplayName("FindByUuid hauria de retornar empty quan UUID no existeix")
+    void findByUuid_ShouldReturnEmpty_WhenUuidNotExists() {
+        // When
+        Optional<Company> found = companyRepository.findByUuid("non-existent-uuid");
+
+        // Then
+        assertThat(found).isEmpty();
+    }
 }
