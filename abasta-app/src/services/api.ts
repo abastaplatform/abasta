@@ -1,4 +1,5 @@
 import env from '../config/env';
+import { ApiError, type ApiErrorResponse } from '../types/error.types';
 
 class ApiService {
   private baseUrl: string;
@@ -6,7 +7,6 @@ class ApiService {
 
   constructor() {
     this.baseUrl = env.apiUrl;
-    //this.baseUrl = env.apiUrl || 'https://deveps.ddns.net/abasta/api';
     this.defaultHeaders = {
       'Content-Type': 'application/json',
     };
@@ -24,27 +24,69 @@ class ApiService {
       ...(token && { Authorization: `Bearer ${token}` }),
     };
 
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      ...options,
-      headers,
-    });
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        ...options,
+        headers,
+      });
 
-    if (response.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
-    }
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+        throw new ApiError('Sessió expirada. Torna a iniciar sessió.', 401);
+      }
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({
-        message: 'Error de conexión con el servidor',
-      }));
-      throw new Error(
-        error.message || `HTTP error! status: ${response.status}`
+      if (!response.ok) {
+        const errorData: ApiErrorResponse = await response
+          .json()
+          .catch(() => ({}));
+
+        const errorMessage =
+          errorData.message ||
+          errorData.error ||
+          this.getGenericErrorMessage(response.status);
+
+        throw new ApiError(errorMessage, response.status, errorData);
+      }
+
+      return response.json();
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+
+      if (error instanceof TypeError) {
+        throw new ApiError(
+          'No es pot connectar amb el servidor. Comprova la teva connexió a internet.',
+          0
+        );
+      }
+
+      throw new ApiError(
+        "S'ha produït un error inesperat. Torna-ho a provar més tard.",
+        500
       );
     }
+  }
 
-    return response.json();
+  private getGenericErrorMessage(status: number): string {
+    switch (status) {
+      case 400:
+        return 'Dades no vàlides. Comprova els camps del formulari.';
+      case 403:
+        return 'No tens permís per realitzar aquesta acció.';
+      case 404:
+        return 'El recurs sol·licitat no existeix.';
+      case 422:
+        return 'Dades de validació incorrectes.';
+      case 500:
+        return 'Error del servidor. Torna-ho a provar més tard.';
+      case 503:
+        return 'El servei no està disponible temporalment.';
+      default:
+        return `Error inesperat (${status}). Torna-ho a provar.`;
+    }
   }
 
   get<T>(endpoint: string): Promise<T> {

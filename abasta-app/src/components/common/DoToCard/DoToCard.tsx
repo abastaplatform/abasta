@@ -10,7 +10,7 @@ interface DoToCardProps {
 const DoToCard = ({ title, description, image }: DoToCardProps) => {
   return (
     <Card className="do-to-card text-center">
-      <div className="p-4 h-100 d-flex flex-column align-items-center justify-content-center">
+      <div className="p-4 h-100 d-flex flex-column align-items-center">
         {image && (
           <div className="icon-wrapper mb-3">
             <img src={image} alt={title} className="do-to-card-image" />
