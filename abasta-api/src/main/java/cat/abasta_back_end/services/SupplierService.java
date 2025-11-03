@@ -86,4 +86,42 @@ public interface SupplierService {
      */
     SupplierResponseDTO createSupplier(SupplierRequestDTO supplierRequestDTO);
 
+    /**
+     * Obté un proveïdor pel seu UUID.
+     *
+     * @param uuid l'UUID del proveïdor
+     * @return les dades del proveïdor
+     * @throws cat.abasta_back_end.exceptions.ResourceNotFoundException si el proveïdor no existeix
+     */
+    SupplierResponseDTO getSupplierByUuid(String uuid);
+
+    /**
+     * Actualitza un proveïdor existent.
+     *
+     * @param uuid l'UUID del proveïdor a actualitzar
+     * @param supplierRequestDTO les noves dades del proveïdor
+     * @return el proveïdor actualitzat
+     * @throws cat.abasta_back_end.exceptions.ResourceNotFoundException si el proveïdor no existeix
+     * @throws cat.abasta_back_end.exceptions.DuplicateResourceException si el nou nom ja existeix a l'empresa
+     */
+    SupplierResponseDTO updateSupplier(String uuid, SupplierRequestDTO supplierRequestDTO);
+
+    /**
+     * Obté tots els proveïdors d'una empresa específica.
+     *
+     * @param companyUuid l'UUID de l'empresa
+     * @return llista de proveïdors de l'empresa
+     * @throws cat.abasta_back_end.exceptions.ResourceNotFoundException si l'empresa no existeix
+     */
+    List<SupplierResponseDTO> getSuppliersByCompanyUuid(String companyUuid);
+
+    /**
+     * Activa o desactiva un proveïdor.
+     *
+     * @param uuid l'UUID del proveïdor
+     * @param isActive l'estat d'activitat a establir
+     * @return el proveïdor amb l'estat actualitzat
+     * @throws cat.abasta_back_end.exceptions.ResourceNotFoundException si el proveïdor no existeix
+     */
+    SupplierResponseDTO toggleSupplierStatus(String uuid, Boolean isActive);
 }

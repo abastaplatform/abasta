@@ -32,4 +32,13 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
      * @return un Optional que conté l'empresa si existeix, o Optional.empty() si no es troba
      */
     Optional<Company> findByUuid(String uuid);
+
+    /**
+     * Verifica si existeix una empresa amb l'UUID especificat.
+     * Útil per validacions d'existència abans de realitzar operacions.
+     *
+     * @param uuid l'identificador únic (UUID) de l'empresa a verificar
+     * @return true si existeix una empresa amb aquest UUID, false en cas contrari
+     */
+    boolean existsByUuid(String uuid);
 }
