@@ -5,7 +5,6 @@ import cat.abasta_back_end.dto.SupplierRequestDTO;
 import cat.abasta_back_end.dto.SupplierResponseDTO;
 import cat.abasta_back_end.services.SupplierService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+
 import java.util.List;
 
 /**
@@ -85,11 +85,11 @@ import java.util.List;
  *
  * @author Enrique Pérez
  * @version 1.0
- * @since 1.0
  * @see SupplierService
  * @see SupplierRequestDTO
  * @see SupplierResponseDTO
  * @see cat.abasta_back_end.dto.ApiResponseDTO
+ * @since 1.0
  */
 @RestController
 @RequestMapping("/api/suppliers")
@@ -113,4 +113,63 @@ public class SupplierController {
                 .body(ApiResponseDTO.success(createdSupplier, "Proveïdor creat correctament"));
     }
 
+    /**
+     * Obté un proveïdor pel seu UUID.
+     *
+     * @param uuid l'UUID del proveïdor
+     * @return resposta amb les dades del proveïdor
+     */
+    @GetMapping("/{uuid}")
+    public ResponseEntity<ApiResponseDTO<SupplierResponseDTO>> getSupplierByUuid(
+            @PathVariable @NotBlank(message = "L'UUID no pot estar buit") String uuid) {
+        SupplierResponseDTO supplier = supplierService.getSupplierByUuid(uuid);
+        return ResponseEntity.ok(
+                ApiResponseDTO.success(supplier, "Proveïdor obtingut correctament"));
+    }
+
+    /**
+     * Actualitza un proveïdor existent.
+     *
+     * @param uuid               l'UUID del proveïdor a actualitzar
+     * @param supplierRequestDTO les noves dades del proveïdor
+     * @return resposta amb el proveïdor actualitzat
+     */
+    @PutMapping("/{uuid}")
+    public ResponseEntity<ApiResponseDTO<SupplierResponseDTO>> updateSupplier(
+            @PathVariable @NotBlank(message = "L'UUID no pot estar buit") String uuid,
+            @Valid @RequestBody SupplierRequestDTO supplierRequestDTO) {
+        SupplierResponseDTO updatedSupplier = supplierService.updateSupplier(uuid, supplierRequestDTO);
+        return ResponseEntity.ok(
+                ApiResponseDTO.success(updatedSupplier, "Proveïdor actualitzat correctament"));
+    }
+
+    /**
+     * Obté tots els proveïdors d'una empresa específica.
+     *
+     * @param companyUuid l'UUID de l'empresa
+     * @return resposta amb la llista de proveïdors
+     */
+    @GetMapping("/company/{companyUuid}")
+    public ResponseEntity<ApiResponseDTO<List<SupplierResponseDTO>>> getSuppliersByCompany(
+            @PathVariable @NotBlank(message = "L'UUID de l'empresa no pot estar buit") String companyUuid) {
+        List<SupplierResponseDTO> suppliers = supplierService.getSuppliersByCompanyUuid(companyUuid);
+        return ResponseEntity.ok(
+                ApiResponseDTO.success(suppliers, "Proveïdors de l'empresa obtinguts correctament"));
+    }
+
+    /**
+     * Activa o desactiva un proveïdor.
+     *
+     * @param uuid l'UUID del proveïdor
+     * @param isActive l'estat d'activitat a establir
+     * @return resposta amb el proveïdor actualitzat
+     */
+    @PatchMapping("/{uuid}/status")
+    public ResponseEntity<ApiResponseDTO<SupplierResponseDTO>> toggleSupplierStatus(
+            @PathVariable @NotBlank(message = "L'UUID no pot estar buit") String uuid,
+            @RequestParam Boolean isActive) {
+        SupplierResponseDTO updatedSupplier = supplierService.toggleSupplierStatus(uuid, isActive);
+        return ResponseEntity.ok(
+                ApiResponseDTO.success(updatedSupplier, "Estat del proveïdor actualitzat correctament"));
+    }
 }
