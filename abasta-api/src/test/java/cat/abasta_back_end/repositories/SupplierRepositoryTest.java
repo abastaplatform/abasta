@@ -346,4 +346,219 @@ class SupplierRepositoryTest {
         assertThat(suppliers)
                 .allMatch(s -> s.getCompany().getUuid().equals(testCompany.getUuid()));
     }
+
+    // ================= TESTS PER findSuppliersWithFilters =================
+
+    @Test
+    @DisplayName("findSuppliersWithFilters hauria de retornar tots els proveïdors quan no hi ha filtres")
+    void findSuppliersWithFilters_ShouldReturnAllSuppliers_WhenNoFilters() {
+        // Given - Afegir més proveïdors
+        Supplier supplier2 = new Supplier();
+        supplier2.setUuid("supplier-2-uuid");
+        supplier2.setCompany(testCompany);
+        supplier2.setName("Segon Proveïdor SL");
+        supplier2.setEmail("segon@provcat.com");
+        supplier2.setIsActive(false);
+        entityManager.persistAndFlush(supplier2);
+
+        // When - Cercar sense filtres
+        org.springframework.data.domain.Pageable pageable =
+                org.springframework.data.domain.PageRequest.of(0, 10);
+        var result = supplierRepository.findSuppliersWithFilters(
+                testCompany.getId(), null, null, null, pageable);
+
+        // Then
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent())
+                .extracting(Supplier::getUuid)
+                .containsExactlyInAnyOrder(testSupplier.getUuid(), supplier2.getUuid());
+    }
+
+    @Test
+    @DisplayName("findSuppliersWithFilters hauria de filtrar per nom")
+    void findSuppliersWithFilters_ShouldFilterByName() {
+        // Given - Afegir proveïdor amb nom diferent
+        Supplier supplier2 = new Supplier();
+        supplier2.setUuid("supplier-2-uuid");
+        supplier2.setCompany(testCompany);
+        supplier2.setName("Distribuïdors Barcelona SL");
+        supplier2.setEmail("info@distrib.com");
+        supplier2.setIsActive(true);
+        entityManager.persistAndFlush(supplier2);
+
+        // When - Filtrar per "Catalunya"
+        org.springframework.data.domain.Pageable pageable =
+                org.springframework.data.domain.PageRequest.of(0, 10);
+        var result = supplierRepository.findSuppliersWithFilters(
+                testCompany.getId(), "Catalunya", null, null, pageable);
+
+        // Then
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().getFirst().getUuid()).isEqualTo(testSupplier.getUuid());
+    }
+
+    @Test
+    @DisplayName("findSuppliersWithFilters hauria de filtrar per email")
+    void findSuppliersWithFilters_ShouldFilterByEmail() {
+        // Given - Afegir proveïdor amb email diferent
+        Supplier supplier2 = new Supplier();
+        supplier2.setUuid("supplier-2-uuid");
+        supplier2.setCompany(testCompany);
+        supplier2.setName("Altre Proveïdor SL");
+        supplier2.setEmail("info@altreprov.com");
+        supplier2.setIsActive(true);
+        entityManager.persistAndFlush(supplier2);
+
+        // When - Filtrar per "provcat"
+        org.springframework.data.domain.Pageable pageable =
+                org.springframework.data.domain.PageRequest.of(0, 10);
+        var result = supplierRepository.findSuppliersWithFilters(
+                testCompany.getId(), null, "provcat", null, pageable);
+
+        // Then
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().getFirst().getUuid()).isEqualTo(testSupplier.getUuid());
+    }
+
+    @Test
+    @DisplayName("findSuppliersWithFilters hauria de filtrar per estat actiu")
+    void findSuppliersWithFilters_ShouldFilterByActiveStatus() {
+        // Given - Afegir proveïdor inactiu
+        Supplier inactiveSupplier = new Supplier();
+        inactiveSupplier.setUuid("inactive-supplier-uuid");
+        inactiveSupplier.setCompany(testCompany);
+        inactiveSupplier.setName("Proveïdor Inactiu SL");
+        inactiveSupplier.setEmail("inactiu@prov.com");
+        inactiveSupplier.setIsActive(false);
+        entityManager.persistAndFlush(inactiveSupplier);
+
+        // When - Filtrar només actius
+        org.springframework.data.domain.Pageable pageable =
+                org.springframework.data.domain.PageRequest.of(0, 10);
+        var result = supplierRepository.findSuppliersWithFilters(
+                testCompany.getId(), null, null, true, pageable);
+
+        // Then
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().getFirst().getUuid()).isEqualTo(testSupplier.getUuid());
+        assertThat(result.getContent().getFirst().getIsActive()).isTrue();
+    }
+
+    @Test
+    @DisplayName("findSuppliersWithFilters hauria de combinar múltiples filtres")
+    void findSuppliersWithFilters_ShouldCombineMultipleFilters() {
+        // Given - Afegir diversos proveïdors
+        Supplier supplier2 = new Supplier();
+        supplier2.setUuid("supplier-2-uuid");
+        supplier2.setCompany(testCompany);
+        supplier2.setName("Catalunya Distribuïdors SL");
+        supplier2.setEmail("joan@catdist.com");
+        supplier2.setIsActive(false);
+        entityManager.persistAndFlush(supplier2);
+
+        Supplier supplier3 = new Supplier();
+        supplier3.setUuid("supplier-3-uuid");
+        supplier3.setCompany(testCompany);
+        supplier3.setName("Barcelona Proveïdors SL");
+        supplier3.setEmail("maria@barprov.com");
+        supplier3.setIsActive(true);
+        entityManager.persistAndFlush(supplier3);
+
+        // When - Filtrar per nom "Catalunya" i estat actiu false
+        org.springframework.data.domain.Pageable pageable =
+                org.springframework.data.domain.PageRequest.of(0, 10);
+        var result = supplierRepository.findSuppliersWithFilters(
+                testCompany.getId(), "Catalunya", null, false, pageable);
+
+        // Then
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().getFirst().getUuid()).isEqualTo(supplier2.getUuid());
+    }
+
+    @Test
+    @DisplayName("findSuppliersWithFilters hauria de ser case insensitive per nom i email")
+    void findSuppliersWithFilters_ShouldBeCaseInsensitive() {
+        // When - Cercar amb majúscules
+        org.springframework.data.domain.Pageable pageable =
+                org.springframework.data.domain.PageRequest.of(0, 10);
+        var result = supplierRepository.findSuppliersWithFilters(
+                testCompany.getId(), "CATALUNYA", "JOAN", null, pageable);
+
+        // Then
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().getFirst().getUuid()).isEqualTo(testSupplier.getUuid());
+    }
+
+    @Test
+    @DisplayName("findSuppliersWithFilters hauria de respectar la paginació")
+    void findSuppliersWithFilters_ShouldRespectPagination() {
+        // Given - Afegir més proveïdors
+        for (int i = 1; i <= 5; i++) {
+            Supplier supplier = new Supplier();
+            supplier.setUuid("supplier-" + i + "-uuid");
+            supplier.setCompany(testCompany);
+            supplier.setName("Proveïdor " + i + " SL");
+            supplier.setEmail("prov" + i + "@test.com");
+            supplier.setIsActive(true);
+            entityManager.persistAndFlush(supplier);
+        }
+
+        // When - Demanar primera pàgina amb mida 3
+        org.springframework.data.domain.Pageable pageable =
+                org.springframework.data.domain.PageRequest.of(0, 3);
+        var result = supplierRepository.findSuppliersWithFilters(
+                testCompany.getId(), null, null, null, pageable);
+
+        // Then
+        assertThat(result.getContent()).hasSize(3);
+        assertThat(result.getTotalElements()).isEqualTo(6); // 1 original + 5 nous
+        assertThat(result.getTotalPages()).isEqualTo(2);
+        assertThat(result.isFirst()).isTrue();
+        assertThat(result.hasNext()).isTrue();
+    }
+
+    @Test
+    @DisplayName("findSuppliersWithFilters hauria de retornar pàgina buida quan no hi ha coincidències")
+    void findSuppliersWithFilters_ShouldReturnEmptyPage_WhenNoMatches() {
+        // When - Cercar amb filtres que no coincideixen
+        org.springframework.data.domain.Pageable pageable =
+                org.springframework.data.domain.PageRequest.of(0, 10);
+        var result = supplierRepository.findSuppliersWithFilters(
+                testCompany.getId(), "NoExisteix", null, null, pageable);
+
+        // Then
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isZero();
+    }
+
+    @Test
+    @DisplayName("findSuppliersWithFilters no hauria de retornar proveïdors d'altres empreses")
+    void findSuppliersWithFilters_ShouldNotReturnSuppliersFromOtherCompanies() {
+        // Given - Crear altra empresa amb proveïdor
+        Company otherCompany = new Company();
+        otherCompany.setUuid("other-company-uuid");
+        otherCompany.setName("Other Company SL");
+        otherCompany.setTaxId("B87654321");
+        otherCompany.setEmail("other@company.com");
+        entityManager.persistAndFlush(otherCompany);
+
+        Supplier otherSupplier = new Supplier();
+        otherSupplier.setUuid("other-supplier-uuid");
+        otherSupplier.setCompany(otherCompany);
+        otherSupplier.setName("Proveïdors Catalunya SL"); // Mateix nom
+        otherSupplier.setEmail("joan@provcat.com"); // Mateix email
+        otherSupplier.setIsActive(true);
+        entityManager.persistAndFlush(otherSupplier);
+
+        // When - Cercar en l'empresa original
+        org.springframework.data.domain.Pageable pageable =
+                org.springframework.data.domain.PageRequest.of(0, 10);
+        var result = supplierRepository.findSuppliersWithFilters(
+                testCompany.getId(), "Catalunya", "joan", true, pageable);
+
+        // Then - Només hauria de trobar el proveïdor de l'empresa original
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().getFirst().getUuid()).isEqualTo(testSupplier.getUuid());
+        assertThat(result.getContent().getFirst().getCompany().getId()).isEqualTo(testCompany.getId());
+    }
 }
