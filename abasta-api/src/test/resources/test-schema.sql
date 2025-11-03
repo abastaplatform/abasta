@@ -1,4 +1,4 @@
--- Schema per tests amb H2 - Companies i Users
+-- Schema per tests amb H2 - Companies, Users i Suppliers
 
 -- Taula companies
 CREATE TABLE IF NOT EXISTS companies (
@@ -34,6 +34,24 @@ CREATE TABLE IF NOT EXISTS users (
     password_reset_token VARCHAR(255),
     password_reset_expires TIMESTAMP,
     last_login TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (company_id) REFERENCES companies(id)
+);
+
+-- Taula suppliers
+CREATE TABLE IF NOT EXISTS suppliers (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    uuid VARCHAR(255) UNIQUE NOT NULL,
+    company_id BIGINT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    contact_name VARCHAR(255),
+    email VARCHAR(255),
+    phone VARCHAR(50),
+    address TEXT,
+    notes TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
