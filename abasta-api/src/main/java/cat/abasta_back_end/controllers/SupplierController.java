@@ -1,8 +1,6 @@
 package cat.abasta_back_end.controllers;
 
-import cat.abasta_back_end.dto.ApiResponseDTO;
-import cat.abasta_back_end.dto.SupplierRequestDTO;
-import cat.abasta_back_end.dto.SupplierResponseDTO;
+import cat.abasta_back_end.dto.*;
 import cat.abasta_back_end.services.SupplierService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -11,12 +9,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 
 import java.util.List;
@@ -34,7 +29,8 @@ import java.util.List;
  *   <li>GET /api/suppliers/{uuid} - Obtenir proveïdor per UUID</li>
  *   <li>PUT /api/suppliers/{uuid} - Actualitzar proveïdor existent</li>
  *   <li>GET /api/suppliers/company/{companyUuid} - Proveïdors d'una empresa</li>
- *   <li>GET /api/suppliers/search - Cerca per nom amb paginació</li>
+ *   <li>PATCH /api/suppliers/{uuid}/status - Canviar estat actiu/inactiu</li>
+ *   <li>GET /api/suppliers/search - Cerca per UUID d'empresa i nom amb paginació</li>
  *   <li>GET /api/suppliers/filter - Cerca avançada amb múltiples filtres</li>
  * </ul>
  * </p>
@@ -130,7 +126,7 @@ public class SupplierController {
     /**
      * Actualitza un proveïdor existent.
      *
-     * @param uuid               l'UUID del proveïdor a actualitzar
+     * @param uuid l'UUID del proveïdor a actualitzar
      * @param supplierRequestDTO les noves dades del proveïdor
      * @return resposta amb el proveïdor actualitzat
      */
@@ -172,4 +168,49 @@ public class SupplierController {
         return ResponseEntity.ok(
                 ApiResponseDTO.success(updatedSupplier, "Estat del proveïdor actualitzat correctament"));
     }
+
+    /**
+     * Cerca proveïdors d'una empresa per nom amb paginació.
+     *
+     * @param searchDTO paràmetres de cerca amb l'UUID d'empresa, nom i opcions de paginació
+     * @return resposta amb la pàgina de proveïdors d'una empresa trobats
+     */
+    @PostMapping("/search")
+    public ResponseEntity<ApiResponseDTO<Page<SupplierResponseDTO>>> searchSuppliersByCompanyAndName(
+            @Valid @RequestBody SupplierSearchDTO searchDTO) {
+
+        Sort sort = searchDTO.getSortDir().equalsIgnoreCase("desc") ?
+                Sort.by(searchDTO.getSortBy()).descending() :
+                Sort.by(searchDTO.getSortBy()).ascending();
+
+        Pageable pageable = PageRequest.of(searchDTO.getPage(), searchDTO.getSize(), sort);
+        Page<SupplierResponseDTO> suppliers = supplierService.searchSuppliersByCompanyAndName(searchDTO.getCompanyUuid(), searchDTO.getName(), pageable);
+
+        return ResponseEntity.ok(
+                ApiResponseDTO.success(suppliers, "Cerca de proveïdors completada"));
+    }
+
+    /**
+     * Cerca avançada de proveïdors amb múltiples filtres.
+     *
+     * @param filterDTO paràmetres de filtratge amb múltiples criteris i opcions de paginació
+     * @return resposta amb la pàgina de proveïdors filtrats
+     */
+    @PostMapping("/filter")
+    public ResponseEntity<ApiResponseDTO<Page<SupplierResponseDTO>>> searchSuppliersWithFilters(
+            @Valid @RequestBody SupplierFilterDTO filterDTO) {
+
+        Sort sort = filterDTO.getSortDir().equalsIgnoreCase("desc") ?
+                Sort.by(filterDTO.getSortBy()).descending() :
+                Sort.by(filterDTO.getSortBy()).ascending();
+
+        Pageable pageable = PageRequest.of(filterDTO.getPage(), filterDTO.getSize(), sort);
+        Page<SupplierResponseDTO> suppliers = supplierService.searchSuppliersWithFilters(
+                filterDTO.getCompanyUuid(), filterDTO.getName(), filterDTO.getEmail(),
+                filterDTO.getIsActive(), pageable);
+
+        return ResponseEntity.ok(
+                ApiResponseDTO.success(suppliers, "Cerca filtrada de proveïdors completada"));
+    }
+
 }
