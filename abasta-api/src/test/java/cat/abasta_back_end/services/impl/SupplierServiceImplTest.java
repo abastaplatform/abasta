@@ -15,9 +15,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,6 +30,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -696,5 +703,270 @@ class SupplierServiceImplTest {
         verify(supplierRepository).findByUuid("supplier-uuid-123");
         verify(supplierRepository, never()).existsByCompanyUuidAndNameIgnoreCaseAndUuidNot(anyString(), anyString(), anyString());
         verify(supplierRepository).save(any(Supplier.class));
+    }
+
+    // ================= TESTS PER searchSuppliersByCompanyAndName =================
+
+    @Test
+    @DisplayName("searchSuppliersByCompanyAndName hauria de retornar pàgina de proveïdors correctament")
+    void searchSuppliersByCompanyAndName_ShouldReturnPageOfSuppliers() {
+        // Given
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Supplier> suppliers = Collections.singletonList(savedSupplier);
+        Page<Supplier> suppliersPage = new PageImpl<>(suppliers, pageable, 1);
+
+        when(companyRepository.existsByUuid("company-uuid-123"))
+                .thenReturn(true);
+        when(supplierRepository.findAll(pageable))
+                .thenReturn(suppliersPage);
+
+        // When
+        Page<SupplierResponseDTO> result = supplierService.searchSuppliersByCompanyAndName(
+                "company-uuid-123", "Catalunya", pageable);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().getFirst().getUuid()).isEqualTo("supplier-uuid-123");
+        assertThat(result.getTotalElements()).isEqualTo(1);
+
+        verify(companyRepository).existsByUuid("company-uuid-123");
+        verify(supplierRepository).findAll(pageable);
+    }
+
+    @Test
+    @DisplayName("searchSuppliersByCompanyAndName hauria de llançar ResourceNotFoundException quan empresa no existeix")
+    void searchSuppliersByCompanyAndName_ShouldThrowResourceNotFoundException_WhenCompanyNotExists() {
+        // Given
+        Pageable pageable = PageRequest.of(0, 10);
+        when(companyRepository.existsByUuid("company-inexistent"))
+                .thenReturn(false);
+
+        // When & Then
+        assertThatThrownBy(() -> supplierService.searchSuppliersByCompanyAndName(
+                "company-inexistent", "test", pageable))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Empresa no trobada amb UUID: company-inexistent");
+
+        verify(companyRepository).existsByUuid("company-inexistent");
+        verify(supplierRepository, never()).findAll(any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("searchSuppliersByCompanyAndName hauria de retornar pàgina buida quan no hi ha proveïdors")
+    void searchSuppliersByCompanyAndName_ShouldReturnEmptyPage_WhenNoSuppliers() {
+        // Given
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Supplier> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+
+        when(companyRepository.existsByUuid("company-uuid-123"))
+                .thenReturn(true);
+        when(supplierRepository.findAll(pageable))
+                .thenReturn(emptyPage);
+
+        // When
+        Page<SupplierResponseDTO> result = supplierService.searchSuppliersByCompanyAndName(
+                "company-uuid-123", "inexistent", pageable);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isZero();
+
+        verify(companyRepository).existsByUuid("company-uuid-123");
+        verify(supplierRepository).findAll(pageable);
+    }
+
+    @Test
+    @DisplayName("searchSuppliersByCompanyAndName hauria de gestionar nom null")
+    void searchSuppliersByCompanyAndName_ShouldHandleNullName() {
+        // Given
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Supplier> suppliers = Collections.singletonList(savedSupplier);
+        Page<Supplier> suppliersPage = new PageImpl<>(suppliers, pageable, 1);
+
+        when(companyRepository.existsByUuid("company-uuid-123"))
+                .thenReturn(true);
+        when(supplierRepository.findAll(pageable))
+                .thenReturn(suppliersPage);
+
+        // When
+        Page<SupplierResponseDTO> result = supplierService.searchSuppliersByCompanyAndName(
+                "company-uuid-123", null, pageable);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(1);
+
+        verify(companyRepository).existsByUuid("company-uuid-123");
+        verify(supplierRepository).findAll(pageable);
+    }
+
+    // ================= TESTS PER searchSuppliersWithFilters =================
+
+    @Test
+    @DisplayName("searchSuppliersWithFilters hauria de retornar pàgina de proveïdors amb filtres")
+    void searchSuppliersWithFilters_ShouldReturnPageOfSuppliersWithFilters() {
+        // Given
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Supplier> suppliers = Collections.singletonList(savedSupplier);
+        Page<Supplier> suppliersPage = new PageImpl<>(suppliers, pageable, 1);
+
+        when(companyRepository.findByUuid("company-uuid-123"))
+                .thenReturn(Optional.of(testCompany));
+        when(supplierRepository.findSuppliersWithFilters(
+                eq(1L), eq("Catalunya"), eq("joan"), eq(true), any(Pageable.class)))
+                .thenReturn(suppliersPage);
+
+        // When
+        Page<SupplierResponseDTO> result = supplierService.searchSuppliersWithFilters(
+                "company-uuid-123", "Catalunya", "joan", true, pageable);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().getFirst().getUuid()).isEqualTo("supplier-uuid-123");
+        assertThat(result.getTotalElements()).isEqualTo(1);
+
+        verify(companyRepository).findByUuid("company-uuid-123");
+        verify(supplierRepository).findSuppliersWithFilters(1L, "Catalunya", "joan", true, pageable);
+    }
+
+    @Test
+    @DisplayName("searchSuppliersWithFilters hauria de gestionar companyUuid null")
+    void searchSuppliersWithFilters_ShouldHandleNullCompanyUuid() {
+        // Given
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Supplier> suppliers = Collections.singletonList(savedSupplier);
+        Page<Supplier> suppliersPage = new PageImpl<>(suppliers, pageable, 1);
+
+        when(supplierRepository.findSuppliersWithFilters(
+                eq(null), eq("test"), eq(null), eq(null), any(Pageable.class)))
+                .thenReturn(suppliersPage);
+
+        // When
+        Page<SupplierResponseDTO> result = supplierService.searchSuppliersWithFilters(
+                null, "test", null, null, pageable);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(1);
+
+        verify(companyRepository, never()).findByUuid(anyString());
+        verify(supplierRepository).findSuppliersWithFilters(null, "test", null, null, pageable);
+    }
+
+    @Test
+    @DisplayName("searchSuppliersWithFilters hauria de llançar ResourceNotFoundException quan empresa no existeix")
+    void searchSuppliersWithFilters_ShouldThrowResourceNotFoundException_WhenCompanyNotExists() {
+        // Given
+        Pageable pageable = PageRequest.of(0, 10);
+        when(companyRepository.findByUuid("company-inexistent"))
+                .thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> supplierService.searchSuppliersWithFilters(
+                "company-inexistent", "test", null, null, pageable))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Empresa no trobada amb UUID: company-inexistent");
+
+        verify(companyRepository).findByUuid("company-inexistent");
+        verify(supplierRepository, never()).findSuppliersWithFilters(anyLong(), anyString(), anyString(), any(), any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("searchSuppliersWithFilters hauria de retornar pàgina buida quan no hi ha coincidències")
+    void searchSuppliersWithFilters_ShouldReturnEmptyPage_WhenNoMatches() {
+        // Given
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Supplier> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+
+        when(companyRepository.findByUuid("company-uuid-123"))
+                .thenReturn(Optional.of(testCompany));
+        when(supplierRepository.findSuppliersWithFilters(
+                eq(1L), eq("inexistent"), eq(null), eq(null), any(Pageable.class)))
+                .thenReturn(emptyPage);
+
+        // When
+        Page<SupplierResponseDTO> result = supplierService.searchSuppliersWithFilters(
+                "company-uuid-123", "inexistent", null, null, pageable);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isZero();
+
+        verify(companyRepository).findByUuid("company-uuid-123");
+        verify(supplierRepository).findSuppliersWithFilters(1L, "inexistent", null, null, pageable);
+    }
+
+    @Test
+    @DisplayName("searchSuppliersWithFilters hauria de gestionar tots els filtres null")
+    void searchSuppliersWithFilters_ShouldHandleAllFiltersNull() {
+        // Given
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Supplier> suppliers = Collections.singletonList(savedSupplier);
+        Page<Supplier> suppliersPage = new PageImpl<>(suppliers, pageable, 1);
+
+        when(supplierRepository.findSuppliersWithFilters(
+                eq(null), eq(null), eq(null), eq(null), any(Pageable.class)))
+                .thenReturn(suppliersPage);
+
+        // When
+        Page<SupplierResponseDTO> result = supplierService.searchSuppliersWithFilters(
+                null, null, null, null, pageable);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(1);
+
+        verify(companyRepository, never()).findByUuid(anyString());
+        verify(supplierRepository).findSuppliersWithFilters(null, null, null, null, pageable);
+    }
+
+    @Test
+    @DisplayName("searchSuppliersWithFilters hauria de mapear correctament els resultats")
+    void searchSuppliersWithFilters_ShouldMapResultsCorrectly() {
+        // Given
+        Pageable pageable = PageRequest.of(0, 10);
+        Supplier supplier2 = Supplier.builder()
+                .id(2L)
+                .uuid("supplier-2-uuid")
+                .company(testCompany)
+                .name("Segon Proveïdor")
+                .email("segon@test.com")
+                .isActive(false)
+                .build();
+
+        List<Supplier> suppliers = Arrays.asList(savedSupplier, supplier2);
+        Page<Supplier> suppliersPage = new PageImpl<>(suppliers, pageable, 2);
+
+        when(companyRepository.findByUuid("company-uuid-123"))
+                .thenReturn(Optional.of(testCompany));
+        when(supplierRepository.findSuppliersWithFilters(
+                eq(1L), eq(null), eq(null), eq(null), any(Pageable.class)))
+                .thenReturn(suppliersPage);
+
+        // When
+        Page<SupplierResponseDTO> result = supplierService.searchSuppliersWithFilters(
+                "company-uuid-123", null, null, null, pageable);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getTotalElements()).isEqualTo(2);
+
+        SupplierResponseDTO first = result.getContent().getFirst();
+        assertThat(first.getUuid()).isEqualTo("supplier-uuid-123");
+        assertThat(first.getCompanyUuid()).isEqualTo("company-uuid-123");
+        assertThat(first.getIsActive()).isTrue();
+
+        SupplierResponseDTO second = result.getContent().get(1);
+        assertThat(second.getUuid()).isEqualTo("supplier-2-uuid");
+        assertThat(second.getCompanyUuid()).isEqualTo("company-uuid-123");
+        assertThat(second.getIsActive()).isFalse();
+
+        verify(companyRepository).findByUuid("company-uuid-123");
+        verify(supplierRepository).findSuppliersWithFilters(1L, null, null, null, pageable);
     }
 }
