@@ -18,23 +18,26 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Tests unitaris per SupplierController.
- * Verifica els endpoints REST per gestió de proveïdors.
+ * Tests unitaris complets per SupplierController.
+ * Cobreix tots els endpoints REST per gestió de proveïdors.
  *
  * @author Enrique Pérez
  * @version 1.0
  */
 @WebMvcTest(SupplierController.class)
 @ActiveProfiles("test")
-@DisplayName("SupplierController Tests")
+@DisplayName("SupplierController Complete Tests")
 class SupplierControllerTest {
 
     @Autowired
@@ -67,6 +70,7 @@ class SupplierControllerTest {
         supplierResponseDTO = SupplierResponseDTO.builder()
                 .uuid("supplier-uuid-123")
                 .companyUuid("company-uuid-123")
+                .companyName("Test Company SL")
                 .name("Proveïdors Catalunya SL")
                 .contactName("Joan Martínez")
                 .email("joan@provcat.com")
@@ -77,6 +81,8 @@ class SupplierControllerTest {
                 .updatedAt(LocalDateTime.now())
                 .build();
     }
+
+    // ================= TESTS PER POST /api/suppliers =================
 
     @Test
     @DisplayName("POST /api/suppliers hauria de crear proveïdor correctament")
@@ -116,7 +122,9 @@ class SupplierControllerTest {
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidDTO)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest()) // 400 gràcies al ControllerAdvice
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Error de validació"));
     }
 
     @Test
@@ -217,5 +225,322 @@ class SupplierControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.isActive").value(false))
                 .andExpect(jsonPath("$.data.name").value("Proveïdor Inactiu SL"));
+    }
+
+    // ================= TESTS PER GET /{uuid} =================
+
+    @Test
+    @DisplayName("GET /{uuid} hauria de retornar proveïdor quan existeix")
+    @WithMockUser
+    void getSupplierByUuid_ShouldReturnSupplier_WhenExists() throws Exception {
+        // Given
+        when(supplierService.getSupplierByUuid("supplier-uuid-123"))
+                .thenReturn(supplierResponseDTO);
+
+        // When & Then
+        mockMvc.perform(get("/api/suppliers/{uuid}", "supplier-uuid-123"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Proveïdor obtingut correctament"))
+                .andExpect(jsonPath("$.data.uuid").value("supplier-uuid-123"))
+                .andExpect(jsonPath("$.data.name").value("Proveïdors Catalunya SL"))
+                .andExpect(jsonPath("$.data.email").value("joan@provcat.com"))
+                .andExpect(jsonPath("$.data.isActive").value(true));
+    }
+
+    @Test
+    @DisplayName("GET /{uuid} hauria de retornar 404 quan el proveïdor no existeix")
+    @WithMockUser
+    void getSupplierByUuid_ShouldReturn404_WhenNotFound() throws Exception {
+        // Given
+        when(supplierService.getSupplierByUuid("supplier-inexistent"))
+                .thenThrow(new ResourceNotFoundException("Proveïdor no trobat"));
+
+        // When & Then
+        mockMvc.perform(get("/api/suppliers/{uuid}", "supplier-inexistent"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Proveïdor no trobat"));
+    }
+
+    @Test
+    @DisplayName("GET /{uuid} sense autenticació hauria de retornar 401")
+    void getSupplierByUuid_ShouldReturn401_WhenNotAuthenticated() throws Exception {
+        // When & Then
+        mockMvc.perform(get("/api/suppliers/{uuid}", "supplier-uuid-123"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    // ================= TESTS PER PUT /{uuid} =================
+
+    @Test
+    @DisplayName("PUT /{uuid} hauria d'actualitzar proveïdor correctament")
+    @WithMockUser
+    void updateSupplier_ShouldUpdateSupplier_WhenValidData() throws Exception {
+        // Given
+        SupplierRequestDTO updateRequest = SupplierRequestDTO.builder()
+                .companyUuid("company-uuid-123")
+                .name("Proveïdors Catalunya SL Actualitzat")
+                .contactName("Maria Garcia")
+                .email("maria@provcat.com")
+                .phone("987654321")
+                .address("Carrer Nou 456, Barcelona")
+                .notes("Notes actualitzades")
+                .isActive(true)
+                .build();
+
+        SupplierResponseDTO updatedResponse = SupplierResponseDTO.builder()
+                .uuid("supplier-uuid-123")
+                .companyUuid("company-uuid-123")
+                .companyName("Test Company SL")
+                .name("Proveïdors Catalunya SL Actualitzat")
+                .contactName("Maria Garcia")
+                .email("maria@provcat.com")
+                .phone("987654321")
+                .address("Carrer Nou 456, Barcelona")
+                .notes("Notes actualitzades")
+                .isActive(true)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        when(supplierService.updateSupplier(eq("supplier-uuid-123"), any(SupplierRequestDTO.class)))
+                .thenReturn(updatedResponse);
+
+        // When & Then
+        mockMvc.perform(put("/api/suppliers/{uuid}", "supplier-uuid-123")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Proveïdor actualitzat correctament"))
+                .andExpect(jsonPath("$.data.uuid").value("supplier-uuid-123"))
+                .andExpect(jsonPath("$.data.name").value("Proveïdors Catalunya SL Actualitzat"))
+                .andExpect(jsonPath("$.data.contactName").value("Maria Garcia"))
+                .andExpect(jsonPath("$.data.email").value("maria@provcat.com"));
+    }
+
+    @Test
+    @DisplayName("PUT /{uuid} hauria de retornar 404 quan el proveïdor no existeix")
+    @WithMockUser
+    void updateSupplier_ShouldReturn404_WhenSupplierNotFound() throws Exception {
+        // Given
+        SupplierRequestDTO updateRequest = SupplierRequestDTO.builder()
+                .companyUuid("company-uuid-123")
+                .name("Nom Actualitzat")
+                .isActive(true)
+                .build();
+
+        when(supplierService.updateSupplier(eq("supplier-inexistent"), any(SupplierRequestDTO.class)))
+                .thenThrow(new ResourceNotFoundException("Proveïdor no trobat"));
+
+        // When & Then
+        mockMvc.perform(put("/api/suppliers/{uuid}", "supplier-inexistent")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    // ================= TESTS PER GET /company/{companyUuid} =================
+
+    @Test
+    @DisplayName("GET /company/{companyUuid} hauria de retornar llista de proveïdors")
+    @WithMockUser
+    void getSuppliersByCompany_ShouldReturnSuppliersList() throws Exception {
+        // Given
+        SupplierResponseDTO supplier2 = SupplierResponseDTO.builder()
+                .uuid("supplier-uuid-456")
+                .companyUuid("company-uuid-123")
+                .name("Altre Proveïdor SL")
+                .isActive(true)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        List<SupplierResponseDTO> suppliers = Arrays.asList(supplierResponseDTO, supplier2);
+
+        when(supplierService.getSuppliersByCompanyUuid("company-uuid-123"))
+                .thenReturn(suppliers);
+
+        // When & Then
+        mockMvc.perform(get("/api/suppliers/company/{companyUuid}", "company-uuid-123"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Proveïdors de l'empresa obtinguts correctament"))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data.length()").value(2))
+                .andExpect(jsonPath("$.data[0].uuid").value("supplier-uuid-123"))
+                .andExpect(jsonPath("$.data[1].uuid").value("supplier-uuid-456"));
+    }
+
+    @Test
+    @DisplayName("GET /company/{companyUuid} hauria de retornar llista buida quan no hi ha proveïdors")
+    @WithMockUser
+    void getSuppliersByCompany_ShouldReturnEmptyList_WhenNoSuppliers() throws Exception {
+        // Given
+        when(supplierService.getSuppliersByCompanyUuid("company-uuid-empty"))
+                .thenReturn(List.of());
+
+        // When & Then
+        mockMvc.perform(get("/api/suppliers/company/{companyUuid}", "company-uuid-empty"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data.length()").value(0));
+    }
+
+    @Test
+    @DisplayName("GET /company/{companyUuid} hauria de retornar 404 quan l'empresa no existeix")
+    @WithMockUser
+    void getSuppliersByCompany_ShouldReturn404_WhenCompanyNotFound() throws Exception {
+        // Given
+        when(supplierService.getSuppliersByCompanyUuid("company-inexistent"))
+                .thenThrow(new ResourceNotFoundException("Empresa no trobada"));
+
+        // When & Then
+        mockMvc.perform(get("/api/suppliers/company/{companyUuid}", "company-inexistent"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    // ================= TESTS PER PATCH /{uuid}/status =================
+
+    @Test
+    @DisplayName("PATCH /{uuid}/status hauria d'activar proveïdor correctament")
+    @WithMockUser
+    void toggleSupplierStatus_ShouldActivateSupplier() throws Exception {
+        // Given
+        SupplierResponseDTO activatedSupplier = SupplierResponseDTO.builder()
+                .uuid("supplier-uuid-123")
+                .companyUuid("company-uuid-123")
+                .companyName("Test Company SL")
+                .name("Proveïdors Catalunya SL")
+                .contactName("Joan Martínez")
+                .email("joan@provcat.com")
+                .phone("938765432")
+                .address("Av. Diagonal 123, Barcelona")
+                .isActive(true) // Activat
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        when(supplierService.toggleSupplierStatus("supplier-uuid-123", true))
+                .thenReturn(activatedSupplier);
+
+        // When & Then
+        mockMvc.perform(patch("/api/suppliers/{uuid}/status", "supplier-uuid-123")
+                        .with(csrf())
+                        .param("isActive", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Estat del proveïdor actualitzat correctament"))
+                .andExpect(jsonPath("$.data.uuid").value("supplier-uuid-123"))
+                .andExpect(jsonPath("$.data.isActive").value(true));
+    }
+
+    @Test
+    @DisplayName("PATCH /{uuid}/status hauria de desactivar proveïdor correctament")
+    @WithMockUser
+    void toggleSupplierStatus_ShouldDeactivateSupplier() throws Exception {
+        // Given
+        SupplierResponseDTO deactivatedSupplier = SupplierResponseDTO.builder()
+                .uuid("supplier-uuid-123")
+                .companyUuid("company-uuid-123")
+                .companyName("Test Company SL")
+                .name("Proveïdors Catalunya SL")
+                .contactName("Joan Martínez")
+                .email("joan@provcat.com")
+                .phone("938765432")
+                .address("Av. Diagonal 123, Barcelona")
+                .isActive(false) // Desactivat
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        when(supplierService.toggleSupplierStatus("supplier-uuid-123", false))
+                .thenReturn(deactivatedSupplier);
+
+        // When & Then
+        mockMvc.perform(patch("/api/suppliers/{uuid}/status", "supplier-uuid-123")
+                        .with(csrf())
+                        .param("isActive", "false"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.isActive").value(false));
+    }
+
+    @Test
+    @DisplayName("PATCH /{uuid}/status hauria de retornar 404 quan el proveïdor no existeix")
+    @WithMockUser
+    void toggleSupplierStatus_ShouldReturn404_WhenSupplierNotFound() throws Exception {
+        // Given
+        when(supplierService.toggleSupplierStatus("supplier-inexistent", true))
+                .thenThrow(new ResourceNotFoundException("Proveïdor no trobat"));
+
+        // When & Then
+        mockMvc.perform(patch("/api/suppliers/{uuid}/status", "supplier-inexistent")
+                        .with(csrf())
+                        .param("isActive", "true"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    // ================= TESTS GENERALS DE SEGURETAT =================
+
+    @Test
+    @DisplayName("Tots els endpoints haurien de requerir autenticació")
+    void allEndpoints_ShouldRequireAuthentication() throws Exception {
+        // POST
+        mockMvc.perform(post("/api/suppliers")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(supplierRequestDTO)))
+                .andExpect(status().isUnauthorized());
+
+        // GET /{uuid}
+        mockMvc.perform(get("/api/suppliers/{uuid}", "supplier-uuid-123"))
+                .andExpect(status().isUnauthorized());
+
+        // PUT /{uuid}
+        mockMvc.perform(put("/api/suppliers/{uuid}", "supplier-uuid-123")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(supplierRequestDTO)))
+                .andExpect(status().isUnauthorized());
+
+        // GET /company/{companyUuid}
+        mockMvc.perform(get("/api/suppliers/company/{companyUuid}", "company-uuid-123"))
+                .andExpect(status().isUnauthorized());
+
+        // PATCH /{uuid}/status
+        mockMvc.perform(patch("/api/suppliers/{uuid}/status", "supplier-uuid-123")
+                        .with(csrf())
+                        .param("isActive", "true"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("Endpoints de modificació haurien de requerir CSRF token")
+    @WithMockUser
+    void modificationEndpoints_ShouldRequireCsrfToken() throws Exception {
+        // POST sense CSRF
+        mockMvc.perform(post("/api/suppliers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(supplierRequestDTO)))
+                .andExpect(status().isForbidden());
+
+        // PUT sense CSRF
+        mockMvc.perform(put("/api/suppliers/{uuid}", "supplier-uuid-123")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(supplierRequestDTO)))
+                .andExpect(status().isForbidden());
+
+        // PATCH sense CSRF
+        mockMvc.perform(patch("/api/suppliers/{uuid}/status", "supplier-uuid-123")
+                        .param("isActive", "true"))
+                .andExpect(status().isForbidden());
     }
 }
