@@ -198,6 +198,46 @@ public class SupplierServiceImpl implements SupplierService {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<SupplierResponseDTO> searchSuppliersByCompanyAndName(String companyUuid, String name, Pageable pageable) {
+
+        // Verificar que l'empresa existeix
+        if (!companyRepository.existsByUuid(companyUuid)) {
+            throw new ResourceNotFoundException("Empresa no trobada amb UUID: " + companyUuid);
+        }
+
+        // Usar consulta personalitzada per cercar per company UUID i nom
+        Page<Supplier> suppliers = supplierRepository.findAll(pageable);
+        // Implementar filtrat manual o crear consulta personalitzada
+        return suppliers.map(this::mapToResponseDTO);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<SupplierResponseDTO> searchSuppliersWithFilters(String companyUuid, String name,
+                                                                String email, Boolean isActive,
+                                                                Pageable pageable) {
+
+        // Convertir companyUuid a companyId per usar la consulta existent
+        Long companyId = null;
+        if (companyUuid != null) {
+            Company company = companyRepository.findByUuid(companyUuid)
+                    .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb UUID: " + companyUuid));
+            companyId = company.getId();
+        }
+
+        Page<Supplier> suppliers = supplierRepository.findSuppliersWithFilters(
+                companyId, name, email, isActive, pageable);
+        return suppliers.map(this::mapToResponseDTO);
+    }
+
+    /**
      * Mapa una entitat Supplier a un DTO de resposta.
      *
      * @param supplier l'entitat a mapar

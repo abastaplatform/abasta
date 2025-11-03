@@ -100,4 +100,25 @@ public interface SupplierRepository extends JpaRepository<Supplier, Long> {
      */
     @Query("SELECT s FROM Supplier s WHERE s.company.uuid = :companyUuid")
     List<Supplier> findByCompanyUuid(@Param("companyUuid") String companyUuid);
+
+    /**
+     * Cerca avançada de proveïdors amb múltiples filtres.
+     *
+     * @param companyId l'identificador de l'empresa (obligatori)
+     * @param name el nom a cercar (opcional, cerca parcial)
+     * @param email l'email a cercar (opcional, cerca parcial)
+     * @param isActive l'estat d'activitat (opcional)
+     * @param pageable informació de paginació
+     * @return pàgina de proveïdors que compleixen els criteris
+     */
+    @Query("SELECT s FROM Supplier s WHERE " +
+            "(s.company.id = :companyId) AND " +
+            "(:name IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
+            "(:email IS NULL OR LOWER(s.email) LIKE LOWER(CONCAT('%', :email, '%'))) AND " +
+            "(:isActive IS NULL OR s.isActive = :isActive)")
+    Page<Supplier> findSuppliersWithFilters(@Param("companyId") Long companyId,
+                                            @Param("name") String name,
+                                            @Param("email") String email,
+                                            @Param("isActive") Boolean isActive,
+                                            Pageable pageable);
 }

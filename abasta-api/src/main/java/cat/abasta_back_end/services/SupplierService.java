@@ -124,4 +124,27 @@ public interface SupplierService {
      * @throws cat.abasta_back_end.exceptions.ResourceNotFoundException si el proveïdor no existeix
      */
     SupplierResponseDTO toggleSupplierStatus(String uuid, Boolean isActive);
+
+    /**
+     * Cerca proveïdors d'una empresa per nom amb paginació.
+     *
+     * @param companyUuid l'UUID de l'empresa (obligatori)
+     * @param name el nom a cercar (cerca parcial, insensible a majúscules)
+     * @param pageable informació de paginació i ordenació
+     * @return pàgina de proveïdors de l'empresa que coincideixen amb el nom
+     * @throws cat.abasta_back_end.exceptions.ResourceNotFoundException si l'empresa no existeix
+     */
+    Page<SupplierResponseDTO> searchSuppliersByCompanyAndName(String companyUuid, String name, Pageable pageable);
+
+    /**
+     * Cerca avançada de proveïdors amb múltiples filtres.
+     *
+     * @param companyUuid l'UUID de l'empresa (obligatori)
+     * @param name el nom a cercar (opcional, cerca parcial)
+     * @param email l'email a cercar (opcional, cerca parcial)
+     * @param isActive l'estat d'activitat (opcional)
+     * @param pageable informació de paginació i ordenació
+     * @return pàgina de proveïdors que compleixen els criteris de cerca
+     */
+    Page<SupplierResponseDTO> searchSuppliersWithFilters(String companyUuid, String name, String email, Boolean isActive, Pageable pageable);
 }
