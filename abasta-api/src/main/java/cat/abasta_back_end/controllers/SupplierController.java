@@ -21,7 +21,8 @@ import java.util.List;
  * Proporciona una API completa per administrar proveïdors amb operacions CRUD i cerca avançada.
  *
  * <p>Aquest controlador exposa tots els endpoints necessaris per gestionar proveïdors,
- * seguint les millors pràctiques de REST i proporcionant respostes estandarditzades.</p>
+ * seguint les millors pràctiques de REST i proporcionant respostes estandarditzades.
+ * Inclou múltiples nivells de cerca des de bàsica fins avançada amb tots els filtres disponibles.</p>
  *
  * <p>Endpoints disponibles:
  * <ul>
@@ -30,8 +31,23 @@ import java.util.List;
  *   <li>PUT /api/suppliers/{uuid} - Actualitzar proveïdor existent</li>
  *   <li>GET /api/suppliers/company/{companyUuid} - Proveïdors d'una empresa</li>
  *   <li>PATCH /api/suppliers/{uuid}/status - Canviar estat actiu/inactiu</li>
- *   <li>GET /api/suppliers/search - Cerca per UUID d'empresa i nom amb paginació</li>
- *   <li>GET /api/suppliers/filter - Cerca avançada amb múltiples filtres</li>
+ *   <li>POST /api/suppliers/search - Cerca bàsica per empresa i nom</li>
+ *   <li>POST /api/suppliers/filter - Cerca avançada amb tots els filtres</li>
+ * </ul>
+ * </p>
+ *
+ * <p>Nivells de cerca implementats:
+ * <ul>
+ *   <li><strong>Cerca bàsica (/search):</strong> Filtra per empresa i nom únicament</li>
+ *   <li><strong>Cerca avançada (/filter):</strong> Filtres per tots els camps i dates</li>
+ * </ul>
+ * </p>
+ *
+ * <p>Filtres disponibles en cerca avançada:
+ * <ul>
+ *   <li><strong>Filtres de text:</strong> name, contactName, email, phone, address, notes</li>
+ *   <li><strong>Filtres d'estat:</strong> isActive (true/false/null)</li>
+ *   <li><strong>Filtres de dates:</strong> createdAfter, createdBefore, updatedAfter, updatedBefore</li>
  * </ul>
  * </p>
  *
@@ -39,52 +55,27 @@ import java.util.List;
  * <ul>
  *   <li>Paginació automàtica amb paràmetres page i size</li>
  *   <li>Ordenació configurable amb sortBy i sortDir</li>
- *   <li>Valores per defecte raonables (page=0, size=10, sortBy="name")</li>
- *   <li>Validació de paràmetres amb @Min</li>
+ *   <li>Camps d'ordenació: name, contactName, email, phone, createdAt, updatedAt</li>
+ *   <li>Valors per defecte raonables (page=0, size=10, sortBy="name", sortDir="asc")</li>
+ *   <li>Validació de paràmetres amb Bean Validation</li>
  * </ul>
  * </p>
  *
- * <p>Format de resposta estandarditzat:
+ * <p>Seguretat implementada:
  * <ul>
- *   <li>Totes les respostes utilitzen {@link cat.abasta_back_end.dto.ApiResponseDTO}</li>
- *   <li>Codis d'estat HTTP apropiats (200, 201, 400, 404, etc.)</li>
- *   <li>Dades de resposta tipades</li>
+ *   <li>companyUuid sempre obligatori en totes les cerques</li>
+ *   <li>Un usuari només pot veure proveïdors de la seva empresa</li>
+ *   <li>Validació d'UUID d'empresa en cada petició</li>
  * </ul>
- * </p>
- *
- * <p>Exemple d'ús des d'un client:
- * <pre>
- * // Crear un nou proveïdor
- * POST /api/suppliers
- * Content-Type: application/json
- * Authorization: Bearer {jwt_token}
- *
- * {
- *   "companyUuid": "123e4567-e89b-12d3-a456-426614174000",
- *   "name": "Proveïdors Catalunya SL",
- *   "contactName": "Joan Martínez",
- *   "email": "joan@provcat.com",
- *   "phone": "938765432",
- *   "address": "Av. Diagonal 123, Barcelona",
- *   "isActive": true
- * }
- *
- * // Resposta
- * {
- *   "success": true,
- *   "message": "Proveïdor creat correctament",
- *   "data": { ... },
- *   "timestamp": "2024-01-15T10:30:00"
- * }
- * </pre>
  * </p>
  *
  * @author Enrique Pérez
- * @version 1.0
+ * @version 2.0
  * @see SupplierService
  * @see SupplierRequestDTO
  * @see SupplierResponseDTO
- * @see cat.abasta_back_end.dto.ApiResponseDTO
+ * @see SupplierSearchDTO
+ * @see SupplierFilterDTO
  * @since 1.0
  */
 @RestController
@@ -170,10 +161,26 @@ public class SupplierController {
     }
 
     /**
-     * Cerca proveïdors d'una empresa per nom amb paginació.
+     * Cerca bàsica de proveïdors per empresa i nom amb paginació.
+     *
+     * <p>Aquest endpoint permet cercar proveïdors filtrant per empresa (obligatori) i
+     * opcionalment per nom. Si no s'especifica nom, retorna tots els proveïdors de l'empresa.</p>
+     *
+     * <p>Exemple de petició JSON:
+     * <pre>
+     * {
+     *   "companyUuid": "123e4567-e89b-12d3-a456-426614174000",
+     *   "name": "Catalunya",
+     *   "page": 0,
+     *   "size": 10,
+     *   "sortBy": "name",
+     *   "sortDir": "asc"
+     * }
+     * </pre>
+     * </p>
      *
      * @param searchDTO paràmetres de cerca amb l'UUID d'empresa, nom i opcions de paginació
-     * @return resposta amb la pàgina de proveïdors d'una empresa trobats
+     * @return resposta amb la pàgina de proveïdors trobats
      */
     @PostMapping("/search")
     public ResponseEntity<ApiResponseDTO<Page<SupplierResponseDTO>>> searchSuppliersByCompanyAndName(
@@ -184,14 +191,47 @@ public class SupplierController {
                 Sort.by(searchDTO.getSortBy()).ascending();
 
         Pageable pageable = PageRequest.of(searchDTO.getPage(), searchDTO.getSize(), sort);
-        Page<SupplierResponseDTO> suppliers = supplierService.searchSuppliersByCompanyAndName(searchDTO.getCompanyUuid(), searchDTO.getName(), pageable);
+        Page<SupplierResponseDTO> suppliers = supplierService.searchSuppliersByCompanyAndName(
+                searchDTO.getCompanyUuid(), searchDTO.getName(), pageable);
 
         return ResponseEntity.ok(
-                ApiResponseDTO.success(suppliers, "Cerca de proveïdors completada"));
+                ApiResponseDTO.success(suppliers, "Cerca bàsica de proveïdors completada"));
     }
 
     /**
      * Cerca avançada de proveïdors amb múltiples filtres.
+     *
+     * <p>Aquest endpoint permet filtrar proveïdors utilitzant tots els camps disponibles
+     * de la taula suppliers, incloent-hi filtres de text, estat d'activitat i rangs de dates.</p>
+     *
+     * <p>Filtres disponibles:
+     * <ul>
+     *   <li><strong>Text:</strong> name, contactName, email, phone, address, notes</li>
+     *   <li><strong>Estat:</strong> isActive (true/false/null)</li>
+     *   <li><strong>Dates:</strong> createdAfter, createdBefore, updatedAfter, updatedBefore</li>
+     * </ul>
+     * </p>
+     *
+     * <p>Exemple de petició JSON completa:
+     * <pre>
+     * {
+     *   "companyUuid": "123e4567-e89b-12d3-a456-426614174000",
+     *   "name": "Catalunya",
+     *   "contactName": "Joan",
+     *   "email": "@provcat.com",
+     *   "phone": "93",
+     *   "address": "Barcelona",
+     *   "notes": "important",
+     *   "isActive": true,
+     *   "createdAfter": "2024-01-01T00:00:00",
+     *   "createdBefore": "2024-12-31T23:59:59",
+     *   "page": 0,
+     *   "size": 10,
+     *   "sortBy": "name",
+     *   "sortDir": "asc"
+     * }
+     * </pre>
+     * </p>
      *
      * @param filterDTO paràmetres de filtratge amb múltiples criteris i opcions de paginació
      * @return resposta amb la pàgina de proveïdors filtrats
@@ -205,12 +245,14 @@ public class SupplierController {
                 Sort.by(filterDTO.getSortBy()).ascending();
 
         Pageable pageable = PageRequest.of(filterDTO.getPage(), filterDTO.getSize(), sort);
-        Page<SupplierResponseDTO> suppliers = supplierService.searchSuppliersWithFilters(
-                filterDTO.getCompanyUuid(), filterDTO.getName(), filterDTO.getEmail(),
-                filterDTO.getIsActive(), pageable);
+        Page<SupplierResponseDTO> suppliers = supplierService.searchSuppliersWithFilters(filterDTO, pageable);
+
+        String message = String.format("Cerca avançada completada. Filtres aplicats: text=%s, dates=%s",
+                filterDTO.hasTextFilters(), filterDTO.hasDateFilters());
 
         return ResponseEntity.ok(
-                ApiResponseDTO.success(suppliers, "Cerca filtrada de proveïdors completada"));
+                ApiResponseDTO.success(suppliers, message));
     }
+
 
 }

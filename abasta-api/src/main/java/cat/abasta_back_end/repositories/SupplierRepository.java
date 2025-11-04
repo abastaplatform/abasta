@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -103,22 +104,61 @@ public interface SupplierRepository extends JpaRepository<Supplier, Long> {
 
     /**
      * Cerca avançada de proveïdors amb múltiples filtres.
+     * Inclou tots els camps disponibles per a una cerca completa.
      *
      * @param companyId l'identificador de l'empresa (obligatori)
      * @param name el nom a cercar (opcional, cerca parcial)
+     * @param contactName el nom de contacte a cercar (opcional, cerca parcial)
      * @param email l'email a cercar (opcional, cerca parcial)
+     * @param phone el telèfon a cercar (opcional, cerca parcial)
+     * @param address l'adreça a cercar (opcional, cerca parcial)
+     * @param notes les notes a cercar (opcional, cerca parcial)
      * @param isActive l'estat d'activitat (opcional)
+     * @param createdAfter creat després de aquesta data (opcional)
+     * @param createdBefore creat abans de aquesta data (opcional)
+     * @param updatedAfter actualitzat després de aquesta data (opcional)
+     * @param updatedBefore actualitzat abans de aquesta data (opcional)
      * @param pageable informació de paginació
      * @return pàgina de proveïdors que compleixen els criteris
      */
     @Query("SELECT s FROM Supplier s WHERE " +
             "(s.company.id = :companyId) AND " +
             "(:name IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
+            "(:contactName IS NULL OR LOWER(s.contactName) LIKE LOWER(CONCAT('%', :contactName, '%'))) AND " +
             "(:email IS NULL OR LOWER(s.email) LIKE LOWER(CONCAT('%', :email, '%'))) AND " +
-            "(:isActive IS NULL OR s.isActive = :isActive)")
+            "(:phone IS NULL OR LOWER(s.phone) LIKE LOWER(CONCAT('%', :phone, '%'))) AND " +
+            "(:address IS NULL OR LOWER(s.address) LIKE LOWER(CONCAT('%', :address, '%'))) AND " +
+            "(:notes IS NULL OR LOWER(s.notes) LIKE LOWER(CONCAT('%', :notes, '%'))) AND " +
+            "(:isActive IS NULL OR s.isActive = :isActive) AND " +
+            "(:createdAfter IS NULL OR s.createdAt >= :createdAfter) AND " +
+            "(:createdBefore IS NULL OR s.createdAt <= :createdBefore) AND " +
+            "(:updatedAfter IS NULL OR s.updatedAt >= :updatedAfter) AND " +
+            "(:updatedBefore IS NULL OR s.updatedAt <= :updatedBefore)")
     Page<Supplier> findSuppliersWithFilters(@Param("companyId") Long companyId,
-                                            @Param("name") String name,
-                                            @Param("email") String email,
-                                            @Param("isActive") Boolean isActive,
-                                            Pageable pageable);
+                                                    @Param("name") String name,
+                                                    @Param("contactName") String contactName,
+                                                    @Param("email") String email,
+                                                    @Param("phone") String phone,
+                                                    @Param("address") String address,
+                                                    @Param("notes") String notes,
+                                                    @Param("isActive") Boolean isActive,
+                                                    @Param("createdAfter") LocalDateTime createdAfter,
+                                                    @Param("createdBefore") LocalDateTime createdBefore,
+                                                    @Param("updatedAfter") LocalDateTime updatedAfter,
+                                                    @Param("updatedBefore") LocalDateTime updatedBefore,
+                                                    Pageable pageable);
+
+    /**
+     * Cerca proveïdors d'una empresa per nom (cerca parcial) amb paginació.
+     *
+     * @param companyId l'identificador de l'empresa
+     * @param name el nom a cercar (pot ser null per obtenir tots)
+     * @param pageable informació de paginació
+     * @return pàgina de proveïdors
+     */
+    @Query("SELECT s FROM Supplier s WHERE s.company.id = :companyId AND " +
+            "(:name IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :name, '%')))")
+    Page<Supplier> findByCompanyIdAndNameContaining(@Param("companyId") Long companyId,
+                                                    @Param("name") String name,
+                                                    Pageable pageable);
 }
