@@ -134,7 +134,6 @@ public class SupplierSearchDTO {
      * Camp pel qual ordenar els resultats.
      * Per defecte s'ordena per nom.
      */
-    @NotBlank(message = "El camp d'ordenació és obligatori")
     @Builder.Default
     private String sortBy = "name";
 
