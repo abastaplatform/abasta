@@ -1,5 +1,6 @@
 package cat.abasta_back_end.services.impl;
 
+import cat.abasta_back_end.dto.SupplierFilterDTO;
 import cat.abasta_back_end.dto.SupplierRequestDTO;
 import cat.abasta_back_end.dto.SupplierResponseDTO;
 import cat.abasta_back_end.entities.Company;
@@ -203,13 +204,13 @@ public class SupplierServiceImpl implements SupplierService {
     @Transactional(readOnly = true)
     public Page<SupplierResponseDTO> searchSuppliersByCompanyAndName(String companyUuid, String name, Pageable pageable) {
 
-        // Verificar que l'empresa existeix
-        if (!companyRepository.existsByUuid(companyUuid)) {
-            throw new ResourceNotFoundException("Empresa no trobada amb UUID: " + companyUuid);
-        }
+        // Verificar que l'empresa es troba
+        Company company = companyRepository.findByUuid(companyUuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb UUID: " + companyUuid));
 
-        // Usar consulta personalitzada per cercar per company UUID i nom
-        Page<Supplier> suppliers = supplierRepository.findAll(pageable);
+        // Usar consulta personalitzada per cercar per company i nom
+        Page<Supplier> suppliers = supplierRepository.findByCompanyIdAndNameContaining(
+                company.getId(), name, pageable);
         // Implementar filtrat manual o crear consulta personalitzada
         return suppliers.map(this::mapToResponseDTO);
     }
@@ -217,22 +218,30 @@ public class SupplierServiceImpl implements SupplierService {
     /**
      * {@inheritDoc}
      */
-    @Override
     @Transactional(readOnly = true)
-    public Page<SupplierResponseDTO> searchSuppliersWithFilters(String companyUuid, String name,
-                                                                String email, Boolean isActive,
-                                                                Pageable pageable) {
+    public Page<SupplierResponseDTO> searchSuppliersWithFilters(SupplierFilterDTO filterDTO, Pageable pageable) {
 
-        // Convertir companyUuid a companyId per usar la consulta existent
-        Long companyId = null;
-        if (companyUuid != null) {
-            Company company = companyRepository.findByUuid(companyUuid)
-                    .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb UUID: " + companyUuid));
-            companyId = company.getId();
-        }
+        // Verificar que l'empresa existeix i obtenir l'ID
+        Company company = companyRepository.findByUuid(filterDTO.getCompanyUuid())
+                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb UUID: " + filterDTO.getCompanyUuid()));
 
+        // Usar el mètode del repositori amb tots els filtres expandits
         Page<Supplier> suppliers = supplierRepository.findSuppliersWithFilters(
-                companyId, name, email, isActive, pageable);
+                company.getId(),
+                filterDTO.getName(),
+                filterDTO.getContactName(),
+                filterDTO.getEmail(),
+                filterDTO.getPhone(),
+                filterDTO.getAddress(),
+                filterDTO.getNotes(),
+                filterDTO.getIsActive(),
+                filterDTO.getCreatedAfter(),
+                filterDTO.getCreatedBefore(),
+                filterDTO.getUpdatedAfter(),
+                filterDTO.getUpdatedBefore(),
+                pageable
+        );
+
         return suppliers.map(this::mapToResponseDTO);
     }
 
