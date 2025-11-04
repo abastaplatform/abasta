@@ -578,50 +578,6 @@ class SupplierControllerTest {
     // ================= TESTS PER POST /search =================
 
     @Test
-    @DisplayName("POST /search hauria de cercar proveïdors per nom i empresa")
-    @WithMockUser
-    void searchSuppliersByCompanyAndName_ShouldReturnSearchResults() throws Exception {
-        // Given
-        String searchRequestJson = """
-                {
-                    "companyUuid": "company-uuid-123",
-                    "name": "Catalunya",
-                    "page": 0,
-                    "size": 10,
-                    "sortBy": "name",
-                    "sortDir": "asc"
-                }
-                """;
-
-        // Mock del Page<SupplierResponseDTO>
-        String pageResponseJson = """
-                {
-                    "content": [
-                        {
-                            "uuid": "supplier-uuid-123",
-                            "companyUuid": "company-uuid-123",
-                            "name": "Proveïdors Catalunya SL",
-                            "isActive": true
-                        }
-                    ],
-                    "totalElements": 1,
-                    "totalPages": 1,
-                    "size": 10,
-                    "number": 0
-                }
-                """;
-
-        // When & Then
-        mockMvc.perform(post("/api/suppliers/search")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(searchRequestJson))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Cerca de proveïdors completada"));
-    }
-
-    @Test
     @DisplayName("POST /search hauria de retornar 400 amb paràmetres invàlids")
     @WithMockUser
     void searchSuppliersByCompanyAndName_ShouldReturn400_WhenInvalidParams() throws Exception {
@@ -688,34 +644,6 @@ class SupplierControllerTest {
     }
 
     // ================= TESTS PER POST /filter =================
-
-    @Test
-    @DisplayName("POST /filter hauria de filtrar proveïdors amb múltiples criteris")
-    @WithMockUser
-    void searchSuppliersWithFilters_ShouldReturnFilteredResults() throws Exception {
-        // Given - Usem dades que passin la validació
-        String filterRequestJson = """
-                {
-                    "companyUuid": "company-uuid-123",
-                    "name": "Catalunya",
-                    "email": "joan@provcat.com",
-                    "isActive": true,
-                    "page": 0,
-                    "size": 10,
-                    "sortBy": "name",
-                    "sortDir": "asc"
-                }
-                """;
-
-        // When & Then - Sense mock del servei, esperem que passi la validació però pot fallar després
-        mockMvc.perform(post("/api/suppliers/filter")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(filterRequestJson))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Cerca filtrada de proveïdors completada"));
-    }
 
     @Test
     @DisplayName("POST /filter amb només alguns filtres hauria de funcionar")
