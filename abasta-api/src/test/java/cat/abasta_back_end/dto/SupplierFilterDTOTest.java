@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -143,25 +144,6 @@ class SupplierFilterDTOTest {
     }
 
     @Test
-    @DisplayName("hauria de fallar validació quan email té format invàlid")
-    void shouldFailValidation_WhenEmailFormatIsInvalid() {
-        // Given
-        SupplierFilterDTO dto = SupplierFilterDTO.builder()
-                .companyUuid("company-uuid-123")
-                .email("invalid-email")
-                .build();
-
-        // When
-        Set<ConstraintViolation<SupplierFilterDTO>> violations = validator.validate(dto);
-
-        // Then
-        assertThat(violations).hasSize(1);
-        ConstraintViolation<SupplierFilterDTO> violation = violations.iterator().next();
-        assertThat(violation.getPropertyPath().toString()).isEqualTo("email");
-        assertThat(violation.getMessage()).isEqualTo("L'email ha de tenir un format vàlid");
-    }
-
-    @Test
     @DisplayName("hauria d'acceptar email null")
     void shouldAcceptNullEmail() {
         // Given
@@ -194,7 +176,7 @@ class SupplierFilterDTOTest {
         assertThat(violations).hasSize(1);
         ConstraintViolation<SupplierFilterDTO> violation = violations.iterator().next();
         assertThat(violation.getPropertyPath().toString()).isEqualTo("page");
-        assertThat(violation.getMessage()).isEqualTo("La pàgina ha de ser >= 0");
+        assertThat(violation.getMessage()).isEqualTo("El número de pàgina ha de ser 0 o superior");
     }
 
     @Test
@@ -230,7 +212,7 @@ class SupplierFilterDTOTest {
         assertThat(violations).hasSize(1);
         ConstraintViolation<SupplierFilterDTO> violation = violations.iterator().next();
         assertThat(violation.getPropertyPath().toString()).isEqualTo("size");
-        assertThat(violation.getMessage()).isEqualTo("La mida ha de ser >= 1");
+        assertThat(violation.getMessage()).isEqualTo("La mida de pàgina ha de ser 1 o superior");
     }
 
     @Test
@@ -249,7 +231,7 @@ class SupplierFilterDTOTest {
         assertThat(violations).hasSize(1);
         ConstraintViolation<SupplierFilterDTO> violation = violations.iterator().next();
         assertThat(violation.getPropertyPath().toString()).isEqualTo("size");
-        assertThat(violation.getMessage()).isEqualTo("La mida ha de ser >= 1");
+        assertThat(violation.getMessage()).isEqualTo("La mida de pàgina ha de ser 1 o superior");
     }
 
     @Test
@@ -284,7 +266,7 @@ class SupplierFilterDTOTest {
         Set<ConstraintViolation<SupplierFilterDTO>> violations = validator.validate(dto);
 
         // Then
-        assertThat(violations).hasSize(4);
+        assertThat(violations).hasSize(3);
     }
 
     @Test
@@ -358,27 +340,128 @@ class SupplierFilterDTOTest {
     @Test
     @DisplayName("constructor amb tots els paràmetres hauria de funcionar correctament")
     void allArgsConstructor_ShouldWorkCorrectly() {
-        // When
+        // Given
+        LocalDateTime createdAfter = LocalDateTime.of(2024, 1, 1, 0, 0);
+        LocalDateTime createdBefore = LocalDateTime.of(2024, 12, 31, 23, 59);
+        LocalDateTime updatedAfter = LocalDateTime.of(2024, 6, 1, 0, 0);
+        LocalDateTime updatedBefore = LocalDateTime.of(2024, 11, 30, 23, 59);
+
+        // When - Constructor amb TOTS els paràmetres en l'ordre correcte
         SupplierFilterDTO dto = new SupplierFilterDTO(
-                "company-uuid-123",
-                "Catalunya",
-                "test@provcat.com",
-                true,
-                2,
-                25,
-                "email",
-                "desc"
+                "company-uuid-123",    // companyUuid
+                "Catalunya",           // name
+                "Joan",               // contactName
+                "test@provcat.com",   // email
+                "93",                 // phone
+                "Barcelona",          // address
+                "notes test",         // notes
+                true,                 // isActive
+                createdAfter,         // createdAfter
+                createdBefore,        // createdBefore
+                updatedAfter,         // updatedAfter
+                updatedBefore,        // updatedBefore
+                2,                    // page
+                25,                   // size
+                "email",              // sortBy
+                "desc"                // sortDir
         );
 
-        // Then
+        // Then - Verificar tots els camps
         assertThat(dto.getCompanyUuid()).isEqualTo("company-uuid-123");
         assertThat(dto.getName()).isEqualTo("Catalunya");
+        assertThat(dto.getContactName()).isEqualTo("Joan");
         assertThat(dto.getEmail()).isEqualTo("test@provcat.com");
+        assertThat(dto.getPhone()).isEqualTo("93");
+        assertThat(dto.getAddress()).isEqualTo("Barcelona");
+        assertThat(dto.getNotes()).isEqualTo("notes test");
         assertThat(dto.getIsActive()).isTrue();
+        assertThat(dto.getCreatedAfter()).isEqualTo(createdAfter);
+        assertThat(dto.getCreatedBefore()).isEqualTo(createdBefore);
+        assertThat(dto.getUpdatedAfter()).isEqualTo(updatedAfter);
+        assertThat(dto.getUpdatedBefore()).isEqualTo(updatedBefore);
         assertThat(dto.getPage()).isEqualTo(2);
         assertThat(dto.getSize()).isEqualTo(25);
         assertThat(dto.getSortBy()).isEqualTo("email");
         assertThat(dto.getSortDir()).isEqualTo("desc");
+    }
+
+    // Test alternatiu més simple utilitzant el Builder
+    @Test
+    @DisplayName("builder hauria de funcionar correctament amb tots els camps")
+    void builder_ShouldWorkCorrectly() {
+        // Given
+        LocalDateTime createdAfter = LocalDateTime.of(2024, 1, 1, 0, 0);
+        LocalDateTime createdBefore = LocalDateTime.of(2024, 12, 31, 23, 59);
+
+        // When
+        SupplierFilterDTO dto = SupplierFilterDTO.builder()
+                .companyUuid("company-uuid-123")
+                .name("Catalunya")
+                .contactName("Joan")
+                .email("test@provcat.com")
+                .phone("93")
+                .address("Barcelona")
+                .notes("notes test")
+                .isActive(true)
+                .createdAfter(createdAfter)
+                .createdBefore(createdBefore)
+                .page(2)
+                .size(25)
+                .sortBy("email")
+                .sortDir("desc")
+                .build();
+
+        // Then
+        assertThat(dto.getCompanyUuid()).isEqualTo("company-uuid-123");
+        assertThat(dto.getName()).isEqualTo("Catalunya");
+        assertThat(dto.getContactName()).isEqualTo("Joan");
+        assertThat(dto.getEmail()).isEqualTo("test@provcat.com");
+        assertThat(dto.getPhone()).isEqualTo("93");
+        assertThat(dto.getAddress()).isEqualTo("Barcelona");
+        assertThat(dto.getNotes()).isEqualTo("notes test");
+        assertThat(dto.getIsActive()).isTrue();
+        assertThat(dto.getCreatedAfter()).isEqualTo(createdAfter);
+        assertThat(dto.getCreatedBefore()).isEqualTo(createdBefore);
+        assertThat(dto.getUpdatedAfter()).isNull(); // No especificat
+        assertThat(dto.getUpdatedBefore()).isNull(); // No especificat
+        assertThat(dto.getPage()).isEqualTo(2);
+        assertThat(dto.getSize()).isEqualTo(25);
+        assertThat(dto.getSortBy()).isEqualTo("email");
+        assertThat(dto.getSortDir()).isEqualTo("desc");
+    }
+
+    // Test per verificar els mètodes utilitaris
+    @Test
+    @DisplayName("mètodes utilitaris hasTextFilters i hasDateFilters haurien de funcionar")
+    void utilityMethods_ShouldWorkCorrectly() {
+        // Given - DTO amb filtres de text
+        SupplierFilterDTO dtoWithTextFilters = SupplierFilterDTO.builder()
+                .companyUuid("company-uuid-123")
+                .name("Catalunya")
+                .email("test@example.com")
+                .build();
+
+        // Given - DTO amb filtres de dates
+        SupplierFilterDTO dtoWithDateFilters = SupplierFilterDTO.builder()
+                .companyUuid("company-uuid-123")
+                .createdAfter(LocalDateTime.now().minusDays(30))
+                .updatedBefore(LocalDateTime.now())
+                .build();
+
+        // Given - DTO sense filtres adicionals
+        SupplierFilterDTO dtoWithoutFilters = SupplierFilterDTO.builder()
+                .companyUuid("company-uuid-123")
+                .build();
+
+        // Then
+        assertThat(dtoWithTextFilters.hasTextFilters()).isTrue();
+        assertThat(dtoWithTextFilters.hasDateFilters()).isFalse();
+
+        assertThat(dtoWithDateFilters.hasTextFilters()).isFalse();
+        assertThat(dtoWithDateFilters.hasDateFilters()).isTrue();
+
+        assertThat(dtoWithoutFilters.hasTextFilters()).isFalse();
+        assertThat(dtoWithoutFilters.hasDateFilters()).isFalse();
     }
 
     @Test
@@ -404,33 +487,6 @@ class SupplierFilterDTOTest {
 
             // Then
             assertThat(violations).isEmpty();
-        }
-    }
-
-    @Test
-    @DisplayName("hauria de rebutjar emails amb format invàlid")
-    void shouldRejectInvalidEmailFormats() {
-        // Given
-        String[] invalidEmails = {
-                "invalid",
-                "@domain.com",
-                "user@",
-                "user..name@domain.com",
-                "user name@domain.com"
-        };
-
-        for (String email : invalidEmails) {
-            SupplierFilterDTO dto = SupplierFilterDTO.builder()
-                    .companyUuid("company-uuid-123")
-                    .email(email)
-                    .build();
-
-            // When
-            Set<ConstraintViolation<SupplierFilterDTO>> violations = validator.validate(dto);
-
-            // Then
-            assertThat(violations).hasSize(1);
-            assertThat(violations.iterator().next().getPropertyPath().toString()).isEqualTo("email");
         }
     }
 

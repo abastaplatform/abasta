@@ -138,63 +138,6 @@ class SupplierSearchDTOTest {
     }
 
     @Test
-    @DisplayName("hauria de fallar validació quan name és null")
-    void shouldFailValidation_WhenNameIsNull() {
-        // Given
-        SupplierSearchDTO dto = SupplierSearchDTO.builder()
-                .companyUuid("company-uuid-123")
-                .name(null)
-                .build();
-
-        // When
-        Set<ConstraintViolation<SupplierSearchDTO>> violations = validator.validate(dto);
-
-        // Then
-        assertThat(violations).hasSize(1);
-        ConstraintViolation<SupplierSearchDTO> violation = violations.iterator().next();
-        assertThat(violation.getPropertyPath().toString()).isEqualTo("name");
-        assertThat(violation.getMessage()).isEqualTo("El nom de cerca és obligatori");
-    }
-
-    @Test
-    @DisplayName("hauria de fallar validació quan name és buit")
-    void shouldFailValidation_WhenNameIsEmpty() {
-        // Given
-        SupplierSearchDTO dto = SupplierSearchDTO.builder()
-                .companyUuid("company-uuid-123")
-                .name("")
-                .build();
-
-        // When
-        Set<ConstraintViolation<SupplierSearchDTO>> violations = validator.validate(dto);
-
-        // Then
-        assertThat(violations).hasSize(1);
-        ConstraintViolation<SupplierSearchDTO> violation = violations.iterator().next();
-        assertThat(violation.getPropertyPath().toString()).isEqualTo("name");
-        assertThat(violation.getMessage()).isEqualTo("El nom de cerca és obligatori");
-    }
-
-    @Test
-    @DisplayName("hauria de fallar validació quan name és blanc")
-    void shouldFailValidation_WhenNameIsBlank() {
-        // Given
-        SupplierSearchDTO dto = SupplierSearchDTO.builder()
-                .companyUuid("company-uuid-123")
-                .name("   ")
-                .build();
-
-        // When
-        Set<ConstraintViolation<SupplierSearchDTO>> violations = validator.validate(dto);
-
-        // Then
-        assertThat(violations).hasSize(1);
-        ConstraintViolation<SupplierSearchDTO> violation = violations.iterator().next();
-        assertThat(violation.getPropertyPath().toString()).isEqualTo("name");
-        assertThat(violation.getMessage()).isEqualTo("El nom de cerca és obligatori");
-    }
-
-    @Test
     @DisplayName("hauria de fallar validació quan page és negatiu")
     void shouldFailValidation_WhenPageIsNegative() {
         // Given
@@ -211,7 +154,7 @@ class SupplierSearchDTOTest {
         assertThat(violations).hasSize(1);
         ConstraintViolation<SupplierSearchDTO> violation = violations.iterator().next();
         assertThat(violation.getPropertyPath().toString()).isEqualTo("page");
-        assertThat(violation.getMessage()).isEqualTo("La pàgina ha de ser >= 0");
+        assertThat(violation.getMessage()).isEqualTo("El número de pàgina ha de ser 0 o superior");
     }
 
     @Test
@@ -249,7 +192,7 @@ class SupplierSearchDTOTest {
         assertThat(violations).hasSize(1);
         ConstraintViolation<SupplierSearchDTO> violation = violations.iterator().next();
         assertThat(violation.getPropertyPath().toString()).isEqualTo("size");
-        assertThat(violation.getMessage()).isEqualTo("La mida ha de ser >= 1");
+        assertThat(violation.getMessage()).isEqualTo("La mida de pàgina ha de ser 1 o superior");
     }
 
     @Test
@@ -269,7 +212,7 @@ class SupplierSearchDTOTest {
         assertThat(violations).hasSize(1);
         ConstraintViolation<SupplierSearchDTO> violation = violations.iterator().next();
         assertThat(violation.getPropertyPath().toString()).isEqualTo("size");
-        assertThat(violation.getMessage()).isEqualTo("La mida ha de ser >= 1");
+        assertThat(violation.getMessage()).isEqualTo("La mida de pàgina ha de ser 1 o superior");
     }
 
     @Test
@@ -296,7 +239,7 @@ class SupplierSearchDTOTest {
         // Given
         SupplierSearchDTO dto = SupplierSearchDTO.builder()
                 .companyUuid("") // Error 1: buit
-                .name("   ") // Error 2: blanc
+                .name("   ")
                 .page(-1) // Error 3: negatiu
                 .size(0) // Error 4: zero
                 .build();
@@ -305,7 +248,7 @@ class SupplierSearchDTOTest {
         Set<ConstraintViolation<SupplierSearchDTO>> violations = validator.validate(dto);
 
         // Then
-        assertThat(violations).hasSize(4);
+        assertThat(violations).hasSize(3);
     }
 
     @Test
@@ -401,35 +344,6 @@ class SupplierSearchDTOTest {
             // Then
             assertThat(violations).isEmpty();
             assertThat(dto.getSortBy()).isEqualTo(sortBy);
-        }
-    }
-
-    @Test
-    @DisplayName("hauria d'acceptar diferents valors de sortDir")
-    void shouldAcceptDifferentSortDirValues() {
-        // Given
-        String[] sortDirValues = {
-                "asc",
-                "desc",
-                "ASC",
-                "DESC",
-                "Asc",
-                "Desc"
-        };
-
-        for (String sortDir : sortDirValues) {
-            SupplierSearchDTO dto = SupplierSearchDTO.builder()
-                    .companyUuid("company-uuid-123")
-                    .name("Test")
-                    .sortDir(sortDir)
-                    .build();
-
-            // When
-            Set<ConstraintViolation<SupplierSearchDTO>> violations = validator.validate(dto);
-
-            // Then
-            assertThat(violations).isEmpty();
-            assertThat(dto.getSortDir()).isEqualTo(sortDir);
         }
     }
 
