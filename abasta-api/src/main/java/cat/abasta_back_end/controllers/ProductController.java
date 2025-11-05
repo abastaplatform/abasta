@@ -119,10 +119,10 @@ public class ProductController {
      */
     @GetMapping("/supplier/{supplierUuid}")
     public ResponseEntity<Page<ProductResponseDTO>> listProductsBySupplier(
-            @PathVariable String supplierUuid
+            @PathVariable String supplierUuid,
             @PageableDefault(page = 0, size = 20) Pageable pageable) {
 
-        Page<ProductResponseDTO> page = productService.listProductsBySupplier(supplierId, pageable);
+        Page<ProductResponseDTO> page = productService.listProductsBySupplier(supplierUuid, pageable);
         return ResponseEntity.ok(page);
     }
 

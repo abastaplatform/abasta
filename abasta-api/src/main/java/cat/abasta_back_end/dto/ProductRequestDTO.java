@@ -39,11 +39,11 @@ import java.math.BigDecimal;
 public class ProductRequestDTO {
 
     /**
-     * Identificador del proveïdor associat al producte.
-     * Ha de correspondre a un proveïdor existent a la base de dades.
+     * UUID del proveïdor associat.
+     * He de correspondre És obligatori per a tots els proveïdors.
      */
-    @NotNull(message = "El proveïdor és obligatori")
-    private Long supplierId;
+    @NotBlank(message = "L'UUID del proveïdor és obligatori")
+    private String supplierUuid;
 
     /**
      * Categoria a la qual pertany el producte (ex: Fruites, Begudes...).
