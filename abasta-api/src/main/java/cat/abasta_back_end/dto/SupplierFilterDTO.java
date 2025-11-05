@@ -206,7 +206,6 @@ public class SupplierFilterDTO {
     private int size = 10;
 
     // Ordenació (camps disponibles: name, contactName, email, phone, createdAt, updatedAt)
-    @NotBlank(message = "El camp d'ordenació és obligatori")
     @Builder.Default
     private String sortBy = "name";
 
