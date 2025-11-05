@@ -4,7 +4,10 @@ import cat.abasta_back_end.entities.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -16,7 +19,7 @@ import java.util.Optional;
  * @version 1.0
  */
 @Repository
-public interface ProducteRepository extends JpaRepository<Product, Long> {
+public interface ProductRepository extends JpaRepository<Product, Long> {
 
     /**
      * Cerca un producte pel seu uuid.
@@ -33,7 +36,7 @@ public interface ProducteRepository extends JpaRepository<Product, Long> {
      * @param pageable   objecte de paginació (page, size, sort)
      * @return una {@link Page} de {@link Product}
      */
-    List<Product> findBySupplierIdAndIsActiveTrue(String supplierUuid);
+    Page<Product> findBySupplierIdAndIsActiveTrue(Long supplierId, Pageable pageable);
 
     /**
      * Cerca i filtra productes actius segons diversos criteris opcionals.

@@ -4,10 +4,12 @@ import cat.abasta_back_end.dto.ProductRequestDTO;
 import cat.abasta_back_end.dto.ProductResponseDTO;
 import cat.abasta_back_end.entities.Product;
 import cat.abasta_back_end.entities.Supplier;
+import cat.abasta_back_end.exceptions.ResourceNotFoundException;
 import cat.abasta_back_end.repositories.ProductRepository;
 import cat.abasta_back_end.repositories.SupplierRepository;
 import cat.abasta_back_end.services.ProductService;
-import jakarta.transaction.Transactional;
+//import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -55,8 +57,7 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponseDTO createProduct(ProductRequestDTO productRequestDTO) {
 
         // 1. Validar que el proveïdor existeix
-        Supplier supplier = supplierRepository.findById(productRequestDTO.getSupplierId())
-                .orElseThrow(() -> new IllegalArgumentException("El proveïdor especificat no existeix."));
+        Supplier supplier = supplierRepository.findByUuid(productRequestDTO.getSupplierUuid()).orElseThrow(() -> new IllegalArgumentException("El proveïdor especificat no existeix."));
 
         // 2️. Crear entitat Product a partir del DTO
         Product product = Product.builder()
@@ -128,7 +129,7 @@ public class ProductServiceImpl implements ProductService {
      * necessites incloure inactius, es pot afegir un paràmetre booleà.
      * </p>
      *
-     * @param supplierId identificador del proveïdor
+     * @param supplierUuid identificador del proveïdor
      * @param pageable   objecte de paginació (page, size, sort)
      * @return {@link Page} de {@link ProductResponseDTO} amb els productes demanats
      */
