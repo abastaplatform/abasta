@@ -1,7 +1,6 @@
 package cat.abasta_back_end.dto;
 
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,13 +14,13 @@ import java.time.LocalDateTime;
  * Conté tots els paràmetres disponibles per realitzar cerques complexes amb paginació i ordenació.
  *
  * <p>Aquest DTO s'utilitza en l'endpoint de cerca avançada quan es vol filtrar proveïdors
- * per múltiples criteris simultàniament, proporcionant màxima flexibilitat en les cerques.
- * Permet filtrar per tots els camps disponibles de la taula suppliers incloent-hi
- * filtres de text, estat d'activitat i rangs de dates.</p>
+ * de l'empresa de l'usuari autenticat per múltiples criteris simultàniament, proporcionant
+ * màxima flexibilitat en les cerques. Permet filtrar per tots els camps disponibles de la
+ * taula suppliers incloent-hi filtres de text, estat d'activitat i rangs de dates.</p>
  *
  * <p>Els filtres disponibles inclouen:
  * <ul>
- *   <li><strong>Empresa específica per UUID (obligatori)</strong> - Garanteix seguretat de dades</li>
+ *   <li><strong>Empresa automàtica</strong> - El companyUuid s'extreu de l'usuari autenticat</li>
  *   <li><strong>Filtres de text amb cerca parcial (opcionals):</strong>
  *     <ul>
  *       <li>Nom del proveïdor</li>
@@ -45,8 +44,6 @@ import java.time.LocalDateTime;
  *
  * <p>Les validacions implementades garanteixen que:
  * <ul>
- *   <li>L'UUID de l'empresa és obligatori i no pot estar buit</li>
- *   <li>L'email té format vàlid si es proporciona</li>
  *   <li>La pàgina ha de ser un valor no negatiu (0 o superior)</li>
  *   <li>La mida de pàgina ha de ser com a mínim 1</li>
  *   <li>El camp d'ordenació és obligatori</li>
@@ -66,21 +63,9 @@ import java.time.LocalDateTime;
  * </ul>
  * </p>
  *
- * <p>Les anotacions de Lombok (@Data, @NoArgsConstructor, @AllArgsConstructor, @Builder)
- * generen automàticament:
- * <ul>
- *   <li>Getters i setters per a tots els camps</li>
- *   <li>Mètodes equals(), hashCode() i toString()</li>
- *   <li>Constructor sense paràmetres</li>
- *   <li>Constructor amb tots els paràmetres</li>
- *   <li>Patró Builder per a la construcció fluent d'objectes</li>
- * </ul>
- * </p>
- *
  * <p>Exemple d'ús amb Builder (cerca completa):
  * <pre>
  * SupplierFilterDTO filterDto = SupplierFilterDTO.builder()
- *     .companyUuid("123e4567-e89b-12d3-a456-426614174000")
  *     .name("Catalunya")
  *     .contactName("Joan")
  *     .email("@provcat.com")
@@ -101,7 +86,6 @@ import java.time.LocalDateTime;
  * <p>Exemple d'ús amb Builder (cerca simple):
  * <pre>
  * SupplierFilterDTO filterDto = SupplierFilterDTO.builder()
- *     .companyUuid("123e4567-e89b-12d3-a456-426614174000")
  *     .name("Catalunya")
  *     .isActive(true)
  *     .build(); // Usa valors per defecte per paginació
@@ -111,7 +95,6 @@ import java.time.LocalDateTime;
  * <p>Estructura JSON de la petició completa:
  * <pre>
  * {
- *   "companyUuid": "123e4567-e89b-12d3-a456-426614174000",
  *   "name": "Catalunya",
  *   "contactName": "Joan",
  *   "email": "@provcat.com",
@@ -134,7 +117,6 @@ import java.time.LocalDateTime;
  * <p>Estructura JSON de la petició mínima:
  * <pre>
  * {
- *   "companyUuid": "123e4567-e89b-12d3-a456-426614174000",
  *   "sortBy": "name",
  *   "sortDir": "asc"
  * }
@@ -146,23 +128,18 @@ import java.time.LocalDateTime;
  *   <li>Tots els filtres de text utilitzen cerca parcial insensible a majúscules</li>
  *   <li>Els filtres de dates permeten rangs oberts (només 'des de' o només 'fins a')</li>
  *   <li>Si no s'especifica isActive, es mostren tant proveïdors actius com inactius</li>
- *   <li>El companyUuid sempre és obligatori per garantir la seguretat de les dades</li>
+ *   <li>El companyUuid s'extreu automàticament de l'usuari per garantir seguretat</li>
  *   <li>La classe inclou mètodes utilitaris hasTextFilters() i hasDateFilters()</li>
  * </ul>
  * </p>
  *
- * <p><strong>Casos d'ús típics:</strong>
- * <ul>
- *   <li>Cerca de proveïdors per nom i ubicació</li>
- *   <li>Filtrat per proveïdors creats en un període específic</li>
- *   <li>Cerca per informació de contacte (email, telèfon)</li>
- *   <li>Auditoria de proveïdors actualitzats recentment</li>
- *   <li>Cerca en notes per paraules clau específiques</li>
- * </ul>
+ * <p><strong>Seguretat:</strong>
+ * El companyUuid s'extreu automàticament de l'usuari autenticat, garantint que
+ * cada usuari només pugui filtrar proveïdors de la seva pròpia empresa.
  * </p>
  *
  * @author Enrique Pérez
- * @version 2.0
+ * @version 3.0
  * @since 1.0
  * @see SupplierResponseDTO
  */
@@ -171,13 +148,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SupplierFilterDTO {
-
-    /**
-     * UUID de l'empresa per filtrar proveïdors.
-     * Només es mostraran proveïdors d'aquesta empresa.
-     */
-    @NotBlank(message = "L'UUID de l'empresa és obligatori")
-    private String companyUuid;
 
     // Filtres de text (cerca parcial, insensible a majúscules)
     private String name;        // Nom del proveïdor

@@ -26,13 +26,14 @@ import java.util.List;
  *
  * <p>Endpoints disponibles:
  * <ul>
- *   <li>POST /api/suppliers - Crear nou proveïdor</li>
+ *   <li>GET /api/suppliers/ - Proveïdors d'una empresa</li>
  *   <li>GET /api/suppliers/{uuid} - Obtenir proveïdor per UUID</li>
+ *   <li>GET /api/suppliers/search - Cerca bàsica per nom</li>
+ *   <li>GET /api/suppliers/filter - Cerca avançada amb tots els filtres</li>
+ *   <li>POST /api/suppliers - Crear nou proveïdor</li>
  *   <li>PUT /api/suppliers/{uuid} - Actualitzar proveïdor existent</li>
- *   <li>GET /api/suppliers/company/{companyUuid} - Proveïdors d'una empresa</li>
  *   <li>PATCH /api/suppliers/{uuid}/status - Canviar estat actiu/inactiu</li>
- *   <li>POST /api/suppliers/search - Cerca bàsica per empresa i nom</li>
- *   <li>POST /api/suppliers/filter - Cerca avançada amb tots els filtres</li>
+
  * </ul>
  * </p>
  *
@@ -63,14 +64,13 @@ import java.util.List;
  *
  * <p>Seguretat implementada:
  * <ul>
- *   <li>companyUuid sempre obligatori en totes les cerques</li>
  *   <li>Un usuari només pot veure proveïdors de la seva empresa</li>
- *   <li>Validació d'UUID d'empresa en cada petició</li>
+ *   <li>No es pot manipular el companyUuid des del client</li>
  * </ul>
  * </p>
  *
  * @author Enrique Pérez
- * @version 2.0
+ * @version 3.0
  * @see SupplierService
  * @see SupplierRequestDTO
  * @see SupplierResponseDTO
@@ -86,18 +86,26 @@ public class SupplierController {
     private final SupplierService supplierService;
 
     /**
-     * Crea un nou proveïdor.
+     * Obté tots els proveïdors de l'empresa de l'usuari autenticat.
+     * El companyUuid s'extreu automàticament de l'usuari.
      *
-     * @param supplierRequestDTO les dades del proveïdor a crear
-     * @return resposta amb el proveïdor creat
+     * <p>Aquest endpoint retorna la llista completa de proveïdors de l'empresa
+     * de l'usuari autenticat, sense paginació.</p>
+     *
+     * <p>Exemple d'ús:
+     * <pre>
+     * GET /api/suppliers
+     * Authorization: Bearer {token}
+     * </pre>
+     * </p>
+     *
+     * @return resposta amb la llista de proveïdors
      */
-    @PostMapping
-    public ResponseEntity<ApiResponseDTO<SupplierResponseDTO>> createSupplier(
-            @Valid @RequestBody SupplierRequestDTO supplierRequestDTO) {
-        SupplierResponseDTO createdSupplier = supplierService.createSupplier(supplierRequestDTO);
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(ApiResponseDTO.success(createdSupplier, "Proveïdor creat correctament"));
+    @GetMapping
+    public ResponseEntity<ApiResponseDTO<List<SupplierResponseDTO>>> getAllSuppliers() {
+        List<SupplierResponseDTO> suppliers = supplierService.getAllSuppliers();
+        return ResponseEntity.ok(
+                ApiResponseDTO.success(suppliers, "Proveïdors de l'empresa obtinguts correctament"));
     }
 
     /**
@@ -112,6 +120,107 @@ public class SupplierController {
         SupplierResponseDTO supplier = supplierService.getSupplierByUuid(uuid);
         return ResponseEntity.ok(
                 ApiResponseDTO.success(supplier, "Proveïdor obtingut correctament"));
+    }
+
+    /**
+     * Cerca bàsica de proveïdors per nom amb paginació.
+     * El companyUuid s'obté automàticament de l'usuari autenticat.
+     *
+     * <p>Aquest endpoint permet cercar proveïdors de l'empresa de l'usuari filtrant
+     * opcionalment per nom. Si no s'especifica nom, retorna tots els proveïdors.</p>
+     *
+     * <p>Exemple d'ús:
+     * <pre>
+     * GET /api/suppliers/search?name=Catalunya&page=0&size=10&sortBy=name&sortDir=asc
+     * </pre>
+     * </p>
+     *
+     * @param searchDTO paràmetres de cerca (Spring els mapeja automàticament des dels query params)
+     * @return resposta amb la pàgina de proveïdors trobats
+     */
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponseDTO<Page<SupplierResponseDTO>>> searchSuppliersByName(
+            @Valid SupplierSearchDTO searchDTO) {
+
+        Sort sort = searchDTO.getSortDir().equalsIgnoreCase("desc") ?
+                Sort.by(searchDTO.getSortBy()).descending() :
+                Sort.by(searchDTO.getSortBy()).ascending();
+
+        Pageable pageable = PageRequest.of(searchDTO.getPage(), searchDTO.getSize(), sort);
+
+        Page<SupplierResponseDTO> suppliers = supplierService.searchSuppliersByName(
+                searchDTO.getName(), pageable);
+
+        return ResponseEntity.ok(
+                ApiResponseDTO.success(suppliers, "Cerca bàsica de proveïdors completada"));
+    }
+
+    /**
+     * Cerca avançada de proveïdors amb múltiples filtres.
+     * El companyUuid s'obté automàticament de l'usuari autenticat.
+     *
+     * <p>Aquest endpoint permet filtrar proveïdors de l'empresa de l'usuari utilitzant
+     * tots els camps disponibles, incloent-hi filtres de text, estat d'activitat i rangs de dates.</p>
+     *
+     * <p>Filtres disponibles:
+     * <ul>
+     *   <li><strong>Text:</strong> name, contactName, email, phone, address, notes</li>
+     *   <li><strong>Estat:</strong> isActive (true/false/null)</li>
+     *   <li><strong>Dates:</strong> createdAfter, createdBefore, updatedAfter, updatedBefore</li>
+     * </ul>
+     * </p>
+     *
+     * <p>Exemple d'ús complet:
+     * <pre>
+     * GET /api/suppliers/filter?name=Catalunya&contactName=Joan&email=@provcat.com
+     *     &phone=93&address=Barcelona&notes=important&isActive=true
+     *     &createdAfter=2024-01-01T00:00:00&createdBefore=2024-12-31T23:59:59
+     *     &page=0&size=10&sortBy=name&sortDir=asc
+     * </pre>
+     * </p>
+     *
+     * <p>Exemple d'ús mínim:
+     * <pre>
+     * GET /api/suppliers/filter?name=Catalunya
+     * </pre>
+     * </p>
+     *
+     * @param filterDTO paràmetres de filtratge (Spring els mapeja automàticament des dels query params)
+     * @return resposta amb la pàgina de proveïdors filtrats
+     */
+    @GetMapping("/filter")
+    public ResponseEntity<ApiResponseDTO<Page<SupplierResponseDTO>>> filterSuppliers(
+            @Valid SupplierFilterDTO filterDTO) {
+
+        Sort sort = filterDTO.getSortDir().equalsIgnoreCase("desc") ?
+                Sort.by(filterDTO.getSortBy()).descending() :
+                Sort.by(filterDTO.getSortBy()).ascending();
+
+        Pageable pageable = PageRequest.of(filterDTO.getPage(), filterDTO.getSize(), sort);
+
+        Page<SupplierResponseDTO> suppliers = supplierService.searchSuppliersWithFilters(
+                filterDTO, pageable);
+
+        String message = String.format("Cerca avançada completada. Filtres aplicats: text=%s, dates=%s",
+                filterDTO.hasTextFilters(), filterDTO.hasDateFilters());
+
+        return ResponseEntity.ok(
+                ApiResponseDTO.success(suppliers, message));
+    }
+
+    /**
+     * Crea un nou proveïdor.
+     *
+     * @param supplierRequestDTO les dades del proveïdor a crear
+     * @return resposta amb el proveïdor creat
+     */
+    @PostMapping
+    public ResponseEntity<ApiResponseDTO<SupplierResponseDTO>> createSupplier(
+            @Valid @RequestBody SupplierRequestDTO supplierRequestDTO) {
+        SupplierResponseDTO createdSupplier = supplierService.createSupplier(supplierRequestDTO);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponseDTO.success(createdSupplier, "Proveïdor creat correctament"));
     }
 
     /**
@@ -131,20 +240,6 @@ public class SupplierController {
     }
 
     /**
-     * Obté tots els proveïdors d'una empresa específica.
-     *
-     * @param companyUuid l'UUID de l'empresa
-     * @return resposta amb la llista de proveïdors
-     */
-    @GetMapping("/company/{companyUuid}")
-    public ResponseEntity<ApiResponseDTO<List<SupplierResponseDTO>>> getSuppliersByCompany(
-            @PathVariable @NotBlank(message = "L'UUID de l'empresa no pot estar buit") String companyUuid) {
-        List<SupplierResponseDTO> suppliers = supplierService.getSuppliersByCompanyUuid(companyUuid);
-        return ResponseEntity.ok(
-                ApiResponseDTO.success(suppliers, "Proveïdors de l'empresa obtinguts correctament"));
-    }
-
-    /**
      * Activa o desactiva un proveïdor.
      *
      * @param uuid l'UUID del proveïdor
@@ -159,100 +254,5 @@ public class SupplierController {
         return ResponseEntity.ok(
                 ApiResponseDTO.success(updatedSupplier, "Estat del proveïdor actualitzat correctament"));
     }
-
-    /**
-     * Cerca bàsica de proveïdors per empresa i nom amb paginació.
-     *
-     * <p>Aquest endpoint permet cercar proveïdors filtrant per empresa (obligatori) i
-     * opcionalment per nom. Si no s'especifica nom, retorna tots els proveïdors de l'empresa.</p>
-     *
-     * <p>Exemple de petició JSON:
-     * <pre>
-     * {
-     *   "companyUuid": "123e4567-e89b-12d3-a456-426614174000",
-     *   "name": "Catalunya",
-     *   "page": 0,
-     *   "size": 10,
-     *   "sortBy": "name",
-     *   "sortDir": "asc"
-     * }
-     * </pre>
-     * </p>
-     *
-     * @param searchDTO paràmetres de cerca amb l'UUID d'empresa, nom i opcions de paginació
-     * @return resposta amb la pàgina de proveïdors trobats
-     */
-    @PostMapping("/search")
-    public ResponseEntity<ApiResponseDTO<Page<SupplierResponseDTO>>> searchSuppliersByCompanyAndName(
-            @Valid @RequestBody SupplierSearchDTO searchDTO) {
-
-        Sort sort = searchDTO.getSortDir().equalsIgnoreCase("desc") ?
-                Sort.by(searchDTO.getSortBy()).descending() :
-                Sort.by(searchDTO.getSortBy()).ascending();
-
-        Pageable pageable = PageRequest.of(searchDTO.getPage(), searchDTO.getSize(), sort);
-        Page<SupplierResponseDTO> suppliers = supplierService.searchSuppliersByCompanyAndName(
-                searchDTO.getCompanyUuid(), searchDTO.getName(), pageable);
-
-        return ResponseEntity.ok(
-                ApiResponseDTO.success(suppliers, "Cerca bàsica de proveïdors completada"));
-    }
-
-    /**
-     * Cerca avançada de proveïdors amb múltiples filtres.
-     *
-     * <p>Aquest endpoint permet filtrar proveïdors utilitzant tots els camps disponibles
-     * de la taula suppliers, incloent-hi filtres de text, estat d'activitat i rangs de dates.</p>
-     *
-     * <p>Filtres disponibles:
-     * <ul>
-     *   <li><strong>Text:</strong> name, contactName, email, phone, address, notes</li>
-     *   <li><strong>Estat:</strong> isActive (true/false/null)</li>
-     *   <li><strong>Dates:</strong> createdAfter, createdBefore, updatedAfter, updatedBefore</li>
-     * </ul>
-     * </p>
-     *
-     * <p>Exemple de petició JSON completa:
-     * <pre>
-     * {
-     *   "companyUuid": "123e4567-e89b-12d3-a456-426614174000",
-     *   "name": "Catalunya",
-     *   "contactName": "Joan",
-     *   "email": "@provcat.com",
-     *   "phone": "93",
-     *   "address": "Barcelona",
-     *   "notes": "important",
-     *   "isActive": true,
-     *   "createdAfter": "2024-01-01T00:00:00",
-     *   "createdBefore": "2024-12-31T23:59:59",
-     *   "page": 0,
-     *   "size": 10,
-     *   "sortBy": "name",
-     *   "sortDir": "asc"
-     * }
-     * </pre>
-     * </p>
-     *
-     * @param filterDTO paràmetres de filtratge amb múltiples criteris i opcions de paginació
-     * @return resposta amb la pàgina de proveïdors filtrats
-     */
-    @PostMapping("/filter")
-    public ResponseEntity<ApiResponseDTO<Page<SupplierResponseDTO>>> searchSuppliersWithFilters(
-            @Valid @RequestBody SupplierFilterDTO filterDTO) {
-
-        Sort sort = filterDTO.getSortDir().equalsIgnoreCase("desc") ?
-                Sort.by(filterDTO.getSortBy()).descending() :
-                Sort.by(filterDTO.getSortBy()).ascending();
-
-        Pageable pageable = PageRequest.of(filterDTO.getPage(), filterDTO.getSize(), sort);
-        Page<SupplierResponseDTO> suppliers = supplierService.searchSuppliersWithFilters(filterDTO, pageable);
-
-        String message = String.format("Cerca avançada completada. Filtres aplicats: text=%s, dates=%s",
-                filterDTO.hasTextFilters(), filterDTO.hasDateFilters());
-
-        return ResponseEntity.ok(
-                ApiResponseDTO.success(suppliers, message));
-    }
-
 
 }
