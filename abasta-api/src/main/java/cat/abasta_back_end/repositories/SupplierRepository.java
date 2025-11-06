@@ -114,10 +114,10 @@ public interface SupplierRepository extends JpaRepository<Supplier, Long> {
      * @param address l'adreça a cercar (opcional, cerca parcial)
      * @param notes les notes a cercar (opcional, cerca parcial)
      * @param isActive l'estat d'activitat (opcional)
-     * @param createdAfter creat després de aquesta data (opcional)
-     * @param createdBefore creat abans de aquesta data (opcional)
-     * @param updatedAfter actualitzat després de aquesta data (opcional)
-     * @param updatedBefore actualitzat abans de aquesta data (opcional)
+     * @param createdAfter creat després d'aquesta data (opcional)
+     * @param createdBefore creat abans d'aquesta data (opcional)
+     * @param updatedAfter actualitzat després d'aquesta data (opcional)
+     * @param updatedBefore actualitzat abans d'aquesta data (opcional)
      * @param pageable informació de paginació
      * @return pàgina de proveïdors que compleixen els criteris
      */

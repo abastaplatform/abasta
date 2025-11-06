@@ -5,16 +5,20 @@ import cat.abasta_back_end.dto.SupplierRequestDTO;
 import cat.abasta_back_end.dto.SupplierResponseDTO;
 import cat.abasta_back_end.entities.Company;
 import cat.abasta_back_end.entities.Supplier;
+import cat.abasta_back_end.entities.User;
 import cat.abasta_back_end.exceptions.DuplicateResourceException;
 import cat.abasta_back_end.exceptions.ResourceNotFoundException;
 import cat.abasta_back_end.repositories.CompanyRepository;
 import cat.abasta_back_end.repositories.SupplierRepository;
+import cat.abasta_back_end.repositories.UserRepository;
 import cat.abasta_back_end.services.SupplierService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,6 +37,7 @@ import java.util.stream.Collectors;
  *   <li>Transformació bidireccional entre entitats i DTOs</li>
  *   <li>Gestió de relacions amb l'entitat Company</li>
  *   <li>Aplicació de regles de negoci específiques del domini</li>
+ *   <li>Extracció automàtica del companyUuid des de l'usuari autenticat</li>
  * </ul>
  * </p>
  *
@@ -41,6 +46,7 @@ import java.util.stream.Collectors;
  *   <li>Verificació d'existència de l'empresa abans de crear/actualitzar</li>
  *   <li>Control d'unicitat del nom de proveïdor dins de cada empresa</li>
  *   <li>Validació de canvis d'empresa en actualitzacions</li>
+ *   <li>Verificació d'existència de l'usuari i assignació d'empresa</li>
  * </ul>
  * </p>
  *
@@ -64,11 +70,12 @@ import java.util.stream.Collectors;
  * </p>
  *
  * @author Enrique Pérez
- * @version 1.0
- * @since 1.0
+ * @version 3.0
  * @see SupplierService
  * @see cat.abasta_back_end.entities.Supplier
  * @see cat.abasta_back_end.entities.Company
+ * @see cat.abasta_back_end.entities.User
+ * @since 1.0
  */
 @Service
 @RequiredArgsConstructor
@@ -77,21 +84,22 @@ public class SupplierServiceImpl implements SupplierService {
 
     private final SupplierRepository supplierRepository;
     private final CompanyRepository companyRepository;
+    private final UserRepository userRepository;
 
     /**
      * {@inheritDoc}
      */
     @Override
     public SupplierResponseDTO createSupplier(SupplierRequestDTO supplierRequestDTO) {
-
+        String companyUuid = getCompanyUuidFromAuthenticatedUser();
         // Verificar que l'empresa existeix
-        Company company = companyRepository.findByUuid(supplierRequestDTO.getCompanyUuid())
+        Company company = companyRepository.findByUuid(companyUuid)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Empresa no trobada amb UUID: " + supplierRequestDTO.getCompanyUuid()));
+                        "Empresa no trobada amb UUID: " + companyUuid));
 
         // Verificar que no existeix un proveïdor amb el mateix nom a l'empresa
         if (supplierRepository.existsByCompanyUuidAndNameIgnoreCase(
-                supplierRequestDTO.getCompanyUuid(), supplierRequestDTO.getName())) {
+                companyUuid, supplierRequestDTO.getName())) {
             throw new DuplicateResourceException(
                     "Ja existeix un proveïdor amb el nom '" + supplierRequestDTO.getName() +
                             "' a l'empresa especificada");
@@ -132,19 +140,19 @@ public class SupplierServiceImpl implements SupplierService {
     public SupplierResponseDTO updateSupplier(String uuid, SupplierRequestDTO supplierRequestDTO) {
         Supplier existingSupplier = supplierRepository.findByUuid(uuid)
                 .orElseThrow(() -> new ResourceNotFoundException("Proveïdor no trobat amb UUID: " + uuid));
-
+        String companyUuid = getCompanyUuidFromAuthenticatedUser();
         // Verificar que l'empresa existeix si s'ha canviat
-        if (!existingSupplier.getCompany().getUuid().equals(supplierRequestDTO.getCompanyUuid())) {
-            Company company = companyRepository.findByUuid(supplierRequestDTO.getCompanyUuid())
+        if (!existingSupplier.getCompany().getUuid().equals(companyUuid)) {
+            Company company = companyRepository.findByUuid(companyUuid)
                     .orElseThrow(() -> new ResourceNotFoundException(
-                            "Empresa no trobada amb UUID: " + supplierRequestDTO.getCompanyUuid()));
+                            "Empresa no trobada amb UUID: " + companyUuid));
             existingSupplier.setCompany(company);
         }
 
         // Verificar duplicats de nom si s'ha canviat el nom
         if (!existingSupplier.getName().equalsIgnoreCase(supplierRequestDTO.getName())) {
             if (supplierRepository.existsByCompanyUuidAndNameIgnoreCaseAndUuidNot(
-                    supplierRequestDTO.getCompanyUuid(), supplierRequestDTO.getName(), uuid)) {
+                    companyUuid, supplierRequestDTO.getName(), uuid)) {
                 throw new DuplicateResourceException(
                         "Ja existeix un proveïdor amb el nom '" + supplierRequestDTO.getName() +
                                 "' a l'empresa especificada");
@@ -183,6 +191,7 @@ public class SupplierServiceImpl implements SupplierService {
                 .collect(Collectors.toList());
     }
 
+
     /**
      * {@inheritDoc}
      */
@@ -211,19 +220,67 @@ public class SupplierServiceImpl implements SupplierService {
         // Usar consulta personalitzada per cercar per company i nom
         Page<Supplier> suppliers = supplierRepository.findByCompanyIdAndNameContaining(
                 company.getId(), name, pageable);
-        // Implementar filtrat manual o crear consulta personalitzada
+
         return suppliers.map(this::mapToResponseDTO);
     }
 
     /**
-     * {@inheritDoc}
+     * Obté el UUID de l'empresa de l'usuari autenticat des del context de Spring Security.
+     * Aquest mètode s'utilitza en els endpoints de cerca per garantir que l'usuari
+     * només pugui accedir als proveïdors de la seva pròpia empresa.
+     *
+     * @return UUID de l'empresa associada a l'usuari autenticat
+     * @throws ResourceNotFoundException si l'usuari no existeix o no té empresa assignada
      */
+    private String getCompanyUuidFromAuthenticatedUser() {
+        String username = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat: " + username));
+
+        if (user.getCompany() == null || user.getCompany().getUuid() == null) {
+            throw new ResourceNotFoundException("L'usuari no té empresa assignada");
+        }
+
+        return user.getCompany().getUuid();
+    }
+
+    /**
+     * Obté tots els proveïdors de l'empresa de l'usuari autenticat.
+     * Utilitza el context de Spring Security per identificar l'usuari.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<SupplierResponseDTO> getAllSuppliers() {
+        String companyUuid = getCompanyUuidFromAuthenticatedUser();
+        return getSuppliersByCompanyUuid(companyUuid);
+    }
+
+    /**
+     * Cerca proveïdors per nom de l'empresa de l'usuari autenticat.
+     * Utilitza el context de Spring Security per identificar l'usuari.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<SupplierResponseDTO> searchSuppliersByName(String name, Pageable pageable) {
+        String companyUuid = getCompanyUuidFromAuthenticatedUser();
+        return searchSuppliersByCompanyAndName(companyUuid, name, pageable);
+    }
+
+    /**
+     * Cerca avançada amb filtres per l'empresa de l'usuari autenticat.
+     * Utilitza el context de Spring Security per identificar l'usuari.
+     */
+    @Override
     @Transactional(readOnly = true)
     public Page<SupplierResponseDTO> searchSuppliersWithFilters(SupplierFilterDTO filterDTO, Pageable pageable) {
+        String companyUuid = getCompanyUuidFromAuthenticatedUser();
 
         // Verificar que l'empresa existeix i obtenir l'ID
-        Company company = companyRepository.findByUuid(filterDTO.getCompanyUuid())
-                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb UUID: " + filterDTO.getCompanyUuid()));
+        Company company = companyRepository.findByUuid(companyUuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb UUID: " + companyUuid));
 
         // Usar el mètode del repositori amb tots els filtres expandits
         Page<Supplier> suppliers = supplierRepository.findSuppliersWithFilters(
@@ -267,4 +324,5 @@ public class SupplierServiceImpl implements SupplierService {
                 .updatedAt(supplier.getUpdatedAt())
                 .build();
     }
+
 }

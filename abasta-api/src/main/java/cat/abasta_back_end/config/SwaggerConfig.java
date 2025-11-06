@@ -135,9 +135,12 @@ public class SwaggerConfig {
                     ## Característiques principals:
                     - 🏢 Gestió completa d'empreses
                     - 👥 Gestió d'usuaris amb rols (ADMIN, USER)
+                    - 🚚 Gestió integral de proveïdors
                     - 🔐 Autenticació JWT
                     - ✉️ Verificació d'email
                     - 🔑 Recuperació de contrasenya
+                    - 🔍 Cerca avançada amb filtres
+                    - 📄 Paginació i ordenació
                     
                     ## Autenticació:
                     1. Fes login a `/api/auth/login` amb email i contrasenya
@@ -151,6 +154,7 @@ public class SwaggerConfig {
                     2. Verificar email: `POST /api/auth/verify-email`
                     3. Login: `POST /api/auth/login`
                     4. Utilitzar el token per accedir als endpoints protegits
+                    5. Gestionar proveïdors: crear, consultar, actualitzar, cercar
                     """)
                 .contact(new Contact()
                         .name("Equip Abasta")
