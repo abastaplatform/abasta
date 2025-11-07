@@ -123,15 +123,28 @@ public class SupplierController {
     }
 
     /**
-     * Cerca bàsica de proveïdors per nom amb paginació.
+     * Cerca bàsica de proveïdors per text en múltiples camps amb paginació.
      * El companyUuid s'obté automàticament de l'usuari autenticat.
      *
      * <p>Aquest endpoint permet cercar proveïdors de l'empresa de l'usuari filtrant
-     * opcionalment per nom. Si no s'especifica nom, retorna tots els proveïdors.</p>
+     * simultàniament en múltiples camps: name, contactName, email, phone i address.
+     * Si no s'especifica text, retorna tots els proveïdors.</p>
      *
-     * <p>Exemple d'ús:
+     * <p>Camps de cerca inclosos:
+     * <ul>
+     *   <li><strong>Nom de l'empresa</strong> (name)</li>
+     *   <li><strong>Nom de contacte</strong> (contactName)</li>
+     *   <li><strong>Email</strong> (email)</li>
+     *   <li><strong>Telèfon</strong> (phone)</li>
+     *   <li><strong>Adreça</strong> (address)</li>
+     * </ul>
+     * </p>
+     *
+     * <p>Exemples d'ús:
      * <pre>
-     * GET /api/suppliers/search?name=Catalunya&page=0&size=10&sortBy=name&sortDir=asc
+     * GET /api/suppliers/search?searchText=Barcelona&page=0&size=10&sortBy=name&sortDir=asc
+     * GET /api/suppliers/search?searchText=@gmail.com
+     * GET /api/suppliers/search?searchText=93
      * </pre>
      * </p>
      *
@@ -139,7 +152,7 @@ public class SupplierController {
      * @return resposta amb la pàgina de proveïdors trobats
      */
     @GetMapping("/search")
-    public ResponseEntity<ApiResponseDTO<Page<SupplierResponseDTO>>> searchSuppliersByName(
+    public ResponseEntity<ApiResponseDTO<PagedResponseDTO<SupplierResponseDTO>>> searchSuppliersByText(
             @Valid SupplierSearchDTO searchDTO) {
 
         Sort sort = searchDTO.getSortDir().equalsIgnoreCase("desc") ?
@@ -148,11 +161,14 @@ public class SupplierController {
 
         Pageable pageable = PageRequest.of(searchDTO.getPage(), searchDTO.getSize(), sort);
 
-        Page<SupplierResponseDTO> suppliers = supplierService.searchSuppliersByName(
-                searchDTO.getName(), pageable);
+        Page<SupplierResponseDTO> suppliers = supplierService.searchSuppliersByText(
+                searchDTO.getSearchText(), pageable);
+
+        // Convertir Page a PagedResponseDTO per evitar warning de serialització
+        PagedResponseDTO<SupplierResponseDTO> pagedResponse = PagedResponseDTO.of(suppliers);
 
         return ResponseEntity.ok(
-                ApiResponseDTO.success(suppliers, "Cerca bàsica de proveïdors completada"));
+                ApiResponseDTO.success(pagedResponse, "Cerca bàsica de proveïdors completada"));
     }
 
     /**
@@ -189,7 +205,7 @@ public class SupplierController {
      * @return resposta amb la pàgina de proveïdors filtrats
      */
     @GetMapping("/filter")
-    public ResponseEntity<ApiResponseDTO<Page<SupplierResponseDTO>>> filterSuppliers(
+    public ResponseEntity<ApiResponseDTO<PagedResponseDTO<SupplierResponseDTO>>> filterSuppliers(
             @Valid SupplierFilterDTO filterDTO) {
 
         Sort sort = filterDTO.getSortDir().equalsIgnoreCase("desc") ?
@@ -201,11 +217,14 @@ public class SupplierController {
         Page<SupplierResponseDTO> suppliers = supplierService.searchSuppliersWithFilters(
                 filterDTO, pageable);
 
-        String message = String.format("Cerca avançada completada. Filtres aplicats: text=%s, dates=%s",
-                filterDTO.hasTextFilters(), filterDTO.hasDateFilters());
+        // Convertir Page a PagedResponseDTO per evitar warning de serialització
+        PagedResponseDTO<SupplierResponseDTO> pagedResponse = PagedResponseDTO.of(suppliers);
+
+        String message = String.format("Cerca avançada completada. Filtres aplicats: text=%s",
+                filterDTO.hasTextFilters());
 
         return ResponseEntity.ok(
-                ApiResponseDTO.success(suppliers, message));
+                ApiResponseDTO.success(pagedResponse, message));
     }
 
     /**
