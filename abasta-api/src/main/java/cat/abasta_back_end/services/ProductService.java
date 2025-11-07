@@ -83,7 +83,7 @@ public interface ProductService {
      * @param pageable     configuració de paginació.
      * @return una pàgina de {@link ProductResponseDTO} amb els productes trobats.
      */
-    Page<ProductResponseDTO> searchProducts(String name, String category, String supplierUuid, Pageable pageable);
+    Page<ProductResponseDTO> searchProducts(String q, String name, String category, String supplierUuid, Pageable pageable);
 
 
 }

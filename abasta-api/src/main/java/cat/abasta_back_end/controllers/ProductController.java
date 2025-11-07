@@ -138,7 +138,7 @@ public class ProductController {
      * @param uuid Identificador únic del producte a desactivar.
      * @return {@link ProductResponseDTO} amb el producte desactivat.
      */
-    @PatchMapping("/{uuid}/deactivate")
+    @PatchMapping("/deactivate/{uuid}")
     public ResponseEntity<ProductResponseDTO> deactivateProduct(@PathVariable String uuid) {
         ProductResponseDTO deactivatedProduct = productService.deactivateProduct(uuid);
         return ResponseEntity.ok(deactivatedProduct);
@@ -167,12 +167,13 @@ public class ProductController {
      */
     @GetMapping
     public ResponseEntity<Page<ProductResponseDTO>> searchProducts(
+            @RequestParam(required = false) String q,
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String supplierUuid,
             @PageableDefault(page = 0, size = 20, sort = "name") Pageable pageable) {
 
-        Page<ProductResponseDTO> page = productService.searchProducts(name, category, supplierUuid, pageable);
+        Page<ProductResponseDTO> page = productService.searchProducts(q, name, category, supplierUuid, pageable);
         return ResponseEntity.ok(page);
     }
 
