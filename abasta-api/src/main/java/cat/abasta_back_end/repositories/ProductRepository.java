@@ -44,6 +44,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      * Si un paràmetre és {@code null}, no s’aplica el filtre corresponent.
      * </p>
      *
+     * @param q         query lliure de cerca (pot ser null)
      * @param name         nom parcial o complet del producte (pot ser null)
      * @param category     categoria del producte (pot ser null)
      * @param supplierUuid UUID del proveïdor (pot ser null)
@@ -51,13 +52,20 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      * @return pàgina de productes que compleixen els criteris especificats
      */
     @Query("""
-        SELECT p FROM Product p
-        WHERE p.isActive = true
-          AND (:name IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%')))
-          AND (:category IS NULL OR LOWER(p.category) LIKE LOWER(CONCAT('%', :category, '%')))
-          AND (:supplierUuid IS NULL OR p.supplier.uuid = :supplierUuid)
+    SELECT p FROM Product p
+    WHERE p.isActive = true
+      AND (
+            :q IS NULL
+            OR LOWER(p.name) LIKE LOWER(CONCAT('%', :q, '%'))
+            OR LOWER(p.description) LIKE LOWER(CONCAT('%', :q, '%'))
+            OR LOWER(p.category) LIKE LOWER(CONCAT('%', :q, '%'))
+          )
+      AND (:name IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%')))
+      AND (:category IS NULL OR LOWER(p.category) LIKE LOWER(CONCAT('%', :category, '%')))
+      AND (:supplierUuid IS NULL OR p.supplier.uuid = :supplierUuid)
     """)
     Page<Product> searchProducts(
+            @Param("q") String q,
             @Param("name") String name,
             @Param("category") String category,
             @Param("supplierUuid") String supplierUuid,

@@ -39,13 +39,6 @@ import java.math.BigDecimal;
 public class ProductRequestDTO {
 
     /**
-     * UUID del proveïdor associat.
-     * He de correspondre És obligatori per a tots els proveïdors.
-     */
-    @NotBlank(message = "L'UUID del proveïdor és obligatori")
-    private String supplierUuid;
-
-    /**
      * Categoria a la qual pertany el producte (ex: Fruites, Begudes...).
      * Camp opcional.
      */

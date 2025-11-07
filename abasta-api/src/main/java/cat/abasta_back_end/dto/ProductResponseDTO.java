@@ -43,14 +43,11 @@ import java.time.LocalDateTime;
 @Builder
 public class ProductResponseDTO {
 
-    /** Identificador intern del producte (autogenerat). */
-    private Long id;
-
     /** Identificador únic universal (UUID) del producte. */
     private String uuid;
 
-    /** Identificador del proveïdor associat al producte. */
-    private Long supplierId;
+    /** Dades básiques del proveïdor relacionat. */
+    private ProductSupplierResponseDTO supplier;
 
     /** Categoria del producte (ex: Fruites, Begudes...). */
     private String category;

@@ -87,9 +87,11 @@ public class ProductServiceImpl implements ProductService {
      */
     private ProductResponseDTO mapToResponseDTO(Product product) {
         return ProductResponseDTO.builder()
-                .id(product.getId())
                 .uuid(product.getUuid())
-                .supplierId(product.getSupplier().getId())
+                .supplier(ProductSupplierResponseDTO.builder()
+                        .uuid(product.getSupplier().getUuid())
+                        .name(product.getSupplier().getName())
+                        .build())
                 .name(product.getName())
                 .category(product.getCategory())
                 .description(product.getDescription())
@@ -223,7 +225,7 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<ProductResponseDTO> searchProducts(String name, String category, String supplierUuid, Pageable pageable) {
+    public Page<ProductResponseDTO> searchProducts(String q, String name, String category, String supplierUuid, Pageable pageable) {
 
         // Executa la consulta al repositori amb els filtres opcionals i la paginació.
         Page<Product> products = productRepository.searchProducts(name, category, supplierUuid, pageable);
