@@ -155,16 +155,9 @@ public class SupplierFilterDTO {
     private String email;       // Email
     private String phone;       // Telèfon
     private String address;     // Adreça
-    private String notes;       // Notes
 
     // Filtre d'estat
     private Boolean isActive;   // Estat actiu (true/false/null per tots)
-
-    // Filtres de dates (rang de dates)
-    private LocalDateTime createdAfter;   // Creat després de...
-    private LocalDateTime createdBefore;  // Creat abans de...
-    private LocalDateTime updatedAfter;   // Actualitzat després de...
-    private LocalDateTime updatedBefore;  // Actualitzat abans de...
 
     // Paginació
     @Min(value = 0, message = "El número de pàgina ha de ser 0 o superior")
@@ -193,17 +186,7 @@ public class SupplierFilterDTO {
                 (contactName != null && !contactName.trim().isEmpty()) ||
                 (email != null && !email.trim().isEmpty()) ||
                 (phone != null && !phone.trim().isEmpty()) ||
-                (address != null && !address.trim().isEmpty()) ||
-                (notes != null && !notes.trim().isEmpty());
+                (address != null && !address.trim().isEmpty());
     }
 
-    /**
-     * Verifica si algun filtre de data està aplicat.
-     *
-     * @return true si hi ha algun filtre de data actiu
-     */
-    public boolean hasDateFilters() {
-        return createdAfter != null || createdBefore != null ||
-                updatedAfter != null || updatedBefore != null;
-    }
 }

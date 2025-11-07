@@ -121,18 +121,6 @@ public interface SupplierService {
     SupplierResponseDTO toggleSupplierStatus(String uuid, Boolean isActive);
 
     /**
-     * Cerca proveïdors d'una empresa per nom amb paginació.
-     * Utilitza filtres bàsics per empresa i nom.
-     *
-     * @param companyUuid l'UUID de l'empresa (obligatori)
-     * @param name el nom a cercar (cerca parcial, insensible a majúscules, pot ser null)
-     * @param pageable informació de paginació i ordenació
-     * @return pàgina de proveïdors de l'empresa que coincideixen amb el nom
-     * @throws cat.abasta_back_end.exceptions.ResourceNotFoundException si l'empresa no existeix
-     */
-    Page<SupplierResponseDTO> searchSuppliersByCompanyAndName(String companyUuid, String name, Pageable pageable);
-
-    /**
      * Obté tots els proveïdors de l'empresa de l'usuari autenticat.
      * Utilitza el context de Spring Security per identificar l'usuari.
      *
@@ -142,15 +130,16 @@ public interface SupplierService {
     List<SupplierResponseDTO> getAllSuppliers();
 
     /**
-     * Cerca proveïdors per nom de l'empresa de l'usuari autenticat amb paginació.
+     * Cerca bàsica de proveïdors per text en múltiples camps de l'empresa de l'usuari autenticat.
+     * Cerca simultàniament en: name, contactName, email, phone i address.
      * Utilitza el context de Spring Security per identificar l'usuari.
      *
-     * @param name el nom a cercar (pot ser null per obtenir tots)
+     * @param text el text a cercar (pot ser null per obtenir tots)
      * @param pageable informació de paginació
      * @return pàgina de proveïdors que compleixen el criteri
      * @throws cat.abasta_back_end.exceptions.ResourceNotFoundException si l'usuari no existeix o no té empresa assignada
      */
-    Page<SupplierResponseDTO> searchSuppliersByName(String name, Pageable pageable);
+    Page<SupplierResponseDTO> searchSuppliersByText(String text, Pageable pageable);
 
     /**
      * Cerca avançada amb filtres per l'empresa de l'usuari autenticat.
