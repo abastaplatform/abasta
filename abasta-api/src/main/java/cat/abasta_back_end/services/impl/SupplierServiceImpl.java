@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
  * <p>Gestió transaccional:
  * <ul>
  *   <li>@Transactional per defecte en operacions de modificació</li>
- *   <li>@Transactional(readOnly = true) per operacions de consulta</li>
+ *   <li>@Transactional (readOnly = true) per operacions de consulta</li>
  *   <li>Rollback automàtic en cas d'error</li>
  *   <li>Optimització de connexions de base de dades</li>
  * </ul>
@@ -211,21 +211,59 @@ public class SupplierServiceImpl implements SupplierService {
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<SupplierResponseDTO> searchSuppliersByCompanyAndName(String companyUuid, String name, Pageable pageable) {
+    public List<SupplierResponseDTO> getAllSuppliers() {
+        String companyUuid = getCompanyUuidFromAuthenticatedUser();
+        return getSuppliersByCompanyUuid(companyUuid);
+    }
 
-        // Verificar que l'empresa es troba
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<SupplierResponseDTO> searchSuppliersByText(String searchText, Pageable pageable) {
+        String companyUuid = getCompanyUuidFromAuthenticatedUser();
+
+        // Verificar que l'empresa existeix i obtenir l'ID
         Company company = companyRepository.findByUuid(companyUuid)
                 .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb UUID: " + companyUuid));
 
-        // Usar consulta personalitzada per cercar per company i nom
-        Page<Supplier> suppliers = supplierRepository.findByCompanyIdAndNameContaining(
-                company.getId(), name, pageable);
+        // Usar el nou mètode de cerca en múltiples camps
+        Page<Supplier> suppliers = supplierRepository.findByCompanyIdAndMultipleFieldsContaining(
+                company.getId(), searchText, pageable);
 
         return suppliers.map(this::mapToResponseDTO);
     }
 
     /**
-     * Obté el UUID de l'empresa de l'usuari autenticat des del context de Spring Security.
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<SupplierResponseDTO> searchSuppliersWithFilters(SupplierFilterDTO filterDTO, Pageable pageable) {
+        String companyUuid = getCompanyUuidFromAuthenticatedUser();
+
+        // Verificar que l'empresa existeix i obtenir l'ID
+        Company company = companyRepository.findByUuid(companyUuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb UUID: " + companyUuid));
+
+        // Usar el mètode del repositori amb tots els filtres expandits
+        Page<Supplier> suppliers = supplierRepository.findSuppliersWithFilters(
+                company.getId(),
+                filterDTO.getName(),
+                filterDTO.getContactName(),
+                filterDTO.getEmail(),
+                filterDTO.getPhone(),
+                filterDTO.getAddress(),
+                filterDTO.getIsActive(),
+                pageable
+        );
+
+        return suppliers.map(this::mapToResponseDTO);
+    }
+
+    /**
+     * Obté l'UUID de l'empresa de l'usuari autenticat des del context de Spring Security.
      * Aquest mètode s'utilitza en els endpoints de cerca per garantir que l'usuari
      * només pugui accedir als proveïdors de la seva pròpia empresa.
      *
@@ -245,61 +283,6 @@ public class SupplierServiceImpl implements SupplierService {
         }
 
         return user.getCompany().getUuid();
-    }
-
-    /**
-     * Obté tots els proveïdors de l'empresa de l'usuari autenticat.
-     * Utilitza el context de Spring Security per identificar l'usuari.
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public List<SupplierResponseDTO> getAllSuppliers() {
-        String companyUuid = getCompanyUuidFromAuthenticatedUser();
-        return getSuppliersByCompanyUuid(companyUuid);
-    }
-
-    /**
-     * Cerca proveïdors per nom de l'empresa de l'usuari autenticat.
-     * Utilitza el context de Spring Security per identificar l'usuari.
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public Page<SupplierResponseDTO> searchSuppliersByName(String name, Pageable pageable) {
-        String companyUuid = getCompanyUuidFromAuthenticatedUser();
-        return searchSuppliersByCompanyAndName(companyUuid, name, pageable);
-    }
-
-    /**
-     * Cerca avançada amb filtres per l'empresa de l'usuari autenticat.
-     * Utilitza el context de Spring Security per identificar l'usuari.
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public Page<SupplierResponseDTO> searchSuppliersWithFilters(SupplierFilterDTO filterDTO, Pageable pageable) {
-        String companyUuid = getCompanyUuidFromAuthenticatedUser();
-
-        // Verificar que l'empresa existeix i obtenir l'ID
-        Company company = companyRepository.findByUuid(companyUuid)
-                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb UUID: " + companyUuid));
-
-        // Usar el mètode del repositori amb tots els filtres expandits
-        Page<Supplier> suppliers = supplierRepository.findSuppliersWithFilters(
-                company.getId(),
-                filterDTO.getName(),
-                filterDTO.getContactName(),
-                filterDTO.getEmail(),
-                filterDTO.getPhone(),
-                filterDTO.getAddress(),
-                filterDTO.getNotes(),
-                filterDTO.getIsActive(),
-                filterDTO.getCreatedAfter(),
-                filterDTO.getCreatedBefore(),
-                filterDTO.getUpdatedAfter(),
-                filterDTO.getUpdatedBefore(),
-                pageable
-        );
-
-        return suppliers.map(this::mapToResponseDTO);
     }
 
     /**

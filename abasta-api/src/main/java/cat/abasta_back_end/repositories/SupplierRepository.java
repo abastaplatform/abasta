@@ -106,18 +106,13 @@ public interface SupplierRepository extends JpaRepository<Supplier, Long> {
      * Cerca avançada de proveïdors amb múltiples filtres.
      * Inclou tots els camps disponibles per a una cerca completa.
      *
-     * @param companyId l'identificador de l'empresa (obligatori)
+     * @param companyId l'identificador de l'empresa
      * @param name el nom a cercar (opcional, cerca parcial)
      * @param contactName el nom de contacte a cercar (opcional, cerca parcial)
      * @param email l'email a cercar (opcional, cerca parcial)
      * @param phone el telèfon a cercar (opcional, cerca parcial)
      * @param address l'adreça a cercar (opcional, cerca parcial)
-     * @param notes les notes a cercar (opcional, cerca parcial)
      * @param isActive l'estat d'activitat (opcional)
-     * @param createdAfter creat després d'aquesta data (opcional)
-     * @param createdBefore creat abans d'aquesta data (opcional)
-     * @param updatedAfter actualitzat després d'aquesta data (opcional)
-     * @param updatedBefore actualitzat abans d'aquesta data (opcional)
      * @param pageable informació de paginació
      * @return pàgina de proveïdors que compleixen els criteris
      */
@@ -128,37 +123,33 @@ public interface SupplierRepository extends JpaRepository<Supplier, Long> {
             "(:email IS NULL OR LOWER(s.email) LIKE LOWER(CONCAT('%', :email, '%'))) AND " +
             "(:phone IS NULL OR LOWER(s.phone) LIKE LOWER(CONCAT('%', :phone, '%'))) AND " +
             "(:address IS NULL OR LOWER(s.address) LIKE LOWER(CONCAT('%', :address, '%'))) AND " +
-            "(:notes IS NULL OR LOWER(s.notes) LIKE LOWER(CONCAT('%', :notes, '%'))) AND " +
-            "(:isActive IS NULL OR s.isActive = :isActive) AND " +
-            "(:createdAfter IS NULL OR s.createdAt >= :createdAfter) AND " +
-            "(:createdBefore IS NULL OR s.createdAt <= :createdBefore) AND " +
-            "(:updatedAfter IS NULL OR s.updatedAt >= :updatedAfter) AND " +
-            "(:updatedBefore IS NULL OR s.updatedAt <= :updatedBefore)")
+            "(:isActive IS NULL OR s.isActive = :isActive)")
     Page<Supplier> findSuppliersWithFilters(@Param("companyId") Long companyId,
                                                     @Param("name") String name,
                                                     @Param("contactName") String contactName,
                                                     @Param("email") String email,
                                                     @Param("phone") String phone,
                                                     @Param("address") String address,
-                                                    @Param("notes") String notes,
                                                     @Param("isActive") Boolean isActive,
-                                                    @Param("createdAfter") LocalDateTime createdAfter,
-                                                    @Param("createdBefore") LocalDateTime createdBefore,
-                                                    @Param("updatedAfter") LocalDateTime updatedAfter,
-                                                    @Param("updatedBefore") LocalDateTime updatedBefore,
                                                     Pageable pageable);
 
     /**
-     * Cerca proveïdors d'una empresa per nom (cerca parcial) amb paginació.
+     * Cerca bàsica de proveïdors d'una empresa en múltiples camps de text amb paginació.
+     * Cerca en: name, contactName, email, phone i address de forma simultània.
      *
      * @param companyId l'identificador de l'empresa
-     * @param name el nom a cercar (pot ser null per obtenir tots)
+     * @param searchText el text a cercar (pot ser null per obtenir tots)
      * @param pageable informació de paginació
      * @return pàgina de proveïdors
      */
     @Query("SELECT s FROM Supplier s WHERE s.company.id = :companyId AND " +
-            "(:name IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :name, '%')))")
-    Page<Supplier> findByCompanyIdAndNameContaining(@Param("companyId") Long companyId,
-                                                    @Param("name") String name,
-                                                    Pageable pageable);
+            "(:searchText IS NULL OR " +
+            "LOWER(s.name) LIKE LOWER(CONCAT('%', :searchText, '%')) OR " +
+            "LOWER(s.contactName) LIKE LOWER(CONCAT('%', :searchText, '%')) OR " +
+            "LOWER(s.email) LIKE LOWER(CONCAT('%', :searchText, '%')) OR " +
+            "LOWER(s.phone) LIKE LOWER(CONCAT('%', :searchText, '%')) OR " +
+            "LOWER(s.address) LIKE LOWER(CONCAT('%', :searchText, '%')))")
+    Page<Supplier> findByCompanyIdAndMultipleFieldsContaining(@Param("companyId") Long companyId,
+                                                              @Param("searchText") String searchText,
+                                                              Pageable pageable);
 }
