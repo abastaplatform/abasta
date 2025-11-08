@@ -9,6 +9,7 @@ import RegisterForm from '../components/auth/RegisterForm/RegisterForm';
 import VerifyEmail from '../components/auth/VerifyEmail/VerifyEmail';
 import RecoverPasswordForm from '../components/auth/RecoverPasswordForm/RecoverPasswordForm';
 import ResetPasswordForm from '../components/auth/ResetPasswordForm/ResetPasswordForm';
+import NewSupplier from '../components/suppliers/NewSupplier/NewSupplier';
 
 const AppRoutes = () => {
   return (
@@ -24,6 +25,8 @@ const AppRoutes = () => {
         <Route path="/terms" element={<div>Terms page</div>} />
         <Route path="/cookies" element={<div>Cookies page</div>} />
         <Route path="/accessibility" element={<div>Accessibility page</div>} />
+        <Route path="/suppliers/new" element={<NewSupplier />} />{' '}
+        {/* Move to privates routes */}
       </Route>
 
       <Route element={<PrivateLayout />}>
