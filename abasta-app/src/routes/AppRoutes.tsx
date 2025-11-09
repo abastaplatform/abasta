@@ -28,6 +28,12 @@ const AppRoutes = () => {
 
       <Route element={<PrivateLayout />}>
         <Route path="/dashboard" element={<div>Dashboard page</div>} />
+        <Route path="/orders" element={<div>Orders page</div>} />
+        <Route path="/suppliers" element={<div>Suppliers page</div>} />
+        <Route path="/products" element={<div>Products page</div>} />
+        <Route path="/reports" element={<div>Reports page</div>} />
+        <Route path="/Company" element={<div>Company page</div>} />
+        <Route path="/Users" element={<div>Users page</div>} />
       </Route>
     </Routes>
   );
