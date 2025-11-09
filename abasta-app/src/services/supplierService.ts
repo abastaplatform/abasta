@@ -4,6 +4,7 @@ import type {
   SupplierFormData,
   SupplierApiData,
   Supplier,
+  GetSuppliersResponse,
 } from '../types/supplier.types';
 
 const transformFormDataToApiData = (
@@ -45,5 +46,13 @@ export const supplierService = {
   ): Promise<CreateSupplierResponse> => {
     const apiData = transformFormDataToApiData(data);
     return await api.post<CreateSupplierResponse>('/suppliers', apiData);
+  },
+
+  getSuppliers: async (): Promise<GetSuppliersResponse> => {
+    return await api.get<GetSuppliersResponse>('/suppliers');
+  },
+
+  deleteSupplier: async (id: string): Promise<void> => {
+    await api.delete(`/suppliers/${id}`);
   },
 };

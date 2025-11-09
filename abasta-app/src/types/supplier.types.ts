@@ -42,6 +42,20 @@ export interface SupplierApiData {
 
 export interface CreateSupplierResponse {
   success: boolean;
-  data: Supplier;
+  data?: Supplier;
   message: string;
+}
+
+export interface SearchFilters {
+  query: string;
+  name: string;
+  contactName: string;
+  email: string;
+  phone: string;
+}
+
+export interface GetSuppliersResponse {
+  success: boolean;
+  message: string;
+  data?: Supplier[];
 }
