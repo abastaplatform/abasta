@@ -142,10 +142,9 @@ const SupplierList = () => {
   };
 
   const totalPages = Math.ceil(filteredSuppliers.length / itemsPerPage);
-  //const startIndex = (currentPage - 1) * itemsPerPage;
-  //const endIndex = startIndex + itemsPerPage;
-  //const currentSuppliers = filteredSuppliers.slice(startIndex, endIndex);
-  const currentSuppliers = filteredSuppliers;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentSuppliers = filteredSuppliers.slice(startIndex, endIndex);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);

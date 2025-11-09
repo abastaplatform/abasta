@@ -60,7 +60,8 @@ const Pagination = ({
     <div className="pagination-wrapper">
       <div className="pagination-info">
         <span className="pagination-text">
-          Mostrant {startItem}-{endItem} de {totalItems} proveïdors
+          Mostrant {startItem}-{endItem} de {totalItems}{' '}
+          {totalItems === 1 ? 'proveïdor' : 'proveïdors'}
         </span>
 
         {onItemsPerPageChange && (

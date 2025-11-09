@@ -62,7 +62,7 @@ const DeleteModal: React.FC<DeleteModalProps> = ({
 
       <Modal.Body className="delete-modal-body">
         <div className="delete-modal-icon">
-          <i className="bi bi-exclamation-triangle-fill"></i>
+          <i className="bi bi-exclamation-triangle"></i>
         </div>
 
         <p className="delete-modal-question">

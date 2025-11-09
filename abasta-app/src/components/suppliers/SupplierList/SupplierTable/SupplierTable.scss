@@ -4,7 +4,7 @@
   background: white;
   border-radius: $border-radius-lg;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
+  overflow: visible;
 
   @media (max-width: 991px) {
     display: none;
