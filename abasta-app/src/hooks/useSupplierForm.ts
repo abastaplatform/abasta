@@ -25,6 +25,8 @@ export const useSupplierForm = () => {
       email: '',
       phone: '',
       address: '',
+      city: '',
+      zipCode: '',
       notes: '',
     },
   });

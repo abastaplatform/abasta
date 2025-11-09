@@ -4,7 +4,7 @@ export interface Supplier {
   name: string;
   contactName: string;
   email: string;
-  phone?: string;
+  phone: string;
   address?: string;
   notes?: string;
   isActive?: boolean;
@@ -18,6 +18,8 @@ export interface SupplierFormData {
   email: string;
   phone: string;
   address: string;
+  city: string;
+  zipCode: string;
   notes: string;
 }
 
@@ -27,6 +29,15 @@ export interface SupplierFormErrors {
   email?: string;
   phone?: string;
   address?: string;
+}
+
+export interface SupplierApiData {
+  name: string;
+  contactName: string;
+  email: string;
+  phone: string;
+  address: string;
+  notes?: string;
 }
 
 export interface CreateSupplierResponse {
