@@ -1,0 +1,121 @@
+@import '../../../../assets/styles/variables';
+
+.action-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.action-dropdown-toggle {
+  background: transparent;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: #6c757d;
+  font-size: 1.25rem;
+  border-radius: $border-radius;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+
+  &:hover {
+    background-color: #f8f9fa;
+    color: $primary;
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba($primary, 0.15);
+  }
+}
+
+.action-dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.25rem);
+  background-color: white;
+  border: 1px solid #dee2e6;
+  border-radius: $border-radius-lg;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  z-index: 1000;
+  padding: 0.5rem 0;
+  animation: dropdownFadeIn 0.2s ease;
+
+  @media (max-width: 768px) {
+    min-width: 220px;
+    right: -10px;
+  }
+}
+
+.action-dropdown-item {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  color: #495057;
+  transition: all 0.2s ease;
+  font-weight: 400;
+
+  i {
+    font-size: 1.1rem;
+    width: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &:hover {
+    background-color: #f8f9fa;
+    color: $primary;
+  }
+
+  &:active {
+    background-color: #e9ecef;
+  }
+
+  &-danger {
+    color: #dc3545;
+
+    &:hover {
+      background-color: #fff5f5;
+      color: #c82333;
+    }
+  }
+}
+
+.action-dropdown-divider {
+  height: 1px;
+  background-color: #dee2e6;
+  margin: 0.5rem 0;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .action-dropdown-menu {
+    min-width: 240px;
+  }
+
+  .action-dropdown-item {
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
+  }
+}
