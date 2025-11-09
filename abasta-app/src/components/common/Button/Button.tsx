@@ -5,6 +5,7 @@ interface ButtonProps {
   onClick?: () => void;
   disabled?: boolean;
   isLoading?: boolean;
+  variant?: 'primary' | 'secondary';
 }
 
 const Button = ({
@@ -13,15 +14,19 @@ const Button = ({
   disabled,
   isLoading,
   onClick,
+  variant = 'primary',
 }: ButtonProps) => {
+  const variantClass =
+    variant === 'primary' ? 'btn-primary-custom' : 'btn-secondary-custom';
+
   return (
     <button
-      className="btn cta-button"
+      className={`btn cta-button ${variantClass}`}
       onClick={onClick}
       type={type}
       disabled={disabled || isLoading}
     >
-      {title}
+      {isLoading ? '...' : title}
     </button>
   );
 };

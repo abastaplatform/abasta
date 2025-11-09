@@ -1,10 +1,11 @@
 import React from 'react';
 import { Form, Button, Alert, Spinner } from 'react-bootstrap';
+import ButtonCustom from '../../common/Button/Button';
 import { useCompanyConfigForm } from '../../../hooks/useCompanyConfigForm';
 import './CompanyConfigForm.scss';
 
 const CompanyConfig: React.FC = () => {
-  const Uuid = "e325b81f-5f3b-4309-8df8-18644d8c4b36";
+  const Uuid = 'e325b81f-5f3b-4309-8df8-18644d8c4b36';
 
   const {
     register,
@@ -16,7 +17,15 @@ const CompanyConfig: React.FC = () => {
     isFetching,
     error,
     success,
+    reset,        
+    originalData,  
   } = useCompanyConfigForm(Uuid);
+
+  // 🔙 Funció per cancel·lar i restaurar els valors originals
+  const handleCancel = () => {
+    if (originalData) reset(originalData);
+    toggleEdit();
+  };
 
   if (isFetching) {
     return (
@@ -36,20 +45,16 @@ const CompanyConfig: React.FC = () => {
             Administra la informació de la teva empresa
           </p>
         </div>
-        <Button
-          className={`btn ${isEditing ? 'btn-success' : 'btn-secondary'}`}
-          onClick={isEditing ? handleSubmit : toggleEdit}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <Spinner animation="border" size="sm" className="me-2" />
-          ) : (
-            <i
-              className={`bi ${isEditing ? 'bi-check-lg' : 'bi-pencil'} me-2`}
-            ></i>
-          )}
-          {isEditing ? 'Guardar' : 'Editar'}
-        </Button>
+
+        {!isEditing && (
+          <Button
+            variant="primary"
+            onClick={toggleEdit}
+            className="d-flex align-items-center"
+          >
+            <i className="bi bi-pencil me-2"></i> Editar
+          </Button>
+        )}
       </div>
 
       {error && (
@@ -66,6 +71,7 @@ const CompanyConfig: React.FC = () => {
       )}
 
       <Form onSubmit={handleSubmit}>
+        {/*Informació general */}
         <section className="mb-4">
           <h5 className="fw-semibold mb-3 text-primary">Informació general</h5>
           <div className="row">
@@ -121,8 +127,11 @@ const CompanyConfig: React.FC = () => {
           </div>
         </section>
 
+        {/*Informació de contacte */}
         <section>
-          <h5 className="fw-semibold mb-3 text-primary">Informació de contacte</h5>
+          <h5 className="fw-semibold mb-3 text-primary">
+            Informació de contacte
+          </h5>
           <div className="row">
             <div className="col-md-6 mb-3">
               <Form.Group>
@@ -134,7 +143,7 @@ const CompanyConfig: React.FC = () => {
                     required: "El correu electrònic és obligatori",
                     pattern: {
                       value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                      message: "Correu electrònic no vàlid",
+                      message: 'Correu electrònic no vàlid',
                     },
                   })}
                   isInvalid={!!errors.email}
@@ -157,6 +166,26 @@ const CompanyConfig: React.FC = () => {
             </div>
           </div>
         </section>
+
+        {/*Botons només quan edites */}
+        {isEditing && (
+          <div className="d-flex justify-content-end mt-4 gap-3 button-group">
+            <ButtonCustom
+              title="Cancel·lar"
+              type="button"
+              variant="secondary"
+              onClick={handleCancel}
+              disabled={isLoading}
+            />
+            <ButtonCustom
+              title={isLoading ? 'Desant...' : 'Desar canvis'}
+              type="submit"
+              variant="primary"
+              disabled={isLoading}
+              isLoading={isLoading}
+            />
+          </div>
+        )}
       </Form>
     </div>
   );
