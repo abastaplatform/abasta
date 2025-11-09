@@ -9,10 +9,12 @@ import RegisterForm from '../components/auth/RegisterForm/RegisterForm';
 import VerifyEmail from '../components/auth/VerifyEmail/VerifyEmail';
 import RecoverPasswordForm from '../components/auth/RecoverPasswordForm/RecoverPasswordForm';
 import ResetPasswordForm from '../components/auth/ResetPasswordForm/ResetPasswordForm';
+import CompanyConfigForm from '../components/auth/CompanyConfigForm/CompanyConfigForm';
 import Privacy from '../pages/Home/Privacy/Privacy';
 import Terms from '../pages/Home/Terms/Terms';
 import Cookies from '../pages/Home/Cookies/Cookies';
 import Accessibility from '../pages/Home/Accessibility/Accessibility';
+
 
 const AppRoutes = () => {
   return (
@@ -36,8 +38,9 @@ const AppRoutes = () => {
         <Route path="/suppliers" element={<div>Suppliers page</div>} />
         <Route path="/products" element={<div>Products page</div>} />
         <Route path="/reports" element={<div>Reports page</div>} />
-        <Route path="/Company" element={<div>Company page</div>} />
+        <Route path="/Company" element={<CompanyConfigForm />} />
         <Route path="/Users" element={<div>Users page</div>} />
+        
       </Route>
     </Routes>
   );
