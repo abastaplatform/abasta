@@ -1,16 +1,18 @@
 package cat.abasta_back_end.controllers;
 
-import cat.abasta_back_end.dto.ProductRequestDTO;
-import cat.abasta_back_end.dto.ProductResponseDTO;
+import cat.abasta_back_end.dto.*;
+import cat.abasta_back_end.entities.Product;
 import cat.abasta_back_end.services.ProductService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.Sort;
 
 /**
  * Controlador REST per gestionar les operacions relacionades amb els productes.
@@ -65,34 +67,37 @@ public class ProductController {
     private final ProductService productService;
 
     /**
-     * Endpoint per crear un nou producte.
+     * Crea un nou producte.
      *
      * @param productRequestDTO dades del producte a crear, validades amb {@link Valid}.
      * @return {@link ResponseEntity} amb el producte creat i codi HTTP 201 (Created).
      */
     @PostMapping("/create")
-    public ResponseEntity<ProductResponseDTO> createProduct(@Valid @RequestBody ProductRequestDTO productRequestDTO) {
+    public ResponseEntity<ApiResponseDTO<ProductResponseDTO>> createProduct(
+            @Valid @RequestBody ProductRequestDTO productRequestDTO) {
         ProductResponseDTO createdProduct = productService.createProduct(productRequestDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponseDTO.success(createdProduct, "Producte creat correctament"));
     }
 
     /**
      * Recupera un producte pel seu identificador únic (UUID).
-     *
      * Exemple: GET /api/products/{uuid}
      *
      * @param uuid identificador únic del producte
      * @return {@link ProductResponseDTO} amb les dades del producte
      */
     @GetMapping("/{uuid}")
-    public ResponseEntity<ProductResponseDTO> getProductByUuid(@PathVariable String uuid) {
+    public ResponseEntity<ApiResponseDTO<ProductResponseDTO>> getProductByUuid(
+            @PathVariable @NotBlank(message = "L'UUID no pot estar buit") String uuid) {
         ProductResponseDTO product = productService.getProductByUuid(uuid);
-        return ResponseEntity.ok(product);
+        return ResponseEntity.ok(
+                ApiResponseDTO.success(product, "Producte obtingut correctament"));
     }
 
     /**
      * Actualitza un producte existent pel seu UUID.
-     *
      * Exemple: PUT /api/products/{uuid}
      *
      * @param uuid identificador únic del producte
@@ -100,30 +105,12 @@ public class ProductController {
      * @return {@link ProductResponseDTO} amb les dades actualitzades
      */
     @PutMapping("/{uuid}")
-    public ResponseEntity<ProductResponseDTO> updateProduct(
-            @PathVariable String uuid,
+    public ResponseEntity<ApiResponseDTO<ProductResponseDTO>> updateProduct(
+            @PathVariable @NotBlank(message = "L'UUID no pot estar buit") String uuid,
             @Valid @RequestBody ProductRequestDTO productRequestDTO) {
-
         ProductResponseDTO updatedProduct = productService.updateProduct(uuid, productRequestDTO);
-        return ResponseEntity.ok(updatedProduct);
-    }
-
-    /**
-     * Llista productes d'un proveïdor (només actius) amb paginació.
-     *
-     * Exemple: GET /api/products?supplierId=1&page=0&size=20&sort=name,asc
-     *
-     * @param supplierId identificador del proveïdor (paràmetre obligatori)
-     * @param pageable   objecte amb paràmetres de paginació (page, size, sort)
-     * @return pàgina de {@link ProductResponseDTO}
-     */
-    @GetMapping("/supplier/{supplierUuid}")
-    public ResponseEntity<Page<ProductResponseDTO>> listProductsBySupplier(
-            @PathVariable String supplierUuid,
-            @PageableDefault(page = 0, size = 20) Pageable pageable) {
-
-        Page<ProductResponseDTO> page = productService.listProductsBySupplier(supplierUuid, pageable);
-        return ResponseEntity.ok(page);
+        return ResponseEntity.ok(
+                ApiResponseDTO.success(updatedProduct, "Producte actualitzat correctament"));
     }
 
     /**
@@ -139,42 +126,93 @@ public class ProductController {
      * @return {@link ProductResponseDTO} amb el producte desactivat.
      */
     @PatchMapping("/deactivate/{uuid}")
-    public ResponseEntity<ProductResponseDTO> deactivateProduct(@PathVariable String uuid) {
+    public ResponseEntity<ApiResponseDTO<ProductResponseDTO>> deactivateProduct(
+            @PathVariable @NotBlank(message = "L'UUID no pot estar buit") String uuid) {
         ProductResponseDTO deactivatedProduct = productService.deactivateProduct(uuid);
-        return ResponseEntity.ok(deactivatedProduct);
+        return ResponseEntity.ok(
+                ApiResponseDTO.success(deactivatedProduct, "Producte eliminat correctament"));
     }
 
     /**
-     * Cerca i filtra productes segons els criteris proporcionats.
-     * <p>
-     * Els paràmetres {@code name}, {@code category} i {@code supplierUuid} són opcionals.
-     * Si no s’especifica cap filtre, es retornaran tots els productes actius.
+     * Llista productes d'un proveïdor (només actius) amb paginació.
+     *
+     * Exemple: GET /api/products?supplierId=1&page=0&size=20&sort=name,asc
+     *
+     * @param supplierUuid identificador del proveïdor (paràmetre obligatori)
+     * @param searchDTO   objecte amb paràmetres de paginació (page, size, sort)
+     * @return pàgina de {@link ProductResponseDTO}
+     */
+    @GetMapping("/search/supplier/{supplierUuid}")
+    public ResponseEntity<ApiResponseDTO<PagedResponseDTO<ProductResponseDTO>>> listProductsBySupplierWithSearch(
+            @PathVariable @NotBlank(message = "L'UUID no pot estar buit") String supplierUuid, @Valid ProductSearchDTO searchDTO) {
+
+        Sort sort = searchDTO.getSortDir().equalsIgnoreCase("desc") ?
+                Sort.by(searchDTO.getSortBy()).descending() :
+                Sort.by(searchDTO.getSortBy()).ascending();
+
+        Pageable pageable = PageRequest.of(searchDTO.getPage(), searchDTO.getSize(), sort);
+
+        Page<ProductResponseDTO> products = productService.searchProductsBySupplierWithSearch(supplierUuid, searchDTO.getSearchText(), pageable);
+
+        // Convertir Page a PagedResponseDTO per evitar warning de serialització
+        PagedResponseDTO<ProductResponseDTO> pagedResponse = PagedResponseDTO.of(products);
+
+        return ResponseEntity.ok(
+                ApiResponseDTO.success(pagedResponse, "Cerca bàsica de productes per proveïdor completada"));
+    }
+
+    /**
+     * Cerca avançada de productes amb múltiples filtres.
+     *
+     * <p>Aquest endpoint permet filtrar productes del proveïdor utilitzant
+     * tots els camps disponibles, incloent-hi filtres de text, estat d'activitat i rangs de dates.</p>
+     *
+     * <p>Filtres disponibles:
+     * <ul>
+     *   <li><strong>Text:</strong> name, contactName, email, phone, address, notes</li>
+     *   <li><strong>Estat:</strong> isActive (true/false/null)</li>
+     *   <li><strong>Dates:</strong> createdAfter, createdBefore, updatedAfter, updatedBefore</li>
+     * </ul>
      * </p>
      *
-     * Exemple d'ús:
+     * <p>Exemple d'ús complet:
      * <pre>
-     * GET /api/products?name=oli
-     * GET /api/products?category=begudes
-     * GET /api/products?name=pa&category=forn
-     * GET /api/products?supplierUuid=abc-123
+     * GET /filter/supplier/{supplierUuid}?name=Catalunya&contactName=Joan&email=@provcat.com
+     *     &phone=93&address=Barcelona&notes=important&isActive=true
+     *     &createdAfter=2024-01-01T00:00:00&createdBefore=2024-12-31T23:59:59
+     *     &page=0&size=10&sortBy=name&sortDir=asc
      * </pre>
+     * </p>
      *
-     * @param name         (opcional) nom parcial o complet del producte.
-     * @param category     (opcional) categoria del producte.
-     * @param supplierUuid (opcional) identificador únic del proveïdor.
-     * @param pageable     configuració de paginació i ordenació.
-     * @return una pàgina de {@link ProductResponseDTO} amb els resultats de la cerca.
+     * <p>Exemple d'ús mínim:
+     * <pre>
+     * GET /filter/supplier/{supplierUuid}?name=Catalunya
+     * </pre>
+     * </p>
+     *
+     * @param filterDTO paràmetres de filtratge (Spring els mapeja automàticament des dels query params)
+     * @return resposta amb la pàgina de proveïdors filtrats
      */
-    @GetMapping
-    public ResponseEntity<Page<ProductResponseDTO>> searchProducts(
-            @RequestParam(required = false) String q,
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) String category,
-            @RequestParam(required = false) String supplierUuid,
-            @PageableDefault(page = 0, size = 20, sort = "name") Pageable pageable) {
+    @GetMapping("/filter/supplier/{supplierUuid}")
+    public ResponseEntity<ApiResponseDTO<PagedResponseDTO<ProductResponseDTO>>> listProductsBySupplierWithFilter(
+            @PathVariable @NotBlank(message = "L'UUID no pot estar buit") String supplierUuid, @Valid ProductFilterDTO filterDTO) {
 
-        Page<ProductResponseDTO> page = productService.searchProducts(q, name, category, supplierUuid, pageable);
-        return ResponseEntity.ok(page);
+        Sort sort = filterDTO.getSortDir().equalsIgnoreCase("desc") ?
+                Sort.by(filterDTO.getSortBy()).descending() :
+                Sort.by(filterDTO.getSortBy()).ascending();
+
+        Pageable pageable = PageRequest.of(filterDTO.getPage(), filterDTO.getSize(), sort);
+
+        Page<ProductResponseDTO> products = productService.searchProductsBySupplierWithFilter(supplierUuid, filterDTO, pageable);
+
+        // Convertir Page a PagedResponseDTO per evitar warning de serialització
+        PagedResponseDTO<ProductResponseDTO> pagedResponse = PagedResponseDTO.of(products);
+
+        String message = String.format("Cerca avançada completada. Filtres aplicats: text=%s",
+                filterDTO.hasTextFilters());
+
+        return ResponseEntity.ok(
+                ApiResponseDTO.success(pagedResponse, message));
     }
 
 }

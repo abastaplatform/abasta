@@ -17,7 +17,7 @@ import java.math.BigDecimal;
  *
  * <p>Es correspon amb l’estructura de la taula <strong>products</strong>:</p>
  * <ul>
- *   <li><code>supplier_id</code> → Identificador del proveïdor (obligatori).</li>
+ *   <li><code>supplier uuid</code> → Identificador únic del proveïdor (obligatori).</li>
  *   <li><code>category</code> → Categoria del producte (opcional).</li>
  *   <li><code>name</code> → Nom del producte (obligatori).</li>
  *   <li><code>description</code> → Descripció opcional.</li>
@@ -37,6 +37,13 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder
 public class ProductRequestDTO {
+
+    /**
+     * Uuid del proveïdor
+     */
+    @NotBlank(message = "El uuid del proveïdor és obligatori")
+    @Size(max = 255, message = "El uuid del proveïdor no pot superar els 255 caràcters")
+    private String supplierUuid;
 
     /**
      * Categoria a la qual pertany el producte (ex: Fruites, Begudes...).
