@@ -1,9 +1,12 @@
 package cat.abasta_back_end.services;
 
+import cat.abasta_back_end.dto.ProductFilterDTO;
 import cat.abasta_back_end.dto.ProductRequestDTO;
 import cat.abasta_back_end.dto.ProductResponseDTO;
+import cat.abasta_back_end.exceptions.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
 
 /**
  * Interfície que defineix les operacions de negoci per a la gestió dels productes.
@@ -34,18 +37,9 @@ public interface ProductService {
      *
      * @param uuid Identificador únic del producte.
      * @return El producte corresponent com a {@link ProductResponseDTO}.
-     * @throws EntityNotFoundException Si no existeix cap producte amb aquest UUID.
+     * @throws ResourceNotFoundException Si no existeix cap producte amb aquest UUID.
      */
     ProductResponseDTO getProductByUuid(String uuid);
-
-    /**
-     * Recupera una pàgina de productes d'un proveïdor determinat.
-     *
-     * @param supplierId identificador del proveïdor
-     * @param pageable   paràmetres de paginació (page, size, sort)
-     * @return pàgina de {@link ProductResponseDTO}
-     */
-    Page<ProductResponseDTO> listProductsBySupplier(String supplierUuid, Pageable pageable);
 
     /**
      * Actualitza les dades d’un producte existent identificat pel seu UUID.
@@ -70,20 +64,8 @@ public interface ProductService {
      */
     ProductResponseDTO deactivateProduct(String uuid);
 
-    /**
-     * Cerca i filtra productes segons diversos criteris opcionals.
-     * <p>
-     * Aquesta operació permet cercar productes pel seu nom, categoria o proveïdor.
-     * Tots els filtres són opcionals, i els resultats sempre inclouen només productes actius.
-     * </p>
-     *
-     * @param name         (opcional) nom parcial o complet del producte.
-     * @param category     (opcional) categoria del producte.
-     * @param supplierUuid (opcional) UUID del proveïdor.
-     * @param pageable     configuració de paginació.
-     * @return una pàgina de {@link ProductResponseDTO} amb els productes trobats.
-     */
-    Page<ProductResponseDTO> searchProducts(String q, String name, String category, String supplierUuid, Pageable pageable);
+    Page<ProductResponseDTO> searchProductsBySupplierWithSearch(String supplierUuid, String text, Pageable pageable);
 
+    Page<ProductResponseDTO> searchProductsBySupplierWithFilter(String supplierUuid, ProductFilterDTO filterDTO, Pageable pageable);
 
 }
