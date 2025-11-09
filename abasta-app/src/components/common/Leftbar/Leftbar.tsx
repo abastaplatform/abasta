@@ -20,7 +20,6 @@ const Leftbar = () => {
   const toggleCollapse = () => setIsCollapsed(!isCollapsed);
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
 
-  // 💡 Solo reserva espacio en escritorio
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 992) {
@@ -37,19 +36,22 @@ const Leftbar = () => {
     };
   }, []);
 
-  const menuItems = [
+  const allMenuItems = [
     { icon: "bi-grid", label: "Panell principal", path: "/dashboard" },
     { icon: "bi-cart", label: "Comandes", path: "/orders" },
     { icon: "bi-truck", label: "Proveïdors", path: "/suppliers" },
     { icon: "bi-box", label: "Productes", path: "/products" },
     { icon: "bi-bar-chart", label: "Informes", path: "/reports" },
-    { icon: "bi-building", label: "Empresa", path: "/company" },
-    { icon: "bi-people", label: "Usuaris", path: "/users" },
+    { icon: "bi-building", label: "Empresa", path: "/company", adminOnly: true},
+    { icon: "bi-people", label: "Usuaris", path: "/users", adminOnly: true},
   ];
+  const menuItems = allMenuItems.filter(
+    (item) => !item.adminOnly || user?.role === "ADMIN"
+  );
 
   return (
     <>
-      {/* 🔹 Topbar solo móvil */}
+      {/*Topbar solo móvil*/}
       <nav className="navbar navbar-dark bg-primary d-lg-none px-3">
         <div className="d-flex justify-content-between align-items-center w-100">
           <Link to="/" className="navbar-brand fw-bold text-white">
@@ -67,7 +69,7 @@ const Leftbar = () => {
         </div>
       </nav>
 
-      {/* 🔹 Sidebar (solo escritorio) */}
+      {/*Sidebar (solo escritorio)*/}
       <aside
         className={`leftbar bg-primary text-white d-none d-lg-flex flex-column ${
           isCollapsed ? "collapsed" : "expanded"
@@ -111,7 +113,7 @@ const Leftbar = () => {
         </div>
       </aside>
 
-      {/* 🔹 Navbar solo escritorio */}
+      {/*Navbar solo escritorio*/}
       {!isMobileMenuOpen && (
         <div
           className="flex top-0 d-none d-lg-block"
@@ -123,7 +125,7 @@ const Leftbar = () => {
         </div>
       )}
 
-      {/* 🔹 Menú móvil (pantalla completa) */}
+      {/*Menú móvil (pantalla completa) */}
       {isMobileMenuOpen && (
         <div className="mobile-menu bg-primary position-fixed top-0 start-0 w-100 h-100 d-flex flex-column px-2 pb-4 pt-3">
           <div className="d-flex justify-content-between align-items-center mb-4 px-3" style={{ height: "56px" }}>

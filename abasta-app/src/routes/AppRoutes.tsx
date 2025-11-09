@@ -9,6 +9,10 @@ import RegisterForm from '../components/auth/RegisterForm/RegisterForm';
 import VerifyEmail from '../components/auth/VerifyEmail/VerifyEmail';
 import RecoverPasswordForm from '../components/auth/RecoverPasswordForm/RecoverPasswordForm';
 import ResetPasswordForm from '../components/auth/ResetPasswordForm/ResetPasswordForm';
+import Privacy from '../pages/Home/Privacy/Privacy';
+import Terms from '../pages/Home/Terms/Terms';
+import Cookies from '../pages/Home/Cookies/Cookies';
+import Accessibility from '../pages/Home/Accessibility/Accessibility';
 
 const AppRoutes = () => {
   return (
@@ -20,14 +24,20 @@ const AppRoutes = () => {
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/recover" element={<RecoverPasswordForm />} />
         <Route path="/reset-password" element={<ResetPasswordForm />} />
-        <Route path="/privacy" element={<div>Privacy page</div>} />
-        <Route path="/terms" element={<div>Terms page</div>} />
-        <Route path="/cookies" element={<div>Cookies page</div>} />
-        <Route path="/accessibility" element={<div>Accessibility page</div>} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/cookies" element={<Cookies />} />
+        <Route path="/accessibility" element={<Accessibility />} />
       </Route>
 
       <Route element={<PrivateLayout />}>
         <Route path="/dashboard" element={<div>Dashboard page</div>} />
+        <Route path="/orders" element={<div>Orders page</div>} />
+        <Route path="/suppliers" element={<div>Suppliers page</div>} />
+        <Route path="/products" element={<div>Products page</div>} />
+        <Route path="/reports" element={<div>Reports page</div>} />
+        <Route path="/Company" element={<div>Company page</div>} />
+        <Route path="/Users" element={<div>Users page</div>} />
       </Route>
     </Routes>
   );
