@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,7 +38,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      * @param pageable   objecte de paginació (page, size, sort)
      * @return una {@link Page} de {@link Product}
      */
-    Page<Product> findBySupplierIdAndIsActiveTrue(Long supplierId, Pageable pageable);
+    /*Page<Product> findBySupplierIdAndIsActiveTrue(Long supplierId, Pageable pageable);*/
 
     /**
      * Cerca i filtra productes actius segons diversos criteris opcionals.
@@ -51,7 +53,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      * @param pageable     configuració de paginació
      * @return pàgina de productes que compleixen els criteris especificats
      */
-    @Query("""
+    /*@Query("""
     SELECT p FROM Product p
     WHERE p.isActive = true
       AND (
@@ -69,6 +71,50 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             @Param("name") String name,
             @Param("category") String category,
             @Param("supplierUuid") String supplierUuid,
-            Pageable pageable);
+            Pageable pageable);*/
+
+    /**
+     * Cerca avançada de productes amb múltiples filtres.
+     * Inclou tots els camps disponibles per a una cerca completa.
+     *
+     * @param name el nom a cercar (opcional, cerca parcial)
+     * @param description la descripció a cercar (opcional, cerca parcial)
+     * @param category la categoria a cercar (opcional, cerca parcial)
+     * @param isActive l'estat d'activitat (opcional)
+     * @param pageable informació de paginació
+     * @return pàgina de productes que compleixen els criteris
+     */
+    @Query("SELECT p FROM Product p WHERE p.supplier.id = :supplierId AND " +
+            "(:name IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
+            "(:description IS NULL OR LOWER(p.description) LIKE LOWER(CONCAT('%', :description, '%'))) AND " +
+            "(:category IS NULL OR LOWER(p.category) LIKE LOWER(CONCAT('%', :category, '%'))) AND " +
+            "(:unit IS NULL OR LOWER(p.unit) = LOWER(:unit)) AND " +
+            "(:minPrice IS NULL OR p.price >= :minPrice) AND " +
+            "(:maxPrice IS NULL OR p.price <= :maxPrice) AND " +
+            "(:isActive IS NULL OR p.isActive = :isActive)")
+    Page<Product> findProductsBySupplierWithFilter(Long supplierId,
+                                            @Param("name") String name,
+                                            @Param("description") String description,
+                                            @Param("category") String category,
+                                            @Param("unit") String unit,
+                                            @Param("minPrice") BigDecimal minPrice,
+                                            @Param("maxPrice") BigDecimal maxPrice,
+                                            @Param("isActive") Boolean isActive,
+                                            Pageable pageable);
+
+    /**
+     * Cerca bàsica de productes d'un proveïdor n múltiples camps de text amb paginació.
+     * Cerca en: name, description, category, forma simultània.
+     *
+     * @param searchText el text a cercar (pot ser null per obtenir tots)
+     * @param pageable informació de paginació
+     * @return pàgina de productes
+     */
+    @Query("SELECT p FROM Product p WHERE p.supplier.id = :supplierId AND  " +
+            "(:searchText IS NULL OR " +
+            "LOWER(p.name) LIKE LOWER(CONCAT('%', :searchText, '%')) OR " +
+            "LOWER(p.description) LIKE LOWER(CONCAT('%', :searchText, '%')) OR " +
+            "LOWER(p.category) LIKE LOWER(CONCAT('%', :searchText, '%')))")
+    Page<Product> findProductsBySupplierWithSearch(Long supplierId, @Param("searchText") String searchText, Pageable pageable);
 
 }
