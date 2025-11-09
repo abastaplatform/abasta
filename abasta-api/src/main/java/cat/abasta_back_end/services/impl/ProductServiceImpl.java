@@ -11,6 +11,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
 /**
@@ -79,16 +85,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     /**
-     * Recupera un producte a partir del seu identificador únic (UUID).
-     * <p>
-     * Aquest mètode busca el producte corresponent a la base de dades utilitzant el seu UUID.
-     * Si no es troba cap coincidència, es llença una excepció {@link ResourceNotFoundException}.
-     * </p>
-     *
-     * @param uuid Identificador únic del producte (UUID).
-     * @return El producte trobat com a {@link ProductResponseDTO}.
-     * @throws ResourceNotFoundException Si no existeix cap producte amb el UUID especificat.
-     * @since 1.0
+     * {@inheritDoc}
      */
     @Override
     @Transactional(readOnly = true)
@@ -99,12 +96,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     /**
-     * Actualitza un producte existent amb les dades rebudes.
-     *
-     * @param uuid identificador únic del producte a actualitzar
-     * @param productRequestDTO dades noves per al producte
-     * @return {@link ProductResponseDTO} amb les dades actualitzades
-     * @throws ResourceNotFoundException si no es troba cap producte amb el UUID indicat
+     * {@inheritDoc}
      */
     @Override
     @Transactional
@@ -130,11 +122,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     /**
-     * Desactiva (elimina lògicament) un producte existent.
-     *
-     * @param uuid Identificador únic del producte.
-     * @return {@link ProductResponseDTO} amb el producte desactivat.
-     * @throws ResourceNotFoundException Si no existeix cap producte amb el UUID especificat.
+     * {@inheritDoc}
      */
     @Override
     @Transactional
@@ -155,11 +143,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     /**
-     * Cerca productes per proveïdor amb filtre bàsic de text
-     *
-     * @param searchText
-     * @param pageable
-     * @return llistat de productes
+     * {@inheritDoc}
      */
     @Override
     @Transactional(readOnly = true)
@@ -176,11 +160,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     /**
-     * Cerca productes per proveïdor amb filtres expandits
-     *
-     * @param filterDTO
-     * @param pageable
-     * @return llistat de productes
+     * {@inheritDoc}
      */
     @Override
     @Transactional(readOnly = true)
@@ -205,6 +185,52 @@ public class ProductServiceImpl implements ProductService {
 
         return products.map(this::mapToResponseDTO);
 
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public String saveProductImage(String productUuid, MultipartFile file) {
+
+        // Validacions bàsiques de l'arxiu
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("No s'ha rebut cap imatge.");
+        }
+        if (!file.getContentType().startsWith("image/")) {
+            throw new IllegalArgumentException("Només es permeten fitxers d’imatge.");
+        }
+        if (file.getSize() > 5_000_000) { // 5 MB
+            throw new IllegalArgumentException("La imatge no pot superar els 5 MB.");
+        }
+
+        // Cercar el producte per UUid
+        Product product = productRepository.findByUuid(productUuid)
+                .orElseThrow(() -> new IllegalArgumentException("El producte especificat no existeix."));
+
+        try {
+            // Crear directori si no existeix
+            String uploadDir = "img/productes/";
+            Files.createDirectories(Paths.get(uploadDir));
+
+            // Nom únic
+            String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
+            Path filepath = Paths.get(uploadDir, filename);
+
+            // Guardar imatge
+            Files.copy(file.getInputStream(), filepath, StandardCopyOption.REPLACE_EXISTING);
+
+            // Guardar ruta en la BD
+            String url = "/img/productes/" + filename;
+            product.setImageUrl(url);
+            productRepository.save(product);
+
+            return url;
+
+        } catch (IOException e) {
+            throw new RuntimeException("Error al pujar la imatge: " + e.getMessage(), e);
+        }
     }
 
     /**

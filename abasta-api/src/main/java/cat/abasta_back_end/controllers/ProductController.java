@@ -1,7 +1,6 @@
 package cat.abasta_back_end.controllers;
 
 import cat.abasta_back_end.dto.*;
-import cat.abasta_back_end.entities.Product;
 import cat.abasta_back_end.services.ProductService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -13,6 +12,13 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.UUID;
 
 /**
  * Controlador REST per gestionar les operacions relacionades amb els productes.
@@ -213,6 +219,102 @@ public class ProductController {
 
         return ResponseEntity.ok(
                 ApiResponseDTO.success(pagedResponse, message));
+    }
+
+    /**
+     * Puja una imatge a un producte existent.
+     *
+     * <p>Aquest mètode permet associar una imatge a un producte ja creat.
+     * La imatge es desa al directori <code>/img/productes/</code> i es guarda
+     * la seva URL a la base de dades, en el camp <code>imageUrl</code> del producte.</p>
+     *
+     * <p><strong>Requisits:</strong></p>
+     * <ul>
+     *   <li>El producte ha d'existir (identificat pel seu <code>UUID</code>).</li>
+     *   <li>El fitxer ha de ser una imatge (content-type que comenci amb <code>image/</code>).</li>
+     *   <li>Mida màxima recomanada: 5 MB.</li>
+     * </ul>
+     *
+     * <p><strong>Exemple amb Postman:</strong></p>
+     * <ul>
+     *   <li><b>Mètode:</b> POST</li>
+     *   <li><b>URL:</b> <code>http://localhost:8084/api/products/upload/{productUuid}</code></li>
+     *   <li><b>Body:</b> form-data → key: <code>image</code> (type: File) → value: [selecciona la imatge]</li>
+     * </ul>
+     *
+     * <p><strong>Resposta:</strong></p>
+     * <pre>
+     * {
+     *   "success": true,
+     *   "message": "Imatge pujada correctament",
+     *   "data": "/img/productes/uuid_nomOriginal.jpg"
+     * }
+     * </pre>
+     *
+     * @param productUuid identificador únic del producte (UUID)
+     * @param file arxiu de la imatge enviada com a multipart/form-data
+     * @return URL relativa de la imatge desada dins la carpeta /img/productes/
+     */
+    @PostMapping("/upload/{productUuid}")
+    public ResponseEntity<ApiResponseDTO<String>> uploadProductImage(
+            @PathVariable String productUuid,
+            @RequestParam("image") MultipartFile file) {
+
+        String imageUrl = productService.saveProductImage(productUuid, file);
+
+        return ResponseEntity.ok(
+                ApiResponseDTO.success(imageUrl, "Imatge pujada correctament")
+        );
+    }
+
+    /**
+     * Puja una imatge temporal (sense producte associat encara).
+     *
+     * <p>Aquest endpoint permet pujar una imatge al servidor abans de crear el producte.
+     * És útil quan el frontend necessita mostrar una previsualització o conservar la URL
+     * mentre es completa el formulari de creació.</p>
+     *
+     * <p>La imatge es desa físicament a <code>/img/productes/</code> amb un nom únic (UUID + nom original),
+     * i es retorna la seva URL pública perquè el client la pugui utilitzar temporalment.</p>
+     *
+     * <p><strong>Exemple amb Postman:</strong></p>
+     * <ul>
+     *   <li><b>Mètode:</b> POST</li>
+     *   <li><b>URL:</b> <code>http://localhost:8084/api/products/upload-temp</code></li>
+     *   <li><b>Body:</b> form-data → key: <code>image</code> (type: File) → value: [selecciona la imatge]</li>
+     * </ul>
+     *
+     * <p><strong>Resposta:</strong></p>
+     * <pre>
+     * {
+     *   "success": true,
+     *   "message": "Imatge pujada correctament",
+     *   "data": "/img/productes/uuid_nomOriginal.jpg"
+     * }
+     * </pre>
+     *
+     * @param file arxiu de la imatge (multipart/form-data)
+     * @return URL relativa de la imatge desada dins la carpeta /img/productes/
+     */
+    @PostMapping("/upload-temp")
+    public ResponseEntity<ApiResponseDTO<String>> uploadTempImage(@RequestParam("image") MultipartFile file) {
+
+        try {
+            String uploadDir = "img/productes/";
+            Files.createDirectories(Paths.get(uploadDir));
+
+            String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
+            Path filepath = Paths.get(uploadDir, filename);
+
+            Files.copy(file.getInputStream(), filepath, StandardCopyOption.REPLACE_EXISTING);
+
+            String url = "/img/productes/" + filename;
+
+            return ResponseEntity.ok(ApiResponseDTO.success(url, "Imatge pujada correctament"));
+
+        } catch (IOException e) {
+            throw new RuntimeException("Error al pujar la imatge: " + e.getMessage(), e);
+        }
     }
 
 }
