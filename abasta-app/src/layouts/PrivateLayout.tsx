@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import Navbar from '../components/common/Navbar/Navbar';
+import Leftbar from '../components/common/Leftbar/Leftbar';
 import { useAuth } from '../context/useAuth';
 
 const PrivateLayout = () => {
@@ -11,7 +11,7 @@ const PrivateLayout = () => {
 
   return (
     <>
-      <Navbar />
+      <Leftbar />
       <Outlet />
     </>
   );
