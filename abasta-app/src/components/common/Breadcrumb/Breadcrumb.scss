@@ -1,0 +1,39 @@
+@import '../../../assets/styles/variables';
+
+.breadcrumb-nav {
+  .breadcrumb {
+    background-color: transparent;
+    padding: 0;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+
+    .breadcrumb-item {
+      a {
+        color: #6c757d;
+        text-decoration: none;
+        transition: color 0.2s ease;
+
+        &:hover {
+          color: $primary;
+        }
+      }
+
+      span {
+        color: #6c757d;
+      }
+
+      &.active {
+        color: $primary;
+        font-weight: 500;
+
+        span {
+          color: $primary;
+        }
+      }
+
+      + .breadcrumb-item::before {
+        color: #6c757d;
+      }
+    }
+  }
+}
