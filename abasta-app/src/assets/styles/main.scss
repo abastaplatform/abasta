@@ -1,5 +1,7 @@
 @use './variables' as vars;
 
+@use './forms' as forms;
+
 @use 'bootstrap' with (
   // Colors corporatius
   $primary: vars.$primary,

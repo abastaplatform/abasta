@@ -1,0 +1,28 @@
+@import '../../../assets/styles/variables';
+
+.form-card {
+  border: none;
+  border-radius: $border-radius-lg;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 1.5rem;
+
+  .card-body {
+    padding: 1.5rem;
+
+    @media (min-width: 768px) {
+      padding: 2rem;
+    }
+  }
+
+  .form-card-title {
+    color: $primary;
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .form-card-subtitle {
+    color: #6c757d;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+  }
+}
