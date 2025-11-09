@@ -3,11 +3,9 @@ import { Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { useCompanyConfigForm } from '../../../hooks/useCompanyConfigForm';
 import './CompanyConfigForm.scss';
 
-interface CompanyConfigProps {
-  companyUuid: string;
-}
+const CompanyConfig: React.FC = () => {
+  const Uuid = "e325b81f-5f3b-4309-8df8-18644d8c4b36";
 
-const CompanyConfig: React.FC<CompanyConfigProps> = ({ companyUuid }) => {
   const {
     register,
     handleSubmit,
@@ -18,7 +16,7 @@ const CompanyConfig: React.FC<CompanyConfigProps> = ({ companyUuid }) => {
     isFetching,
     error,
     success,
-  } = useCompanyConfigForm(companyUuid);
+  } = useCompanyConfigForm(Uuid);
 
   if (isFetching) {
     return (

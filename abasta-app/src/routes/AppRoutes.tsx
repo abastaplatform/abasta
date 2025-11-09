@@ -38,7 +38,7 @@ const AppRoutes = () => {
         <Route path="/suppliers" element={<div>Suppliers page</div>} />
         <Route path="/products" element={<div>Products page</div>} />
         <Route path="/reports" element={<div>Reports page</div>} />
-        <Route path="/Company" element={<CompanyConfigForm companyUuid="e325b81f-5f3b-4309-8df8-18644d8c4b36"/>} />
+        <Route path="/Company" element={<CompanyConfigForm />} />
         <Route path="/Users" element={<div>Users page</div>} />
         
       </Route>
