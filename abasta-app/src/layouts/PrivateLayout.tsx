@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import Navbar from '../components/common/Navbar/Navbar';
+import Leftbar from '../components/common/Leftbar/Leftbar';
 import { useAuth } from '../context/useAuth';
 
 const PrivateLayout = () => {
@@ -7,11 +7,11 @@ const PrivateLayout = () => {
 
   if (isLoading) return <div>Loading...</div>;
 
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (isAuthenticated) return <Navigate to="/login" replace />;
 
   return (
     <>
-      <Navbar />
+      <Leftbar />
       <Outlet />
     </>
   );
