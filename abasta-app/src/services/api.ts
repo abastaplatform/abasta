@@ -107,6 +107,12 @@ class ApiService {
     });
   }
 
+  patch<T>(endpoint: string): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'PATCH',
+    });
+  }
+
   delete<T>(endpoint: string): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'DELETE',

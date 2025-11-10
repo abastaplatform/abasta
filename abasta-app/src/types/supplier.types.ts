@@ -46,16 +46,58 @@ export interface CreateSupplierResponse {
   message: string;
 }
 
-export interface SearchFilters {
-  query: string;
-  name: string;
-  contactName: string;
-  email: string;
-  phone: string;
+export interface BasicSearchParams {
+  searchText?: string;
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  sortDir?: 'asc' | 'desc';
+}
+
+export interface AdvancedSearchParams {
+  name?: string;
+  contactName?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  isActive?: boolean;
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  sortDir?: 'asc' | 'desc';
+}
+
+export interface PaginatedResponse<T> {
+  content: T[];
+  pageable: {
+    page: number;
+    size: number;
+    sort: string;
+    totalPages: number;
+    totalElements: number;
+    numberOfElements: number;
+    first: boolean;
+    last: boolean;
+    empty: boolean;
+  };
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data?: T;
 }
 
 export interface GetSuppliersResponse {
   success: boolean;
   message: string;
   data?: Supplier[];
+}
+
+export interface SearchFilters {
+  query: string;
+  name: string;
+  contactName: string;
+  email: string;
+  phone: string;
 }

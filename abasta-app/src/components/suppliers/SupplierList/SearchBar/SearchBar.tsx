@@ -6,7 +6,7 @@ import Button from '../../../common/Button/Button';
 import type { SearchFilters } from '../../../../types/supplier.types';
 
 interface SearchBarProps {
-  onSearch: (filters: SearchFilters) => void;
+  onSearch: (filters: SearchFilters, isAdvanced: boolean) => void;
   onClear: () => void;
 }
 
@@ -21,11 +21,11 @@ const SearchBar = ({ onSearch, onClear }: SearchBarProps) => {
   });
 
   const handleBasicSearch = () => {
-    onSearch(filters);
+    onSearch(filters, false);
   };
 
   const handleAdvancedSearch = () => {
-    onSearch(filters);
+    onSearch(filters, true);
   };
 
   const handleClear = () => {

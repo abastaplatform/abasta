@@ -5,6 +5,10 @@ import type {
   SupplierApiData,
   Supplier,
   GetSuppliersResponse,
+  BasicSearchParams,
+  ApiResponse,
+  PaginatedResponse,
+  AdvancedSearchParams,
 } from '../types/supplier.types';
 
 const transformFormDataToApiData = (
@@ -52,7 +56,52 @@ export const supplierService = {
     return await api.get<GetSuppliersResponse>('/suppliers');
   },
 
-  deleteSupplier: async (id: string): Promise<void> => {
-    await api.delete(`/suppliers/${id}`);
+  deleteSupplier: async (uuid: string): Promise<void> => {
+    await api.patch(`/suppliers/${uuid}/status?isActive=false`);
+  },
+
+  searchSuppliers: async (
+    params: BasicSearchParams
+  ): Promise<ApiResponse<PaginatedResponse<Supplier>>> => {
+    const queryParams = new URLSearchParams();
+
+    if (params.searchText) {
+      queryParams.append('searchText', params.searchText);
+    }
+    if (params.page !== undefined) {
+      queryParams.append('page', params.page.toString());
+    }
+    if (params.size !== undefined) {
+      queryParams.append('size', params.size.toString());
+    }
+
+    return await api.get(`/suppliers/search?${queryParams.toString()}`);
+  },
+
+  filterSuppliers: async (
+    params: AdvancedSearchParams
+  ): Promise<ApiResponse<PaginatedResponse<Supplier>>> => {
+    const queryParams = new URLSearchParams();
+
+    if (params.name) {
+      queryParams.append('name', params.name);
+    }
+    if (params.contactName) {
+      queryParams.append('contactName', params.contactName);
+    }
+    if (params.email) {
+      queryParams.append('email', params.email);
+    }
+    if (params.phone) {
+      queryParams.append('phone', params.phone);
+    }
+    if (params.page !== undefined) {
+      queryParams.append('page', params.page.toString());
+    }
+    if (params.size !== undefined) {
+      queryParams.append('size', params.size.toString());
+    }
+
+    return await api.get(`/suppliers/filter?${queryParams.toString()}`);
   },
 };

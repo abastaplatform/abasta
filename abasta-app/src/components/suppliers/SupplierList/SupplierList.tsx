@@ -7,7 +7,13 @@ import Alert from '../../common/Alert/Alert';
 import Pagination from '../../common/Pagination/Pagination';
 import DeleteModal from '../../common/DeleteModal/DeleteModal';
 import './SupplierList.scss';
-import type { SearchFilters, Supplier } from '../../../types/supplier.types';
+import type {
+  AdvancedSearchParams,
+  BasicSearchParams,
+  PaginatedResponse,
+  SearchFilters,
+  Supplier,
+} from '../../../types/supplier.types';
 import SearchBar from './SearchBar/SearchBar';
 import SupplierTable from './SupplierTable/SupplierTable';
 import SupplierCard from './SupplierCard/SupplierCard';
@@ -16,13 +22,23 @@ const SupplierList = () => {
   const navigate = useNavigate();
 
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [filteredSuppliers, setFilteredSuppliers] = useState<Supplier[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
+  const [currentFilters, setCurrentFilters] = useState<SearchFilters>({
+    query: '',
+    name: '',
+    contactName: '',
+    email: '',
+    phone: '',
+  });
+  const [isAdvancedSearch, setIsAdvancedSearch] = useState(false);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [supplierToDelete, setSupplierToDelete] = useState<{
@@ -33,15 +49,20 @@ const SupplierList = () => {
 
   useEffect(() => {
     loadSuppliers();
-  }, []);
+  }, [currentPage, itemsPerPage]);
 
   const loadSuppliers = async () => {
     setIsLoading(true);
     setError('');
     try {
-      const response = await supplierService.getSuppliers();
-      setSuppliers(response.data || []);
-      setFilteredSuppliers(response.data || []);
+      if (hasActiveFilters()) {
+        await performSearch(currentFilters, isAdvancedSearch);
+      } else {
+        const response = await supplierService.getSuppliers();
+        setSuppliers(response.data || []);
+        setTotalElements(response.data?.length || 0);
+        setTotalPages(Math.ceil((response.data?.length || 0) / itemsPerPage));
+      }
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Error al carregar els proveïdors';
@@ -52,50 +73,82 @@ const SupplierList = () => {
     }
   };
 
-  const handleSearch = (filters: SearchFilters) => {
-    let filtered = [...suppliers];
+  const hasActiveFilters = (): boolean => {
+    return !!(
+      currentFilters.query ||
+      currentFilters.name ||
+      currentFilters.contactName ||
+      currentFilters.email ||
+      currentFilters.phone
+    );
+  };
 
-    if (filters.query) {
-      const q = filters.query.toLowerCase();
-      filtered = filtered.filter(
-        supplier =>
-          supplier.name.toLowerCase().includes(q) ||
-          supplier.contactName.toLowerCase().includes(q) ||
-          supplier.email.toLowerCase().includes(q) ||
-          supplier.phone.includes(q)
-      );
-    }
+  const performSearch = async (filters: SearchFilters, isAdvanced: boolean) => {
+    try {
+      let response;
 
-    if (filters.name) {
-      filtered = filtered.filter(supplier =>
-        supplier.name.toLowerCase().includes(filters.name.toLowerCase())
-      );
-    }
-    if (filters.contactName) {
-      filtered = filtered.filter(supplier =>
-        supplier.contactName
-          .toLowerCase()
-          .includes(filters.contactName.toLowerCase())
-      );
-    }
-    if (filters.email) {
-      filtered = filtered.filter(supplier =>
-        supplier.email.toLowerCase().includes(filters.email.toLowerCase())
-      );
-    }
-    if (filters.phone) {
-      filtered = filtered.filter(supplier =>
-        supplier.phone.includes(filters.phone)
-      );
-    }
+      if (isAdvanced) {
+        const filterParams: AdvancedSearchParams = {
+          name: filters.name || undefined,
+          contactName: filters.contactName || undefined,
+          email: filters.email || undefined,
+          phone: filters.phone || undefined,
+          page: currentPage,
+          size: itemsPerPage,
+          sortBy: 'name',
+          sortDir: 'asc',
+        };
+        response = await supplierService.filterSuppliers(filterParams);
+        setIsAdvancedSearch(true);
+      } else {
+        const searchParams: BasicSearchParams = {
+          searchText: filters.query,
+          page: currentPage,
+          size: itemsPerPage,
+          sortBy: 'name',
+          sortDir: 'asc',
+        };
+        response = await supplierService.searchSuppliers(searchParams);
+        setIsAdvancedSearch(false);
+      }
 
-    setFilteredSuppliers(filtered);
-    setCurrentPage(1);
+      if (response.success && response.data) {
+        const paginatedData = response.data as PaginatedResponse<Supplier>;
+        setSuppliers(paginatedData.content);
+        setTotalElements(paginatedData.pageable.totalElements);
+        setTotalPages(paginatedData.pageable.totalPages);
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Error al cercar proveïdors';
+      setError(errorMessage);
+      console.error('Search suppliers error:', err);
+    }
+  };
+
+  const handleSearch = async (
+    filters: SearchFilters,
+    isAdvanced: boolean = false
+  ) => {
+    setCurrentFilters(filters);
+    setCurrentPage(0);
+    setIsLoading(true);
+    await performSearch(filters, isAdvanced);
+    setIsLoading(false);
   };
 
   const handleClearSearch = () => {
-    setFilteredSuppliers(suppliers);
-    setCurrentPage(1);
+    const emptyFilters: SearchFilters = {
+      query: '',
+      name: '',
+      contactName: '',
+      email: '',
+      phone: '',
+    };
+    setCurrentFilters(emptyFilters);
+    setCurrentPage(0);
+    setIsAdvancedSearch(false);
+    loadSuppliers();
   };
 
   const handleDeleteClick = (supplierUuid: string, supplierName: string) => {
@@ -114,16 +167,10 @@ const SupplierList = () => {
         `Proveïdor "${supplierToDelete.name}" eliminat correctament`
       );
 
-      const updatedSuppliers = suppliers.filter(
-        s => s.uuid !== supplierToDelete.uuid
-      );
-      setSuppliers(updatedSuppliers);
-      setFilteredSuppliers(
-        filteredSuppliers.filter(s => s.uuid !== supplierToDelete.uuid)
-      );
-
       setShowDeleteModal(false);
       setSupplierToDelete(null);
+
+      await loadSuppliers();
 
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
@@ -141,19 +188,14 @@ const SupplierList = () => {
     setSupplierToDelete(null);
   };
 
-  const totalPages = Math.ceil(filteredSuppliers.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentSuppliers = filteredSuppliers.slice(startIndex, endIndex);
-
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+    setCurrentPage(page - 1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleItemsPerPageChange = (items: number) => {
     setItemsPerPage(items);
-    setCurrentPage(1);
+    setCurrentPage(0);
   };
 
   const breadcrumbItems = [{ label: 'Proveïdors', active: true }];
@@ -187,24 +229,18 @@ const SupplierList = () => {
 
         {!isLoading && (
           <>
-            <SupplierTable
-              suppliers={currentSuppliers}
-              onDelete={handleDeleteClick}
-            />
-            <SupplierCard
-              suppliers={currentSuppliers}
-              onDelete={handleDeleteClick}
-            />
+            <SupplierTable suppliers={suppliers} onDelete={handleDeleteClick} />
+            <SupplierCard suppliers={suppliers} onDelete={handleDeleteClick} />
           </>
         )}
 
-        {!isLoading && filteredSuppliers.length > 0 && (
+        {!isLoading && suppliers.length > 0 && (
           <Pagination
-            currentPage={currentPage}
+            currentPage={currentPage + 1}
             totalPages={totalPages}
             onPageChange={handlePageChange}
             itemsPerPage={itemsPerPage}
-            totalItems={filteredSuppliers.length}
+            totalItems={totalElements}
             onItemsPerPageChange={handleItemsPerPageChange}
           />
         )}
