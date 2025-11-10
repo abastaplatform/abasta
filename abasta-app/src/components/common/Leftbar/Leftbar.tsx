@@ -93,27 +93,15 @@ const Leftbar = () => {
                   location.pathname === item.path ? "active fw-semibold" : ""
                 }`}
               >
-                <i className={`bi ${item.icon} fs-1 me-2`}></i>
+                <i className={`bi ${item.icon} fs-2 me-2`}></i>
                 {!isCollapsed && <span>{item.label}</span>}
               </Link>
             </li>
           ))}
         </ul>
-
-
-        {/* Footer */}
-        <div className="mt-auto border-top border-light ">
-          <button
-            className="btn text-white w-100 text-start d-flex align-items-center gap-3 px-3 py-2"
-            onClick={handleLogout}
-          >
-            <i className="bi bi-box-arrow-left fs-4"></i>
-            {!isCollapsed && <span>Tancar sessió</span>}
-          </button>
-        </div>
       </aside>
 
-      {/*Navbar solo escritorio*/}
+      {/*Navbar Nomes Escriptori*/}
       {!isMobileMenuOpen && (
         <div
           className="flex top-0 d-none d-lg-block"
@@ -125,7 +113,7 @@ const Leftbar = () => {
         </div>
       )}
 
-      {/*Menú móvil (pantalla completa) */}
+      {/*Menú mòbil (pantalla completa) */}
       {isMobileMenuOpen && (
         <div className="mobile-menu bg-primary position-fixed top-0 start-0 w-100 h-100 d-flex flex-column px-2 pb-4 pt-3">
           <div className="d-flex justify-content-between align-items-center mb-4 px-3" style={{ height: "56px" }}>

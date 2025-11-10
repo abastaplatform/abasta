@@ -11,6 +11,7 @@ import RecoverPasswordForm from '../components/auth/RecoverPasswordForm/RecoverP
 import ResetPasswordForm from '../components/auth/ResetPasswordForm/ResetPasswordForm';
 import NewSupplier from '../components/suppliers/NewSupplier/NewSupplier';
 import SupplierList from '../components/suppliers/SupplierList/SupplierList';
+import CompanyConfigForm from '../components/auth/CompanyConfigForm/CompanyConfigForm';
 import Privacy from '../pages/Home/Privacy/Privacy';
 import Terms from '../pages/Home/Terms/Terms';
 import Cookies from '../pages/Home/Cookies/Cookies';
@@ -39,7 +40,7 @@ const AppRoutes = () => {
         <Route path="/orders" element={<div>Orders page</div>} />
         <Route path="/products" element={<div>Products page</div>} />
         <Route path="/reports" element={<div>Reports page</div>} />
-        <Route path="/Company" element={<div>Company page</div>} />
+        <Route path="/Company" element={<CompanyConfigForm />} />
         <Route path="/Users" element={<div>Users page</div>} />
       </Route>
     </Routes>

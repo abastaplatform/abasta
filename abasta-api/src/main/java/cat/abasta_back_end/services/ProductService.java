@@ -1,11 +1,10 @@
 package cat.abasta_back_end.services;
 
-import cat.abasta_back_end.dto.ProductFilterDTO;
-import cat.abasta_back_end.dto.ProductRequestDTO;
-import cat.abasta_back_end.dto.ProductResponseDTO;
+import cat.abasta_back_end.dto.*;
 import cat.abasta_back_end.exceptions.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 
 /**
@@ -64,8 +63,48 @@ public interface ProductService {
      */
     ProductResponseDTO deactivateProduct(String uuid);
 
+    /**
+     * Realitza una cerca bàsica de productes associats a un proveïdor concret.
+     * <p>
+     * Aquesta operació permet cercar productes pel seu nom o altres camps de text
+     * relacionats amb el proveïdor, aplicant criteris de paginació i ordenació.
+     * </p>
+     *
+     * @param supplierUuid Identificador únic (UUID) del proveïdor.
+     * @param text Cadena de text utilitzada per filtrar els resultats (nom, descripció, etc.).
+     * @param pageable Objecte {@link Pageable} que defineix la paginació i l'ordenació dels resultats.
+     * @return Una pàgina de {@link ProductResponseDTO} que compleix els criteris de cerca.
+     */
     Page<ProductResponseDTO> searchProductsBySupplierWithSearch(String supplierUuid, String text, Pageable pageable);
 
+    /**
+     * Realitza una cerca avançada de productes amb múltiples filtres.
+     * <p>
+     * Aquesta operació permet aplicar filtres combinats sobre diversos camps
+     * del producte (com nom, categoria, estat actiu, dates de creació/modificació, etc.),
+     * així com paràmetres de paginació i ordenació.
+     * </p>
+     *
+     * @param supplierUuid Identificador únic (UUID) del proveïdor associat als productes.
+     * @param filterDTO Objecte {@link ProductFilterDTO} amb tots els paràmetres de filtratge.
+     * @param pageable Objecte {@link Pageable} per definir la paginació i ordenació dels resultats.
+     * @return Una pàgina de {@link ProductResponseDTO} amb els productes que compleixen els filtres especificats.
+     */
     Page<ProductResponseDTO> searchProductsBySupplierWithFilter(String supplierUuid, ProductFilterDTO filterDTO, Pageable pageable);
+
+    /**
+     * Desa una imatge associada a un producte existent.
+     * <p>
+     * Aquesta operació rep un fitxer d'imatge, el desa en el sistema de fitxers
+     * i actualitza el camp {@code imageUrl} del producte amb la ruta resultant.
+     * </p>
+     *
+     * @param productUuid Identificador únic (UUID) del producte al qual es vol associar la imatge.
+     * @param file Fitxer d'imatge carregat pel client mitjançant multipart/form-data.
+     * @return La ruta o URL pública de la imatge guardada.
+     * @throws ResourceNotFoundException Si no existeix cap producte amb el UUID indicat.
+     * @throws RuntimeException Si es produeix un error durant la càrrega o el desament de la imatge.
+     */
+    String saveProductImage(String productUuid, MultipartFile file);
 
 }
