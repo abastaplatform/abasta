@@ -177,25 +177,6 @@ public class SupplierServiceImpl implements SupplierService {
      * {@inheritDoc}
      */
     @Override
-    @Transactional(readOnly = true)
-    public List<SupplierResponseDTO> getSuppliersByCompanyUuid(String companyUuid) {
-
-        // Verificar que l'empresa existeix
-        if (!companyRepository.existsByUuid(companyUuid)) {
-            throw new ResourceNotFoundException("Empresa no trobada amb UUID: " + companyUuid);
-        }
-
-        List<Supplier> suppliers = supplierRepository.findByCompanyUuid(companyUuid);
-        return suppliers.stream()
-                .map(this::mapToResponseDTO)
-                .collect(Collectors.toList());
-    }
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public SupplierResponseDTO toggleSupplierStatus(String uuid, Boolean isActive) {
         Supplier supplier = supplierRepository.findByUuid(uuid)
                 .orElseThrow(() -> new ResourceNotFoundException("Proveïdor no trobat amb UUID: " + uuid));
@@ -204,16 +185,6 @@ public class SupplierServiceImpl implements SupplierService {
         Supplier updatedSupplier = supplierRepository.save(supplier);
 
         return mapToResponseDTO(updatedSupplier);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public List<SupplierResponseDTO> getAllSuppliers() {
-        String companyUuid = getCompanyUuidFromAuthenticatedUser();
-        return getSuppliersByCompanyUuid(companyUuid);
     }
 
     /**

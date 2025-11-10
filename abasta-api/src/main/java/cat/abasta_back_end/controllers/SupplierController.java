@@ -28,27 +28,26 @@ import java.util.List;
  * <ul>
  *   <li>GET /api/suppliers/ - Proveïdors d'una empresa</li>
  *   <li>GET /api/suppliers/{uuid} - Obtenir proveïdor per UUID</li>
- *   <li>GET /api/suppliers/search - Cerca bàsica per nom</li>
+ *   <li>GET /api/suppliers/search - Cerca bàsica per text</li>
  *   <li>GET /api/suppliers/filter - Cerca avançada amb tots els filtres</li>
  *   <li>POST /api/suppliers - Crear nou proveïdor</li>
  *   <li>PUT /api/suppliers/{uuid} - Actualitzar proveïdor existent</li>
  *   <li>PATCH /api/suppliers/{uuid}/status - Canviar estat actiu/inactiu</li>
-
+ *
  * </ul>
  * </p>
  *
  * <p>Nivells de cerca implementats:
  * <ul>
- *   <li><strong>Cerca bàsica (/search):</strong> Filtra per empresa i nom únicament</li>
- *   <li><strong>Cerca avançada (/filter):</strong> Filtres per tots els camps i dates</li>
+ *   <li><strong>Cerca bàsica (/search):</strong> Cerca per qualsevol camp</li>
+ *   <li><strong>Cerca avançada (/filter):</strong> Filtres per tots els camps</li>
  * </ul>
  * </p>
  *
  * <p>Filtres disponibles en cerca avançada:
  * <ul>
- *   <li><strong>Filtres de text:</strong> name, contactName, email, phone, address, notes</li>
+ *   <li><strong>Filtres de text:</strong> name, contactName, email, phone, address</li>
  *   <li><strong>Filtres d'estat:</strong> isActive (true/false/null)</li>
- *   <li><strong>Filtres de dates:</strong> createdAfter, createdBefore, updatedAfter, updatedBefore</li>
  * </ul>
  * </p>
  *
@@ -90,7 +89,7 @@ public class SupplierController {
      * El companyUuid s'extreu automàticament de l'usuari.
      *
      * <p>Aquest endpoint retorna la llista completa de proveïdors de l'empresa
-     * de l'usuari autenticat, sense paginació.</p>
+     * de l'usuari autenticat, amb paginació.</p>
      *
      * <p>Exemple d'ús:
      * <pre>
@@ -102,10 +101,21 @@ public class SupplierController {
      * @return resposta amb la llista de proveïdors
      */
     @GetMapping
-    public ResponseEntity<ApiResponseDTO<List<SupplierResponseDTO>>> getAllSuppliers() {
-        List<SupplierResponseDTO> suppliers = supplierService.getAllSuppliers();
+    public ResponseEntity<ApiResponseDTO<PagedResponseDTO<SupplierResponseDTO>>> getAllSuppliers(
+            @Valid SupplierSearchDTO searchDTO) {
+        Sort sort = searchDTO.getSortDir().equalsIgnoreCase("desc") ?
+                Sort.by(searchDTO.getSortBy()).descending() :
+                Sort.by(searchDTO.getSortBy()).ascending();
+
+        Pageable pageable = PageRequest.of(searchDTO.getPage(), searchDTO.getSize(), sort);
+
+        Page<SupplierResponseDTO> suppliers = supplierService.searchSuppliersByText(
+                searchDTO.getSearchText(), pageable);
+        // Convertir Page a PagedResponseDTO per evitar warning de serialització
+        PagedResponseDTO<SupplierResponseDTO> pagedResponse = PagedResponseDTO.of(suppliers);
+
         return ResponseEntity.ok(
-                ApiResponseDTO.success(suppliers, "Proveïdors de l'empresa obtinguts correctament"));
+                ApiResponseDTO.success(pagedResponse, "Proveïdors de l'empresa obtinguts correctament"));
     }
 
     /**
@@ -182,7 +192,6 @@ public class SupplierController {
      * <ul>
      *   <li><strong>Text:</strong> name, contactName, email, phone, address, notes</li>
      *   <li><strong>Estat:</strong> isActive (true/false/null)</li>
-     *   <li><strong>Dates:</strong> createdAfter, createdBefore, updatedAfter, updatedBefore</li>
      * </ul>
      * </p>
      *
@@ -190,7 +199,6 @@ public class SupplierController {
      * <pre>
      * GET /api/suppliers/filter?name=Catalunya&contactName=Joan&email=@provcat.com
      *     &phone=93&address=Barcelona&notes=important&isActive=true
-     *     &createdAfter=2024-01-01T00:00:00&createdBefore=2024-12-31T23:59:59
      *     &page=0&size=10&sortBy=name&sortDir=asc
      * </pre>
      * </p>
@@ -245,7 +253,7 @@ public class SupplierController {
     /**
      * Actualitza un proveïdor existent.
      *
-     * @param uuid l'UUID del proveïdor a actualitzar
+     * @param uuid               l'UUID del proveïdor a actualitzar
      * @param supplierRequestDTO les noves dades del proveïdor
      * @return resposta amb el proveïdor actualitzat
      */
@@ -261,7 +269,7 @@ public class SupplierController {
     /**
      * Activa o desactiva un proveïdor.
      *
-     * @param uuid l'UUID del proveïdor
+     * @param uuid     l'UUID del proveïdor
      * @param isActive l'estat d'activitat a establir
      * @return resposta amb el proveïdor actualitzat
      */
