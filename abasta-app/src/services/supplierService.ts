@@ -60,6 +60,25 @@ export const supplierService = {
     return await api.get<ApiResponse<Supplier>>(`/suppliers/${uuid}`);
   },
 
+  updateSupplier: async (
+    uuid: string,
+    data: SupplierFormData
+  ): Promise<ApiResponse<SupplierFormData>> => {
+    const apiData = transformFormDataToApiData(data);
+    const response = await api.put<ApiResponse<Supplier>>(
+      `/suppliers/${uuid}`,
+      apiData
+    );
+
+    if (response.data) {
+      return {
+        ...response,
+        data: transformApiDataToFormData(response.data),
+      };
+    }
+    return response as ApiResponse<SupplierFormData>;
+  },
+
   deleteSupplier: async (uuid: string): Promise<void> => {
     await api.patch(`/suppliers/${uuid}/status?isActive=false`);
   },

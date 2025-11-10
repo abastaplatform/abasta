@@ -1,11 +1,19 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 
 import type { SupplierFormData } from '../types/supplier.types';
 import { supplierService } from '../services/supplierService';
 
-export const useSupplierForm = () => {
+interface UseSupplierFormOptions {
+  initialData?: SupplierFormData;
+  mode?: 'create' | 'edit';
+}
+
+export const useSupplierForm = ({
+  initialData,
+  mode = 'create',
+}: UseSupplierFormOptions = {}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -19,7 +27,7 @@ export const useSupplierForm = () => {
     reset,
   } = useForm<SupplierFormData>({
     mode: 'onBlur',
-    defaultValues: {
+    defaultValues: initialData || {
       name: '',
       contactName: '',
       email: '',
@@ -31,14 +39,23 @@ export const useSupplierForm = () => {
     },
   });
 
+  useEffect(() => {
+    if (initialData) reset(initialData);
+  }, [initialData, reset]);
+
   const onSubmit = async (data: SupplierFormData) => {
     setIsLoading(true);
     setError('');
     setSuccessMessage('');
 
     try {
-      await supplierService.createSupplier(data);
-      setSuccessMessage('Proveïdor creat correctament');
+      if (mode === 'edit' && data.uuid) {
+        await supplierService.updateSupplier(data.uuid, data);
+        setSuccessMessage('Proveïdor actualitzat correctament');
+      } else {
+        await supplierService.createSupplier(data);
+        setSuccessMessage('Proveïdor creat correctament');
+      }
 
       setTimeout(() => {
         reset();

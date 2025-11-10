@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { supplierService } from '../../../services/supplierService';
 import PageHeader from '../../common/PageHeader/PageHeader';
 import Button from '../../common/Button/Button';
@@ -20,6 +20,7 @@ import SupplierCard from './SupplierCard/SupplierCard';
 
 const SupplierList = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -46,6 +47,20 @@ const SupplierList = () => {
     name: string;
   } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    if (location.state && location.state.successMessage) {
+      const message = location.state.successMessage as string;
+
+      setSuccessMessage(message);
+
+      navigate(location.pathname, { replace: true, state: {} });
+
+      setTimeout(() => {
+        setSuccessMessage('');
+      }, 3000);
+    }
+  }, [location.state, location.pathname, navigate]);
 
   useEffect(() => {
     loadSuppliers();

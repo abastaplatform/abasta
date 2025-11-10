@@ -1,6 +1,7 @@
 export interface Supplier {
   uuid: string;
-  companyUuid: string;
+  companyUuid?: string;
+  companyName?: string;
   name: string;
   contactName: string;
   email: string;
@@ -8,11 +9,12 @@ export interface Supplier {
   address?: string;
   notes?: string;
   isActive?: boolean;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface SupplierFormData {
+  uuid?: string;
   name: string;
   contactName: string;
   email: string;
@@ -20,7 +22,10 @@ export interface SupplierFormData {
   address: string;
   city: string;
   zipCode: string;
-  notes: string;
+  notes?: string;
+  companyUuid?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface SupplierFormErrors {

@@ -43,7 +43,7 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({
   };
 
   const handleEdit = () => {
-    navigate(`/suppliers/${supplierUuid}/edit`);
+    navigate(`/suppliers/edit/${supplierUuid}`);
     setIsOpen(false);
   };
 
