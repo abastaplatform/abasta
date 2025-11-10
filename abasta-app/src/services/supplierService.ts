@@ -56,6 +56,10 @@ export const supplierService = {
     return await api.get<GetSuppliersResponse>('/suppliers');
   },
 
+  getSupplierByUuid: async (uuid: string): Promise<ApiResponse<Supplier>> => {
+    return await api.get<ApiResponse<Supplier>>(`/suppliers/${uuid}`);
+  },
+
   deleteSupplier: async (uuid: string): Promise<void> => {
     await api.patch(`/suppliers/${uuid}/status?isActive=false`);
   },

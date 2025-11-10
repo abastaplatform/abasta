@@ -16,6 +16,7 @@ import Privacy from '../pages/Home/Privacy/Privacy';
 import Terms from '../pages/Home/Terms/Terms';
 import Cookies from '../pages/Home/Cookies/Cookies';
 import Accessibility from '../pages/Home/Accessibility/Accessibility';
+import SupplierDetailPage from '../pages/Suppliers/SupplierDetailPage';
 
 const AppRoutes = () => {
   return (
@@ -37,6 +38,8 @@ const AppRoutes = () => {
         <Route path="/dashboard" element={<div>Dashboard page</div>} />
         <Route path="/suppliers" element={<SupplierList />} />
         <Route path="/suppliers/new" element={<NewSupplier />} />
+        <Route path="/suppliers/:uuid" element={<SupplierDetailPage />} />
+
         <Route path="/orders" element={<div>Orders page</div>} />
         <Route path="/products" element={<div>Products page</div>} />
         <Route path="/reports" element={<div>Reports page</div>} />
