@@ -45,7 +45,6 @@ import lombok.NoArgsConstructor;
  *   <li>El text de cerca és opcional (pot ser null per mostrar tots els proveïdors)</li>
  *   <li>La pàgina ha de ser un valor no negatiu (0 o superior)</li>
  *   <li>La mida de pàgina ha de ser com a mínim 1</li>
- *   <li>El camp d'ordenació és obligatori</li>
  *   <li>La direcció d'ordenació només pot ser 'asc' o 'desc'</li>
  * </ul>
  * </p>
