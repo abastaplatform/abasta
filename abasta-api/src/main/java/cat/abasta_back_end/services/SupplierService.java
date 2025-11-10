@@ -102,15 +102,6 @@ public interface SupplierService {
     SupplierResponseDTO updateSupplier(String uuid, SupplierRequestDTO supplierRequestDTO);
 
     /**
-     * Obté tots els proveïdors d'una empresa específica.
-     *
-     * @param companyUuid l'UUID de l'empresa
-     * @return llista de proveïdors de l'empresa
-     * @throws cat.abasta_back_end.exceptions.ResourceNotFoundException si l'empresa no existeix
-     */
-    List<SupplierResponseDTO> getSuppliersByCompanyUuid(String companyUuid);
-
-    /**
      * Activa o desactiva un proveïdor.
      *
      * @param uuid l'UUID del proveïdor
@@ -119,15 +110,6 @@ public interface SupplierService {
      * @throws cat.abasta_back_end.exceptions.ResourceNotFoundException si el proveïdor no existeix
      */
     SupplierResponseDTO toggleSupplierStatus(String uuid, Boolean isActive);
-
-    /**
-     * Obté tots els proveïdors de l'empresa de l'usuari autenticat.
-     * Utilitza el context de Spring Security per identificar l'usuari.
-     *
-     * @return llista de proveïdors de l'empresa de l'usuari autenticat
-     * @throws cat.abasta_back_end.exceptions.ResourceNotFoundException si l'usuari no existeix o no té empresa assignada
-     */
-    List<SupplierResponseDTO> getAllSuppliers();
 
     /**
      * Cerca bàsica de proveïdors per text en múltiples camps de l'empresa de l'usuari autenticat.

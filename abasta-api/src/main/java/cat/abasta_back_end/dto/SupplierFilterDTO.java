@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
  * <p>Aquest DTO s'utilitza en l'endpoint de cerca avançada quan es vol filtrar proveïdors
  * de l'empresa de l'usuari autenticat per múltiples criteris simultàniament, proporcionant
  * màxima flexibilitat en les cerques. Permet filtrar per tots els camps disponibles de la
- * taula suppliers incloent-hi filtres de text, estat d'activitat i rangs de dates.</p>
+ * taula suppliers incloent-hi filtres de text i estat d'activitat</p>
  *
  * <p>Els filtres disponibles inclouen:
  * <ul>
@@ -28,16 +28,9 @@ import java.time.LocalDateTime;
  *       <li>Email del proveïdor</li>
  *       <li>Telèfon de contacte</li>
  *       <li>Adreça completa</li>
- *       <li>Notes o comentaris</li>
  *     </ul>
  *   </li>
  *   <li><strong>Estat d'activitat (opcional)</strong> - Filtra per proveïdors actius/inactius</li>
- *   <li><strong>Filtres de dates per rangs (opcionals):</strong>
- *     <ul>
- *       <li>Data de creació (des de / fins a)</li>
- *       <li>Data d'actualització (des de / fins a)</li>
- *     </ul>
- *   </li>
  *   <li><strong>Paràmetres de paginació i ordenació</strong></li>
  * </ul>
  * </p>
@@ -46,9 +39,7 @@ import java.time.LocalDateTime;
  * <ul>
  *   <li>La pàgina ha de ser un valor no negatiu (0 o superior)</li>
  *   <li>La mida de pàgina ha de ser com a mínim 1</li>
- *   <li>El camp d'ordenació és obligatori</li>
  *   <li>La direcció d'ordenació només pot ser 'asc' o 'desc'</li>
- *   <li>Les dates segueixen el format ISO LocalDateTime</li>
  * </ul>
  * </p>
  *
@@ -71,10 +62,7 @@ import java.time.LocalDateTime;
  *     .email("@provcat.com")
  *     .phone("93")
  *     .address("Barcelona")
- *     .notes("proveïdor important")
  *     .isActive(true)
- *     .createdAfter(LocalDateTime.of(2024, 1, 1, 0, 0))
- *     .createdBefore(LocalDateTime.of(2024, 12, 31, 23, 59))
  *     .page(0)
  *     .size(20)
  *     .sortBy("name")
@@ -100,12 +88,7 @@ import java.time.LocalDateTime;
  *   "email": "@provcat.com",
  *   "phone": "93",
  *   "address": "Barcelona",
- *   "notes": "proveïdor important",
  *   "isActive": true,
- *   "createdAfter": "2024-01-01T00:00:00",
- *   "createdBefore": "2024-12-31T23:59:59",
- *   "updatedAfter": "2024-06-01T00:00:00",
- *   "updatedBefore": "2024-12-31T23:59:59",
  *   "page": 0,
  *   "size": 20,
  *   "sortBy": "name",
@@ -126,10 +109,9 @@ import java.time.LocalDateTime;
  * <p><strong>Notes d'implementació:</strong>
  * <ul>
  *   <li>Tots els filtres de text utilitzen cerca parcial insensible a majúscules</li>
- *   <li>Els filtres de dates permeten rangs oberts (només 'des de' o només 'fins a')</li>
  *   <li>Si no s'especifica isActive, es mostren tant proveïdors actius com inactius</li>
  *   <li>El companyUuid s'extreu automàticament de l'usuari per garantir seguretat</li>
- *   <li>La classe inclou mètodes utilitaris hasTextFilters() i hasDateFilters()</li>
+ *   <li>La classe inclou mètode utilitari hasTextFilters()</li>
  * </ul>
  * </p>
  *

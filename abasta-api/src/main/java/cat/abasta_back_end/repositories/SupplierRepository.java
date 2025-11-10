@@ -94,15 +94,6 @@ public interface SupplierRepository extends JpaRepository<Supplier, Long> {
     boolean existsByCompanyUuidAndNameIgnoreCaseAndUuidNot(@Param("companyUuid") String companyUuid, @Param("name") String name, @Param("supplierUuid") String supplierUuid);
 
     /**
-     * Cerca tots els proveïdors d'una empresa específica per UUID.
-     *
-     * @param companyUuid l'UUID de l'empresa
-     * @return llista de proveïdors de l'empresa
-     */
-    @Query("SELECT s FROM Supplier s WHERE s.company.uuid = :companyUuid")
-    List<Supplier> findByCompanyUuid(@Param("companyUuid") String companyUuid);
-
-    /**
      * Cerca avançada de proveïdors amb múltiples filtres.
      * Inclou tots els camps disponibles per a una cerca completa.
      *
