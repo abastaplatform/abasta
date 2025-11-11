@@ -8,8 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -103,26 +101,23 @@ public interface SupplierRepository extends JpaRepository<Supplier, Long> {
      * @param email l'email a cercar (opcional, cerca parcial)
      * @param phone el telèfon a cercar (opcional, cerca parcial)
      * @param address l'adreça a cercar (opcional, cerca parcial)
-     * @param isActive l'estat d'activitat (opcional)
      * @param pageable informació de paginació
      * @return pàgina de proveïdors que compleixen els criteris
      */
-    @Query("SELECT s FROM Supplier s WHERE " +
-            "(s.company.id = :companyId) AND " +
+    @Query("SELECT s FROM Supplier s WHERE s.company.id = :companyId AND s.isActive = true AND " +
             "(:name IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
             "(:contactName IS NULL OR LOWER(s.contactName) LIKE LOWER(CONCAT('%', :contactName, '%'))) AND " +
             "(:email IS NULL OR LOWER(s.email) LIKE LOWER(CONCAT('%', :email, '%'))) AND " +
             "(:phone IS NULL OR LOWER(s.phone) LIKE LOWER(CONCAT('%', :phone, '%'))) AND " +
-            "(:address IS NULL OR LOWER(s.address) LIKE LOWER(CONCAT('%', :address, '%'))) AND " +
-            "(:isActive IS NULL OR s.isActive = :isActive)")
-    Page<Supplier> findSuppliersWithFilters(@Param("companyId") Long companyId,
-                                                    @Param("name") String name,
-                                                    @Param("contactName") String contactName,
-                                                    @Param("email") String email,
-                                                    @Param("phone") String phone,
-                                                    @Param("address") String address,
-                                                    @Param("isActive") Boolean isActive,
-                                                    Pageable pageable);
+            "(:address IS NULL OR LOWER(s.address) LIKE LOWER(CONCAT('%', :address, '%')))")
+    Page<Supplier> findByCompanyIdAndCriteriaActive(
+            @Param("companyId") Long companyId,
+            @Param("name") String name,
+            @Param("contactName") String contactName,
+            @Param("email") String email,
+            @Param("phone") String phone,
+            @Param("address") String address,
+            Pageable pageable);
 
     /**
      * Cerca bàsica de proveïdors d'una empresa en múltiples camps de text amb paginació.
@@ -133,14 +128,79 @@ public interface SupplierRepository extends JpaRepository<Supplier, Long> {
      * @param pageable informació de paginació
      * @return pàgina de proveïdors
      */
-    @Query("SELECT s FROM Supplier s WHERE s.company.id = :companyId AND " +
+    @Query("SELECT s FROM Supplier s WHERE s.company.id = :companyId AND s.isActive = true AND " +
             "(:searchText IS NULL OR " +
             "LOWER(s.name) LIKE LOWER(CONCAT('%', :searchText, '%')) OR " +
             "LOWER(s.contactName) LIKE LOWER(CONCAT('%', :searchText, '%')) OR " +
             "LOWER(s.email) LIKE LOWER(CONCAT('%', :searchText, '%')) OR " +
             "LOWER(s.phone) LIKE LOWER(CONCAT('%', :searchText, '%')) OR " +
             "LOWER(s.address) LIKE LOWER(CONCAT('%', :searchText, '%')))")
-    Page<Supplier> findByCompanyIdAndMultipleFieldsContaining(@Param("companyId") Long companyId,
-                                                              @Param("searchText") String searchText,
-                                                              Pageable pageable);
+    Page<Supplier> findByCompanyIdAndMultipleFieldsContainingActive(
+            @Param("companyId") Long companyId,
+            @Param("searchText") String searchText,
+            Pageable pageable);
+
+    /**
+     * Obté tots els proveïdors actius d'una empresa amb paginació.
+     *
+     * <p>Aquest mètode utilitza les convencions de nomenclatura de Spring Data JPA
+     * per generar automàticament la query SQL corresponent. Filtra únicament els
+     * proveïdors que tenen l'estat {@code isActive = true}, excloent automàticament
+     * aquells que han estat marcats com eliminats mitjançant soft delete.</p>
+     *
+     * <p>La query generada automàticament és equivalent a:
+     * <pre>
+     * SELECT s FROM Supplier s
+     * WHERE s.company.uuid = :companyUuid
+     *   AND s.isActive = true
+     * ORDER BY [ordenació especificada al Pageable]
+     * </pre>
+     * </p>
+     *
+     * <p>Aquest mètode és especialment útil per:
+     * <ul>
+     *   <li>Llistar tots els proveïdors operatius d'una empresa</li>
+     *   <li>Implementar funcionalitat de soft delete (només mostrar actius)</li>
+     *   <li>Millorar l'experiència d'usuari ocultant proveïdors eliminats</li>
+     *   <li>Mantenir la integritat referencial mentre s'oculten dades "eliminades"</li>
+     * </ul>
+     * </p>
+     *
+     * <p><strong>Seguretat i aïllament de dades:</strong><br>
+     * El filtratge per {@code companyUuid} garanteix que cada empresa només pugui
+     * accedir als seus propis proveïdors, proporcionant aïllament automàtic de dades
+     * en entorns multi-tenant.</p>
+     *
+     * <p><strong>Exemples d'ús:</strong>
+     * <pre>
+     * // Primera pàgina amb 10 elements, ordenats per nom
+     * Pageable pageable = PageRequest.of(0, 10, Sort.by("name"));
+     * Page&lt;Supplier&gt; activeSuppliers = repository.findByCompanyUuidAndIsActiveTrue(
+     *     "123e4567-e89b-12d3-a456-426614174000", pageable);
+     *
+     * // Segona pàgina amb 20 elements, ordenats per data de creació descendent
+     * Pageable pageable = PageRequest.of(1, 20, Sort.by("createdAt").descending());
+     * Page&lt;Supplier&gt; suppliers = repository.findByCompanyUuidAndIsActiveTrue(
+     *     companyUuid, pageable);
+     * </pre>
+     * </p>
+     *
+     * @param companyUuid l'identificador UUID únic de l'empresa. No pot ser {@code null}
+     *                   ni una cadena buida. Ha de correspondre amb un UUID vàlid
+     *                   d'una empresa existent al sistema
+     * @param pageable   informació de paginació i ordenació. Inclou el número de pàgina,
+     *                  mida de pàgina i criteris d'ordenació. No pot ser {@code null}
+     * @return una {@link Page} amb els proveïdors actius de l'empresa especificada.
+     *         La pàgina conté el contingut sol·licitat segons els paràmetres de paginació,
+     *         més metadades sobre el total d'elements, número de pàgines, etc.
+     *         Si no es troben proveïdors actius, retorna una pàgina buida
+     * @throws org.springframework.dao.InvalidDataAccessApiUsageException si els paràmetres
+     *         són invàlids (per exemple, si {@code pageable} és {@code null})
+     * @since 2.0
+     * @see Pageable
+     * @see Page
+     * @see org.springframework.data.domain.PageRequest
+     * @see org.springframework.data.domain.Sort
+     */
+    Page<Supplier> findByCompanyUuidAndIsActiveTrue(String companyUuid, Pageable pageable);
 }

@@ -47,7 +47,6 @@ import java.util.List;
  * <p>Filtres disponibles en cerca avançada:
  * <ul>
  *   <li><strong>Filtres de text:</strong> name, contactName, email, phone, address</li>
- *   <li><strong>Filtres d'estat:</strong> isActive (true/false/null)</li>
  * </ul>
  * </p>
  *
@@ -98,6 +97,7 @@ public class SupplierController {
      * </pre>
      * </p>
      *
+     * @param searchDTO paràmetres de paginació
      * @return resposta amb la llista de proveïdors
      */
     @GetMapping
@@ -109,8 +109,7 @@ public class SupplierController {
 
         Pageable pageable = PageRequest.of(searchDTO.getPage(), searchDTO.getSize(), sort);
 
-        Page<SupplierResponseDTO> suppliers = supplierService.searchSuppliersByText(
-                searchDTO.getSearchText(), pageable);
+        Page<SupplierResponseDTO> suppliers = supplierService.getAllSuppliersPaginated(pageable);
         // Convertir Page a PagedResponseDTO per evitar warning de serialització
         PagedResponseDTO<SupplierResponseDTO> pagedResponse = PagedResponseDTO.of(suppliers);
 
@@ -186,20 +185,18 @@ public class SupplierController {
      * El companyUuid s'obté automàticament de l'usuari autenticat.
      *
      * <p>Aquest endpoint permet filtrar proveïdors de l'empresa de l'usuari utilitzant
-     * tots els camps disponibles, incloent-hi filtres de text, estat d'activitat i rangs de dates.</p>
+     * tots els camps disponibles, incloent-hi filtres de text.</p>
      *
      * <p>Filtres disponibles:
      * <ul>
-     *   <li><strong>Text:</strong> name, contactName, email, phone, address, notes</li>
-     *   <li><strong>Estat:</strong> isActive (true/false/null)</li>
+     *   <li><strong>Text:</strong> name, contactName, email, phone, address</li>
      * </ul>
      * </p>
      *
      * <p>Exemple d'ús complet:
      * <pre>
      * GET /api/suppliers/filter?name=Catalunya&contactName=Joan&email=@provcat.com
-     *     &phone=93&address=Barcelona&notes=important&isActive=true
-     *     &page=0&size=10&sortBy=name&sortDir=asc
+     *     &phone=93&address=Barcelona&page=0&size=10&sortBy=name&sortDir=asc
      * </pre>
      * </p>
      *
@@ -253,7 +250,7 @@ public class SupplierController {
     /**
      * Actualitza un proveïdor existent.
      *
-     * @param uuid               l'UUID del proveïdor a actualitzar
+     * @param uuid l'UUID del proveïdor a actualitzar
      * @param supplierRequestDTO les noves dades del proveïdor
      * @return resposta amb el proveïdor actualitzat
      */
@@ -269,7 +266,7 @@ public class SupplierController {
     /**
      * Activa o desactiva un proveïdor.
      *
-     * @param uuid     l'UUID del proveïdor
+     * @param uuid l'UUID del proveïdor
      * @param isActive l'estat d'activitat a establir
      * @return resposta amb el proveïdor actualitzat
      */
