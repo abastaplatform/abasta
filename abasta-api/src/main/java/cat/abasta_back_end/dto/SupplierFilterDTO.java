@@ -7,16 +7,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 /**
  * DTO per gestionar les peticions de cerca avançada de proveïdors amb múltiples filtres.
  * Conté tots els paràmetres disponibles per realitzar cerques complexes amb paginació i ordenació.
  *
  * <p>Aquest DTO s'utilitza en l'endpoint de cerca avançada quan es vol filtrar proveïdors
  * de l'empresa de l'usuari autenticat per múltiples criteris simultàniament, proporcionant
- * màxima flexibilitat en les cerques. Permet filtrar per tots els camps disponibles de la
- * taula suppliers incloent-hi filtres de text i estat d'activitat</p>
+ * màxima flexibilitat en les cerques. Permet filtrar pels camps disponibles de la
+ * taula suppliers incloent-hi filtres de text</p>
  *
  * <p>Els filtres disponibles inclouen:
  * <ul>
@@ -30,7 +28,6 @@ import java.time.LocalDateTime;
  *       <li>Adreça completa</li>
  *     </ul>
  *   </li>
- *   <li><strong>Estat d'activitat (opcional)</strong> - Filtra per proveïdors actius/inactius</li>
  *   <li><strong>Paràmetres de paginació i ordenació</strong></li>
  * </ul>
  * </p>
@@ -62,7 +59,6 @@ import java.time.LocalDateTime;
  *     .email("@provcat.com")
  *     .phone("93")
  *     .address("Barcelona")
- *     .isActive(true)
  *     .page(0)
  *     .size(20)
  *     .sortBy("name")
@@ -75,8 +71,7 @@ import java.time.LocalDateTime;
  * <pre>
  * SupplierFilterDTO filterDto = SupplierFilterDTO.builder()
  *     .name("Catalunya")
- *     .isActive(true)
- *     .build(); // Usa valors per defecte per paginació
+ *     .build(); // Usa valors per defecte per paginació.
  * </pre>
  * </p>
  *
@@ -88,18 +83,8 @@ import java.time.LocalDateTime;
  *   "email": "@provcat.com",
  *   "phone": "93",
  *   "address": "Barcelona",
- *   "isActive": true,
  *   "page": 0,
  *   "size": 20,
- *   "sortBy": "name",
- *   "sortDir": "asc"
- * }
- * </pre>
- * </p>
- *
- * <p>Estructura JSON de la petició mínima:
- * <pre>
- * {
  *   "sortBy": "name",
  *   "sortDir": "asc"
  * }
@@ -109,7 +94,6 @@ import java.time.LocalDateTime;
  * <p><strong>Notes d'implementació:</strong>
  * <ul>
  *   <li>Tots els filtres de text utilitzen cerca parcial insensible a majúscules</li>
- *   <li>Si no s'especifica isActive, es mostren tant proveïdors actius com inactius</li>
  *   <li>El companyUuid s'extreu automàticament de l'usuari per garantir seguretat</li>
  *   <li>La classe inclou mètode utilitari hasTextFilters()</li>
  * </ul>
@@ -137,9 +121,6 @@ public class SupplierFilterDTO {
     private String email;       // Email
     private String phone;       // Telèfon
     private String address;     // Adreça
-
-    // Filtre d'estat
-    private Boolean isActive;   // Estat actiu (true/false/null per tots)
 
     // Paginació
     @Min(value = 0, message = "El número de pàgina ha de ser 0 o superior")
