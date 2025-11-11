@@ -5,8 +5,6 @@ import { useCompanyConfigForm } from '../../../hooks/useCompanyConfigForm';
 import './CompanyConfigForm.scss';
 
 const CompanyConfig: React.FC = () => {
-  const Uuid = 'e325b81f-5f3b-4309-8df8-18644d8c4b36';
-
   const {
     register,
     handleSubmit,
@@ -17,11 +15,11 @@ const CompanyConfig: React.FC = () => {
     isFetching,
     error,
     success,
-    reset,        
-    originalData,  
-  } = useCompanyConfigForm(Uuid);
+    reset,
+    originalData,
+  } = useCompanyConfigForm();
 
-  // 🔙 Funció per cancel·lar i restaurar els valors originals
+  // Cancel·lar i restaurar valors originals
   const handleCancel = () => {
     if (originalData) reset(originalData);
     toggleEdit();
@@ -71,7 +69,7 @@ const CompanyConfig: React.FC = () => {
       )}
 
       <Form onSubmit={handleSubmit}>
-        {/*Informació general */}
+        {/* Informació general */}
         <section className="mb-4">
           <h5 className="fw-semibold mb-3 text-primary">Informació general</h5>
           <div className="row">
@@ -127,7 +125,7 @@ const CompanyConfig: React.FC = () => {
           </div>
         </section>
 
-        {/*Informació de contacte */}
+        {/* Informació de contacte */}
         <section>
           <h5 className="fw-semibold mb-3 text-primary">
             Informació de contacte
@@ -140,7 +138,7 @@ const CompanyConfig: React.FC = () => {
                   type="email"
                   placeholder="Introdueix el correu de contacte"
                   {...register('email', {
-                    required: "El correu electrònic és obligatori",
+                    required: 'El correu electrònic és obligatori',
                     pattern: {
                       value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                       message: 'Correu electrònic no vàlid',
@@ -167,7 +165,7 @@ const CompanyConfig: React.FC = () => {
           </div>
         </section>
 
-        {/*Botons només quan edites */}
+        {/* Botons només quan edites */}
         {isEditing && (
           <div className="d-flex justify-content-end mt-4 gap-3 button-group">
             <ButtonCustom

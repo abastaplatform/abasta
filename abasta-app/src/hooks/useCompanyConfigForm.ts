@@ -1,52 +1,30 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { getCompanyByUuid, updateCompanyByUuid } from '../services/company.api';
+import { getCompany, updateCompany } from '../services/company.api';
 import type { CompanyFormInputs } from '../services/company.api';
 
-export const useCompanyConfigForm = (uuid: string) => {
+export const useCompanyConfigForm = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const [originalData, setOriginalData] = useState<CompanyFormInputs | null>(null); // 👈 Afegit
+  const [originalData, setOriginalData] = useState<CompanyFormInputs | null>(null);
 
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<CompanyFormInputs>({
-    mode: 'onBlur',
-  });
+  } = useForm<CompanyFormInputs>({ mode: 'onBlur' });
 
-  //Carregar dades inicials
+  // Carregar dades inicials
   useEffect(() => {
     const fetchCompany = async () => {
       try {
-        const data = await getCompanyByUuid(uuid);
-
-        //Guardem còpia original
-        setOriginalData({
-          name: data.name,
-          taxId: data.taxId,
-          email: data.email,
-          phone: data.phone,
-          address: data.address,
-          city: data.city,
-          postalCode: data.postalCode,
-        });
-
-        //Actualitzem formulari
-        reset({
-          name: data.name,
-          taxId: data.taxId,
-          email: data.email,
-          phone: data.phone,
-          address: data.address,
-          city: data.city,
-          postalCode: data.postalCode,
-        });
+        const data = await getCompany();
+        setOriginalData(data);
+        reset(data);
       } catch (err: any) {
         console.error('Error al carregar dades:', err);
         setError(err.message || 'Error al carregar les dades de l’empresa.');
@@ -54,30 +32,18 @@ export const useCompanyConfigForm = (uuid: string) => {
         setIsFetching(false);
       }
     };
-
     fetchCompany();
-  }, [uuid, reset]);
+  }, [reset]);
 
-  // 🔹 Actualitzar empresa
+  // Actualitzar empresa
   const onSubmit = async (formData: CompanyFormInputs) => {
     setIsLoading(true);
     setError('');
     setSuccess(false);
 
     try {
-      const updated = await updateCompanyByUuid(uuid, formData);
-
-      //Desa les noves dades com a originals
-      setOriginalData({
-        name: updated.name,
-        taxId: updated.taxId,
-        email: updated.email,
-        phone: updated.phone,
-        address: updated.address,
-        city: updated.city,
-        postalCode: updated.postalCode,
-      });
-
+      const updated = await updateCompany(formData);
+      setOriginalData(updated);
       setSuccess(true);
       setIsEditing(false);
     } catch (err: any) {
@@ -88,19 +54,17 @@ export const useCompanyConfigForm = (uuid: string) => {
     }
   };
 
-  const toggleEdit = () => setIsEditing((prev) => !prev);
-
   return {
     register,
     handleSubmit: handleSubmit(onSubmit),
     errors,
     isEditing,
-    toggleEdit,
+    toggleEdit: () => setIsEditing((prev) => !prev),
     isLoading,
     isFetching,
     error,
     success,
     reset,
-    originalData, 
+    originalData,
   };
 };
