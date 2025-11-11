@@ -24,3 +24,15 @@
     font-weight: 500;
   }
 }
+
+@media (max-width: 768px) {
+  .cta-button {
+    width: 100%;
+  }
+
+  .button-group {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+}
