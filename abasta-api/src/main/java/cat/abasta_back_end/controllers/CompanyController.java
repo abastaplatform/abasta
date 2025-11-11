@@ -55,38 +55,36 @@ public class CompanyController {
     }
 
     /**
-     * Obté la informació d'una empresa pel seu identificador UUID.
-     * Aquest endpoint retorna les dades completes de l'empresa identificada
-     * pel UUID proporcionat en el path.
+     * Obté la informació d'una empresa.
+     * El companyUuid s'obté automàticament de l'usuari autenticat.
+     * Aquest endpoint retorna les dades completes de l'empresa identificada.
      *
-     * @param uuid l'identificador únic (UUID) de l'empresa a recuperar
      * @return ResponseEntity amb ApiResponseDTO que conté la informació de l'empresa (CompanyResponseDTO)
      * i un missatge de confirmació. Codi HTTP 200 (OK) si l'empresa existeix.
-     * @throws ResourceNotFoundException si no existeix cap empresa amb l'UUID proporcionat
+     * @throws ResourceNotFoundException si no existeix cap empresa amb l'UUID
      */
-    @GetMapping("/{uuid}")
-    public ResponseEntity<ApiResponseDTO<CompanyResponseDTO>> getCompanyByUuid(@PathVariable String uuid) {
-        CompanyResponseDTO company = companyService.getCompanyByUuid(uuid);
+    @GetMapping
+    public ResponseEntity<ApiResponseDTO<CompanyResponseDTO>> getCompanyByUuid() {
+        CompanyResponseDTO company = companyService.getCompanyByUuid();
         return ResponseEntity.ok(ApiResponseDTO.success(company, "Empresa recuperada exitosament"));
     }
 
     /**
      * Actualitza la informació d'una empresa existent.
-     * Permet modificar les dades d'una empresa identificada pel seu UUID.
+     * El companyUuid s'obté automàticament de l'usuari autenticat.
+     * Permet modificar les dades d'una empresa.
      * Tots els camps del DTO són validats abans de processar l'actualització.
      *
-     * @param uuid l'identificador únic (UUID) de l'empresa a actualitzar
      * @param companyRequestDTO objecte amb les noves dades de l'empresa (validat amb @Valid)
      * @return ResponseEntity amb ApiResponseDTO que conté la informació actualitzada de l'empresa
      * i un missatge de confirmació. Codi HTTP 200 (OK) si l'actualització és correcta.
-     * @throws ResourceNotFoundException si no existeix cap empresa amb l'UUID proporcionat
+     * @throws ResourceNotFoundException si no existeix cap empresa amb l'UUID
      * @throws BadRequestException si les dades proporcionades no són vàlides o hi ha errors de validació
      */
-    @PutMapping("/{uuid}")
+    @PutMapping
     public ResponseEntity<ApiResponseDTO<CompanyResponseDTO>> updateCompany(
-            @PathVariable String uuid,
             @Valid @RequestBody CompanyRequestDTO companyRequestDTO) {
-        CompanyResponseDTO updated = companyService.updateCompany(uuid, companyRequestDTO);
+        CompanyResponseDTO updated = companyService.updateCompany(companyRequestDTO);
         return ResponseEntity.ok(ApiResponseDTO.success(updated, "Empresa actualitzada exitosament"));
     }
 
