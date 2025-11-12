@@ -12,6 +12,7 @@ import cat.abasta_back_end.repositories.UserRepository;
 import cat.abasta_back_end.services.CompanyService;
 import cat.abasta_back_end.services.EmailService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,17 +40,6 @@ public class CompanyServiceImpl implements CompanyService {
 
     /**
      * {@inheritDoc}
-     *
-     * Procés de registre complet:
-     * <ol>
-     *   <li>Valida que no existeixi el taxID ni l'email del admin</li>
-     *   <li>Crea l'empresa amb estat ACTIVE</li>
-     *   <li>Crea l'usuari administrador amb rol ADMIN</li>
-     *   <li>Genera un token de verificació amb validesa de 24 hores</li>
-     *   <li>Envia email de verificació a l'administrador</li>
-     * </ol>
-     *
-     * El compte del admin queda inactiu (emailVerified=false) fins verificació mitjançant token enviat al correu.
      */
     @Override
     @Transactional
@@ -111,47 +101,30 @@ public class CompanyServiceImpl implements CompanyService {
     }
 
     /**
-     * Obté la informació d'una empresa pel seu identificador UUID.
-     * Operació de només lectura que recupera una empresa de la base de dades
-     * i la converteix al DTO de resposta.
-     *
-     * @param uuid l'identificador únic (UUID) de l'empresa a recuperar
-     * @return CompanyResponseDTO amb la informació completa de l'empresa
-     * @throws ResourceNotFoundException si no existeix cap empresa amb l'UUID proporcionat
+     * {@inheritDoc}
      */
     @Override
     @Transactional(readOnly = true)
-    public CompanyResponseDTO getCompanyByUuid(String uuid) {
-        Company company = companyRepository.findByUuid(uuid)
-                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb UUID: " + uuid));
+    public CompanyResponseDTO getCompanyByUuid() {
+        String companyUuid = getCompanyUuidFromAuthenticatedUser();
+
+        // Verificar que l'empresa existeix
+        Company company = companyRepository.findByUuid(companyUuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb UUID: " + companyUuid));
         return mapToResponseDTO(company);
     }
 
     /**
-     * Actualitza la informació d'una empresa existent.
-     * Modifica les dades d'una empresa identificada pel seu UUID, validant que no es
-     * produeixi duplicació del NIF/CIF si aquest canvia. Tots els camps proporcionats
-     * al DTO s'actualitzen, excepte l'estat que només es modifica si es proporciona explícitament.
-     *
-     * <p>Validacions realitzades:
-     * <ul>
-     *   <li>Verifica que l'empresa existeixi</li>
-     *   <li>Comprova que el nou NIF/CIF no estigui ja assignat a una altra empresa</li>
-     *   <li>Actualitza l'estat només si es proporciona al DTO</li>
-     * </ul>
-     * </p>
-     *
-     * @param uuid l'identificador únic (UUID) de l'empresa a actualitzar
-     * @param companyRequestDTO objecte amb les noves dades de l'empresa
-     * @return CompanyResponseDTO amb la informació actualitzada de l'empresa
-     * @throws ResourceNotFoundException si no existeix cap empresa amb l'UUID proporcionat
-     * @throws DuplicateResourceException si el nou NIF/CIF ja està assignat a una altra empresa
+     * {@inheritDoc}
      */
     @Override
     @Transactional
-    public CompanyResponseDTO updateCompany(String uuid, CompanyRequestDTO companyRequestDTO) {
-        Company company = companyRepository.findByUuid(uuid)
-                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb ID: " + uuid));
+    public CompanyResponseDTO updateCompany(CompanyRequestDTO companyRequestDTO) {
+        String companyUuid = getCompanyUuidFromAuthenticatedUser();
+
+        // Verificar que l'empresa existeix
+        Company company = companyRepository.findByUuid(companyUuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb UUID: " + companyUuid));
 
         if (!company.getTaxId().equals(companyRequestDTO.getTaxId()) &&
                 companyRepository.existsByTaxId(companyRequestDTO.getTaxId())) {
@@ -172,6 +145,29 @@ public class CompanyServiceImpl implements CompanyService {
 
         Company updatedCompany = companyRepository.save(company);
         return mapToResponseDTO(updatedCompany);
+    }
+
+    /**
+     * Obté l'UUID de l'empresa de l'usuari autenticat des del context de Spring Security.
+     * Aquest mètode s'utilitza en els endpoints del controlador per garantir que l'usuari
+     * només pugui accedir a la seva pròpia empresa.
+     *
+     * @return UUID de l'empresa associada a l'usuari autenticat
+     * @throws ResourceNotFoundException si l'usuari no existeix o no té empresa assignada
+     */
+    private String getCompanyUuidFromAuthenticatedUser() {
+        String username = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat: " + username));
+
+        if (user.getCompany() == null || user.getCompany().getUuid() == null) {
+            throw new ResourceNotFoundException("L'usuari no té empresa assignada");
+        }
+
+        return user.getCompany().getUuid();
     }
 
     /**

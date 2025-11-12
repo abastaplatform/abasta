@@ -3,8 +3,6 @@ package cat.abasta_back_end.services;
 import cat.abasta_back_end.dto.CompanyRegistrationDTO;
 import cat.abasta_back_end.dto.CompanyRequestDTO;
 import cat.abasta_back_end.dto.CompanyResponseDTO;
-import cat.abasta_back_end.exceptions.DuplicateResourceException;
-import cat.abasta_back_end.exceptions.ResourceNotFoundException;
 
 /**
  * Servei per la gestió d'empreses a la plataforma.
@@ -16,35 +14,47 @@ import cat.abasta_back_end.exceptions.ResourceNotFoundException;
 public interface CompanyService {
 
     /**
-     * Registra una nova empresa juntament amb usuari administrador inicial.
-     * Aquest mètode s'utilitza durant el procés de registre públic.
-     * Crea l'empresa, l'usuari administrador i envia email de verificació.
+     * Procés de registre complet:
+     * <ol>
+     *   <li>Valida que no existeixi el taxID ni l'email del admin</li>
+     *   <li>Crea l'empresa amb estat ACTIVE</li>
+     *   <li>Crea l'usuari administrador amb rol ADMIN</li>
+     *   <li>Genera un token de verificació amb validesa de 24 hores</li>
+     *   <li>Envia email de verificació a l'administrador</li>
+     * </ol>
      *
-     * @param registrationDTO Dades de l'empresa i l'administrador
-     * @return DTO amb les dades de l'empresa creada
-     * @throws IllegalArgumentException si el taxId o email ja existeix.
+     * El compte del admin queda inactiu (emailVerified=false) fins verificació mitjançant token enviat al correu.
      */
     CompanyResponseDTO registerCompanyWithAdmin(CompanyRegistrationDTO registrationDTO);
 
     /**
      * Obté la informació d'una empresa pel seu identificador UUID.
+     * Operació de només lectura que recupera una empresa de la base de dades
+     * i la converteix al DTO de resposta.
      *
-     * @param uuid l'identificador únic (UUID) de l'empresa a recuperar
      * @return CompanyResponseDTO amb la informació completa de l'empresa
-     * @throws ResourceNotFoundException si no existeix cap empresa amb l'UUID proporcionat
+     * @throws cat.abasta_back_end.exceptions.ResourceNotFoundException si no existeix cap empresa amb l'UUID extret del token
      */
-    CompanyResponseDTO getCompanyByUuid(String uuid);
+    CompanyResponseDTO getCompanyByUuid();
 
     /**
      * Actualitza la informació d'una empresa existent.
-     * Permet modificar les dades d'una empresa identificada pel seu UUID.
-     * Si el NIF/CIF canvia, es valida que no existeixi en una altra empresa.
+     * Modifica les dades d'una empresa identificada pel seu UUID, validant que no es
+     * produeixi duplicació del NIF/CIF si aquest canvia. Tots els camps proporcionats
+     * al DTO s'actualitzen, excepte l'estat que només es modifica si es proporciona explícitament.
      *
-     * @param uuid l'identificador únic (UUID) de l'empresa a actualitzar
+     * <p>Validacions realitzades:
+     * <ul>
+     *   <li>Verifica que l'empresa existeixi</li>
+     *   <li>Comprova que el nou NIF/CIF no estigui ja assignat a una altra empresa</li>
+     *   <li>Actualitza l'estat només si es proporciona al DTO</li>
+     * </ul>
+     * </p>
+     *
      * @param companyRequestDTO objecte amb les noves dades de l'empresa
      * @return CompanyResponseDTO amb la informació actualitzada de l'empresa
-     * @throws ResourceNotFoundException si no existeix cap empresa amb l'UUID proporcionat
-     * @throws DuplicateResourceException si el nou NIF/CIF ja està assignat a una altra empresa
+     * @throws cat.abasta_back_end.exceptions.ResourceNotFoundException si no existeix cap empresa amb l'UUID extret del token
+     * @throws cat.abasta_back_end.exceptions.DuplicateResourceException si el nou NIF/CIF ja està assignat a una altra empresa
      */
-    CompanyResponseDTO updateCompany(String uuid, CompanyRequestDTO companyRequestDTO);
+    CompanyResponseDTO updateCompany(CompanyRequestDTO companyRequestDTO);
 }

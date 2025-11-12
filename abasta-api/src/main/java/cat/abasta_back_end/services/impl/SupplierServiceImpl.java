@@ -19,10 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-
-import java.util.List;
-import java.util.stream.Collectors;
-
 /**
  * Implementació concreta del servei de negoci per a la gestió integral de proveïdors.
  * Proporciona tota la lògica de negoci per administrar proveïdors dins del sistema.
@@ -192,15 +188,30 @@ public class SupplierServiceImpl implements SupplierService {
      */
     @Override
     @Transactional(readOnly = true)
+    public Page<SupplierResponseDTO> getAllSuppliersPaginated(Pageable pageable) {
+        String companyUuid = getCompanyUuidFromAuthenticatedUser();
+
+        // Mètode automàtic de Spring Data
+        Page<Supplier> suppliersPage = supplierRepository.findByCompanyUuidAndIsActiveTrue(
+                companyUuid, pageable);
+
+        return suppliersPage.map(this::mapToResponseDTO);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
     public Page<SupplierResponseDTO> searchSuppliersByText(String searchText, Pageable pageable) {
         String companyUuid = getCompanyUuidFromAuthenticatedUser();
 
-        // Verificar que l'empresa existeix i obtenir l'ID
+        // Verificar que l'empresa existeix
         Company company = companyRepository.findByUuid(companyUuid)
                 .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb UUID: " + companyUuid));
 
-        // Usar el nou mètode de cerca en múltiples camps
-        Page<Supplier> suppliers = supplierRepository.findByCompanyIdAndMultipleFieldsContaining(
+        // Mètode de cerca en múltiples camps que filtra només actius
+        Page<Supplier> suppliers = supplierRepository.findByCompanyIdAndMultipleFieldsContainingActive(
                 company.getId(), searchText, pageable);
 
         return suppliers.map(this::mapToResponseDTO);
@@ -214,19 +225,18 @@ public class SupplierServiceImpl implements SupplierService {
     public Page<SupplierResponseDTO> searchSuppliersWithFilters(SupplierFilterDTO filterDTO, Pageable pageable) {
         String companyUuid = getCompanyUuidFromAuthenticatedUser();
 
-        // Verificar que l'empresa existeix i obtenir l'ID
+        // Verificar que l'empresa existeix
         Company company = companyRepository.findByUuid(companyUuid)
                 .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb UUID: " + companyUuid));
 
         // Usar el mètode del repositori amb tots els filtres expandits
-        Page<Supplier> suppliers = supplierRepository.findSuppliersWithFilters(
+        Page<Supplier> suppliers = supplierRepository.findByCompanyIdAndCriteriaActive(
                 company.getId(),
                 filterDTO.getName(),
                 filterDTO.getContactName(),
                 filterDTO.getEmail(),
                 filterDTO.getPhone(),
                 filterDTO.getAddress(),
-                filterDTO.getIsActive(),
                 pageable
         );
 
