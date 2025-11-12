@@ -43,6 +43,19 @@
     }
   }
 
+  .btn {
+    color: white;
+    transition: all 0.3s ease;
+    font-weight: 600;
+
+    &:hover {
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      filter: brightness(1.1);
+    }
+  }
+
   // User avatar
   .user-avatar {
     width: 36px;

@@ -1,0 +1,88 @@
+@import '../../../assets/styles/variables';
+
+$button-gradient-start: #6a36ff;
+$button-gradient-end: #ac5fe6;
+$button-padding: 1rem 1.5rem;
+$button-border-radius: $border-radius;
+$button-transition: all 0.3s ease;
+$button-shadow: 0 4px 12px rgba(106, 54, 255, 0.3);
+
+.cta-button {
+  padding: $button-padding;
+  border-radius: $button-border-radius;
+  border: 2px solid transparent;
+  font-weight: 600;
+  transition: $button-transition;
+  cursor: pointer;
+
+  background: linear-gradient(
+    160deg,
+    $button-gradient-start 0%,
+    $button-gradient-end 100%
+  );
+  color: white;
+
+  &:hover:not(:disabled) {
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: $button-shadow;
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  // Estat disabled
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+.cta-button-outline {
+  background: transparent;
+  color: $button-gradient-start;
+  border: 2px solid $button-gradient-start;
+
+  &:hover:not(:disabled) {
+    background: $button-gradient-start;
+    color: white;
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow: $button-shadow;
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: transparent;
+    color: $button-gradient-start;
+    border-color: $button-gradient-start;
+  }
+}
+
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.15em;
+}
+
+.cta-button-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+.cta-button-lg {
+  padding: 1.25rem 2rem;
+  font-size: 1.125rem;
+}
+
+.cta-button-block {
+  width: 100%;
+  display: block;
+}

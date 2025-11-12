@@ -88,16 +88,9 @@ const Navbar = () => {
         </button>
 
         {/* Menu items */}
-        <div className={`collapse navbar-collapse ${isMenuOpen ? 'show' : ''}`}>
-          {/* Navigation links */}
-          <ul className="navbar-nav me-auto mb-2 mb-lg-0 mx-auto">
-            <li className="nav-item">
-              <Link className={`nav-link`} to="/dashboard" onClick={closeMenu}>
-                Inici
-              </Link>
-            </li>
-          </ul>
-
+        <div
+          className={`collapse navbar-collapse justify-content-end ${isMenuOpen ? 'show' : ''}`}
+        >
           {/* User menu - Desktop */}
           <div className="d-none d-lg-flex align-items-center">
             <div className="dropdown">
