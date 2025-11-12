@@ -60,6 +60,9 @@ public class ProductResponseDTO {
     /** Preu del producte (DECIMAL(10,2)). */
     private BigDecimal price;
 
+    /** Volum del producte (DECIMAL(10,2)). */
+    private BigDecimal volume;
+
     /** Unitat de mesura (ex: kg, litres, unitats, caixes...). */
     private String unit;
 

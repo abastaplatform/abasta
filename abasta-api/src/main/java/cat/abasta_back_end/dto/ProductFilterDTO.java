@@ -120,6 +120,9 @@ public class ProductFilterDTO {
     @Min(value = 0, message = "El preu màxim no pot ser negatiu")
     private BigDecimal maxPrice;
 
+    // Volum del producte (ex: 1, 2, 3)
+    private BigDecimal volume;
+
     // Unitat de mesura del producte (ex: kg, l, cl...)
     private String unit;
 

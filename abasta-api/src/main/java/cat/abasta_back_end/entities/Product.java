@@ -66,6 +66,10 @@ public class Product {
     @Column(name = "price", nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
+    /** Volum del producte. */
+    @Column(name = "volume", precision = 10, scale = 2)
+    private BigDecimal volume;
+
     /** Unitat de mesura del producte (kg, litres, unitats, etc.). */
     @Column(name = "unit", length = 50)
     private String unit;
