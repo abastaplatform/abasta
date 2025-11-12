@@ -244,7 +244,7 @@ const SupplierManager = ({ mode }: SupplierManagerProps) => {
                       },
                     })}
                     isInvalid={!!errors.contactName}
-                    disabled={isFormDisabled} // CLAVE
+                    disabled={isFormDisabled}
                   />
                   <Form.Control.Feedback type="invalid">
                     {errors.contactName?.message}
@@ -272,7 +272,7 @@ const SupplierManager = ({ mode }: SupplierManagerProps) => {
                       },
                     })}
                     isInvalid={!!errors.email}
-                    disabled={isFormDisabled} // CLAVE
+                    disabled={isFormDisabled}
                   />
                   <Form.Control.Feedback type="invalid">
                     {errors.email?.message}
@@ -301,7 +301,7 @@ const SupplierManager = ({ mode }: SupplierManagerProps) => {
                       },
                     })}
                     isInvalid={!!errors.phone}
-                    disabled={isFormDisabled} // CLAVE
+                    disabled={isFormDisabled}
                   />
                   <Form.Control.Feedback type="invalid">
                     {errors.phone?.message}
@@ -326,7 +326,7 @@ const SupplierManager = ({ mode }: SupplierManagerProps) => {
                       minLength: { value: 5, message: "L'adreça no és vàlida" },
                     })}
                     isInvalid={!!errors.address}
-                    disabled={isFormDisabled} // CLAVE
+                    disabled={isFormDisabled}
                   />
                   <Form.Control.Feedback type="invalid">
                     {errors.address?.message}
@@ -354,7 +354,7 @@ const SupplierManager = ({ mode }: SupplierManagerProps) => {
                       },
                     })}
                     isInvalid={!!errors.city}
-                    disabled={isFormDisabled} // CLAVE
+                    disabled={isFormDisabled}
                   />
                   <Form.Control.Feedback type="invalid">
                     {errors.city?.message}
@@ -382,7 +382,7 @@ const SupplierManager = ({ mode }: SupplierManagerProps) => {
                       },
                     })}
                     isInvalid={!!errors.zipCode}
-                    disabled={isFormDisabled} // CLAVE
+                    disabled={isFormDisabled}
                   />
                   <Form.Control.Feedback type="invalid">
                     {errors.zipCode?.message}
@@ -399,7 +399,7 @@ const SupplierManager = ({ mode }: SupplierManagerProps) => {
                     rows={4}
                     placeholder="Afegeix notes addicionals (opcional)"
                     {...register('notes')}
-                    disabled={isFormDisabled} // CLAVE
+                    disabled={isFormDisabled}
                   />
                 </Form.Group>
               </div>
