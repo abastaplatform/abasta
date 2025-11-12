@@ -22,7 +22,6 @@ const Button = ({
   isLoading,
   className,
   onClick,
-  variant = 'primary',
 }: ButtonProps) => {
   const buttonClasses = [
     'btn',
