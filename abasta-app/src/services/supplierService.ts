@@ -4,11 +4,11 @@ import type {
   SupplierFormData,
   SupplierApiData,
   Supplier,
-  GetSuppliersResponse,
   BasicSearchParams,
   ApiResponse,
   PaginatedResponse,
   AdvancedSearchParams,
+  PaginationParams,
 } from '../types/supplier.types';
 
 const transformFormDataToApiData = (
@@ -52,8 +52,18 @@ export const supplierService = {
     return await api.post<CreateSupplierResponse>('/suppliers', apiData);
   },
 
-  getSuppliers: async (): Promise<GetSuppliersResponse> => {
-    return await api.get<GetSuppliersResponse>('/suppliers');
+  getSuppliers: async (
+    params: PaginationParams
+  ): Promise<ApiResponse<PaginatedResponse<Supplier>>> => {
+    const queryString = new URLSearchParams({
+      page: params.page.toString(),
+      size: params.size.toString(),
+      sortBy: params.sortBy || 'name',
+      sortDir: params.sortDir || 'asc',
+    }).toString();
+    return await api.get<ApiResponse<PaginatedResponse<Supplier>>>(
+      `/suppliers?${queryString}`
+    );
   },
 
   getSupplierByUuid: async (uuid: string): Promise<ApiResponse<Supplier>> => {

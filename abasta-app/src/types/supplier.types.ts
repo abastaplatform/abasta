@@ -93,16 +93,17 @@ export interface ApiResponse<T> {
   data?: T;
 }
 
-export interface GetSuppliersResponse {
-  success: boolean;
-  message: string;
-  data?: Supplier[];
-}
-
 export interface SearchFilters {
   query: string;
   name: string;
   contactName: string;
   email: string;
   phone: string;
+}
+
+export interface PaginationParams {
+  page: number;
+  size: number;
+  sortBy?: string;
+  sortDir?: 'asc' | 'desc';
 }

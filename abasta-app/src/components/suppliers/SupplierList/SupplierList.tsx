@@ -11,6 +11,7 @@ import type {
   AdvancedSearchParams,
   BasicSearchParams,
   PaginatedResponse,
+  PaginationParams,
   SearchFilters,
   Supplier,
 } from '../../../types/supplier.types';
@@ -28,7 +29,7 @@ const SupplierList = () => {
   const [successMessage, setSuccessMessage] = useState('');
 
   const [currentPage, setCurrentPage] = useState(0);
-  const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
@@ -73,10 +74,18 @@ const SupplierList = () => {
       if (hasActiveFilters()) {
         await performSearch(currentFilters, isAdvancedSearch);
       } else {
-        const response = await supplierService.getSuppliers();
-        setSuppliers(response.data || []);
-        setTotalElements(response.data?.length || 0);
-        setTotalPages(Math.ceil((response.data?.length || 0) / itemsPerPage));
+        const paginationParams: PaginationParams = {
+          page: currentPage,
+          size: itemsPerPage,
+          sortBy: 'name',
+          sortDir: 'asc',
+        };
+
+        const response = await supplierService.getSuppliers(paginationParams);
+
+        setSuppliers(response.data?.content || []);
+        setTotalElements(response.data?.pageable.totalElements || 0);
+        setTotalPages(response.data?.pageable.totalPages || 0);
       }
     } catch (err) {
       const errorMessage =
