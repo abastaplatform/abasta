@@ -112,7 +112,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      * @param pageable informació de paginació
      * @return pàgina de productes
      */
-    @Query("SELECT p FROM Product p WHERE p.supplier.id = :supplierId AND  " +
+    @Query("SELECT p FROM Product p WHERE p.supplier.id = :supplierId AND  p.isActive = true AND" +
             "(:searchText IS NULL OR " +
             "LOWER(p.name) LIKE LOWER(CONCAT('%', :searchText, '%')) OR " +
             "LOWER(p.description) LIKE LOWER(CONCAT('%', :searchText, '%')) OR " +
