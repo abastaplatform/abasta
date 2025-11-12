@@ -77,6 +77,14 @@ public class ProductRequestDTO {
     private BigDecimal price;
 
     /**
+     * Volum del producte
+     * Ha de ser un valor positiu com a màxim 10 dígits (8 enters i 2 decimals)
+     * Representa el volum i està relacionat amb la unitat formant un grup, per Exemple: 50 cl.
+     */
+    @DecimalMin(value = "0.00", inclusive = true, message = "El volum no pot ser negatiu")
+    private BigDecimal volume;
+
+    /**
      * Unitat de mesura del producte (ex: kg, litres, unitats, caixes...).
      * Camp opcional segons la base de dades.
      */

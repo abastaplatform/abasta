@@ -71,6 +71,7 @@ public class ProductServiceImpl implements ProductService {
                 .category(productRequestDTO.getCategory())
                 .name(productRequestDTO.getName())
                 .description(productRequestDTO.getDescription())
+                .volume(productRequestDTO.getVolume())
                 .price(productRequestDTO.getPrice())
                 .unit(productRequestDTO.getUnit())
                 .imageUrl(productRequestDTO.getImageUrl())
@@ -111,6 +112,7 @@ public class ProductServiceImpl implements ProductService {
         product.setName(productRequestDTO.getName());
         product.setDescription(productRequestDTO.getDescription());
         product.setPrice(productRequestDTO.getPrice());
+        product.setVolume(productRequestDTO.getVolume());
         product.setUnit(productRequestDTO.getUnit());
         product.setImageUrl(productRequestDTO.getImageUrl());
 
@@ -170,16 +172,24 @@ public class ProductServiceImpl implements ProductService {
         Supplier supplier = supplierRepository.findByUuid(supplierUuid)
                 .orElseThrow(() -> new IllegalArgumentException("El proveïdor especificat no existeix."));
 
+        // Si isActive viene nulo o vacío, por defecto mostramos solo los activos
+        Boolean isActive = filterDTO.getIsActive();
+        if (isActive == null) {
+            isActive = true;
+        }
+
+
         // Usar el mètode del repositori amb tots els filtres expandits
         Page<Product> products = productRepository.findProductsBySupplierWithFilter(
                 supplier.getId(),
                 filterDTO.getName(),
                 filterDTO.getDescription(),
                 filterDTO.getCategory(),
+                filterDTO.getVolume(),
                 filterDTO.getUnit(),
                 filterDTO.getMinPrice(),
                 filterDTO.getMaxPrice(),
-                filterDTO.getIsActive(),
+                isActive,
                 pageable
         );
 
@@ -250,6 +260,7 @@ public class ProductServiceImpl implements ProductService {
                 .category(product.getCategory())
                 .description(product.getDescription())
                 .price(product.getPrice())
+                .volume(product.getVolume())
                 .unit(product.getUnit())
                 .imageUrl(product.getImageUrl())
                 .isActive(product.getIsActive())

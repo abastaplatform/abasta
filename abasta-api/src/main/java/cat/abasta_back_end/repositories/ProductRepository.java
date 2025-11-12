@@ -88,6 +88,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "(:name IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
             "(:description IS NULL OR LOWER(p.description) LIKE LOWER(CONCAT('%', :description, '%'))) AND " +
             "(:category IS NULL OR LOWER(p.category) LIKE LOWER(CONCAT('%', :category, '%'))) AND " +
+            "(:volume IS NULL OR p.volume = :volume) AND " +
             "(:unit IS NULL OR LOWER(p.unit) = LOWER(:unit)) AND " +
             "(:minPrice IS NULL OR p.price >= :minPrice) AND " +
             "(:maxPrice IS NULL OR p.price <= :maxPrice) AND " +
@@ -96,6 +97,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                                             @Param("name") String name,
                                             @Param("description") String description,
                                             @Param("category") String category,
+                                            @Param("volume") BigDecimal volume,
                                             @Param("unit") String unit,
                                             @Param("minPrice") BigDecimal minPrice,
                                             @Param("maxPrice") BigDecimal maxPrice,
