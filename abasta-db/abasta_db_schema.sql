@@ -99,6 +99,7 @@ CREATE TABLE products (
    name VARCHAR(255) NOT NULL,
    description TEXT,
    price DECIMAL(10, 2) NOT NULL,
+   volume DECIMAL(10, 2),
    unit VARCHAR(50) COMMENT 'kg, litres, unitats, caixes, etc.',
    image_url VARCHAR(500),
    is_active BOOLEAN DEFAULT TRUE,
