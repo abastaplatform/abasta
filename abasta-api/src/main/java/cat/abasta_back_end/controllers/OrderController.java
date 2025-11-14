@@ -18,7 +18,8 @@ import org.springframework.web.bind.annotation.*;
  * <p>Exposa els endpoints principals del recurs <strong>/api/orders</strong>.</p>
  *
  * @author Daniel Garcia
- * @version 1.0
+ * @author Enrique Pérez
+ * @version 1.1
  */
 @RestController
 @RequestMapping("/api/orders")
@@ -46,5 +47,27 @@ public class OrderController {
                 .body(ApiResponseDTO.success(createOrder, "Comanda creada correctament"));
     }
 
+    /**
+     * Envia una comanda existent al proveïdor.
+     *
+     * <p>Busca la comanda per UUID, valida que estigui en estat PENDING,
+     * envia la notificació per email al proveïdor i actualitza l'estat a SENT.</p>
+     *
+     * <p>Exemple: POST /api/orders/550e8400-e29b-41d4-a716-446655440000/send</p>
+     *
+     * @param uuid l'UUID de la comanda a enviar
+     * @return {@link ResponseEntity} amb la comanda enviada i codi HTTP 200 (OK)
+     * @throws cat.abasta_back_end.exceptions.ResourceNotFoundException si no es troba la comanda
+     * @throws IllegalStateException si la comanda no està en estat PENDING
+     * @throws RuntimeException si falla l'enviament de la notificació
+     */
+    @PostMapping("/{uuid}/send")
+    public ResponseEntity<ApiResponseDTO<OrderResponseDTO>> sendOrder(
+            @PathVariable String uuid) {
+
+        OrderResponseDTO sentOrder = orderService.sendOrder(uuid);
+        return ResponseEntity
+                .ok(ApiResponseDTO.success(sentOrder, "Comanda enviada correctament"));
+    }
 
 }

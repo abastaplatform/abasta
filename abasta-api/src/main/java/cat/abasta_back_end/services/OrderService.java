@@ -32,4 +32,17 @@ public interface OrderService {
      * @return {@link OrderResponseDTO} amb la informació de la comanda creada.
      */
     OrderResponseDTO createOrder(OrderRequestDTO orderRequestDTO);
+
+    /**
+     * Envia una comanda existent al proveïdor.
+     *
+     * <p>Busca la comanda per UUID, envia la notificació per email
+     * i actualitza l'estat a SENT.</p>
+     *
+     * @param orderUuid l'UUID de la comanda a enviar
+     * @return la comanda actualitzada amb estat SENT
+     * @throws cat.abasta_back_end.exceptions.ResourceNotFoundException si no es troba la comanda
+     * @throws RuntimeException si falla l'enviament de la notificació
+     */
+    OrderResponseDTO sendOrder(String orderUuid);
 }

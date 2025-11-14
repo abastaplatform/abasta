@@ -68,11 +68,6 @@ public class Order {
     @Column(name = "delivery_date")
     private LocalDate deliveryDate;
 
-    /** Mètode de notificació de la comanda */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "notification_method")
-    private NotificationMethod notificationMethod;
-
     /** Data de creació de la comanda */
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -134,18 +129,6 @@ public class Order {
      */
     public enum OrderStatus {
         PENDING, SENT, CONFIRMED, REJECTED, COMPLETED, CANCELLED
-    }
-
-    /**
-     * Tipus de notifiacions
-     * <ul>
-     *   <li><b>EMAIL:</b> Enviament de la comanda per e-mail</li>
-     *   <li><b>WHATSAPP:</b> Enviament de la comanda per Whatsapp</li>
-     *   <li><b>BOTH:</b> Enviament de la comanda tant per e-mail com per Whatsapp</li>
-     * </ul>
-     */
-    public enum NotificationMethod {
-        EMAIL, WHATSAPP, BOTH
     }
 
 }

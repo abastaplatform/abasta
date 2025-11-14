@@ -39,4 +39,19 @@ public interface EmailService {
      * @param companyName el nom de l'empresa a verificar
      */
     void sendCompanyAdminVerification(String to, String token, String userName, String companyName);
+
+    /**
+     * Envia un correu electrònic amb els detalls d'una comanda a un proveïdor.
+     *
+     * @param to l'adreça de correu electrònic del proveïdor
+     * @param supplierName el nom del proveïdor
+     * @param orderName el nom de la comanda
+     * @param orderDetails els detalls de la comanda en format HTML
+     * @param totalAmount l'import total de la comanda
+     * @param deliveryDate la data d'entrega prevista (pot ser null)
+     * @param notes notes addicionals de la comanda (pot ser null)
+     */
+    void sendOrderNotification(String to, String supplierName, String orderName,
+                               String orderDetails, String totalAmount,
+                               String deliveryDate, String notes);
 }
