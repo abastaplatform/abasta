@@ -7,8 +7,10 @@ import cat.abasta_back_end.dto.OrderResponseDTO;
 import cat.abasta_back_end.entities.*;
 import cat.abasta_back_end.exceptions.ResourceNotFoundException;
 import cat.abasta_back_end.repositories.*;
+import cat.abasta_back_end.services.NotificationService;
 import cat.abasta_back_end.services.OrderService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,79 +22,79 @@ import java.util.UUID;
 /**
  * Implementació del servei {@link OrderService} per a la gestió de comandes.
  * <p>
- * Aquesta classe conté la lògica de negoci per crear i administrar comandes
+ * Aquesta classe conté la lògica de negoci per crear, administrar i enviar comandes
  * dins del sistema. Gestiona tant la creació de la comanda principal com
  * dels seus items associats, assegurant la coherència mitjançant transaccions.
+ * Separa la creació (estat PENDING) de l'enviament (estat SENT) per permetre
+ * revisar les comandes abans d'enviar-les als proveïdors.
  * </p>
  *
- * <p>
- * Els mètodes d’aquesta classe utilitzen els repositoris per accedir i
- * modificar la base de dades.
- * </p>
+ * <p>Les comandes sempre s'envien per email al proveïdor.</p>
  *
  * @author Daniel Garcia
- * @version 1.0
+ * @author Enrique Pérez
+ * @version 1.4
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OrderServiceImpl implements OrderService {
 
-    /**
-     * Injecció de dependències - repositoris
-     */
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final SupplierRepository supplierRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+    private final NotificationService notificationService;
 
     /**
      * {@inheritDoc}
+     *
+     * <p>Crea la comanda amb estat PENDING. NO envia cap notificació.
+     * Per enviar la comanda, cal cridar després {@link #sendOrder(String)}.</p>
      */
     @Override
     @Transactional
     public OrderResponseDTO createOrder(OrderRequestDTO orderRequestDTO) {
 
-        // Crear la instància de l’entitat Order
+        // Crear la instància de l'entitat Order
         Order order = new Order();
         order.setUuid(UUID.randomUUID().toString());
         order.setName(orderRequestDTO.getName());
         order.setNotes(orderRequestDTO.getNotes());
         order.setDeliveryDate(orderRequestDTO.getDeliveryDate());
-        order.setNotificationMethod(Order.NotificationMethod.valueOf(orderRequestDTO.getNotificationMethod().toUpperCase()));
         order.setStatus(Order.OrderStatus.PENDING);
 
-        //  Assignar company i usuari
-        // Agafar l'usuari autenticat
+        // Assignar company i usuari
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat: " + username));
 
-        //Long userId = user.getId();
-
-       //User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat"));
         order.setUser(user);
         order.setCompany(user.getCompany());
 
-        // Buscar el proveïdor pel UUID rebut
+        // Buscar el proveïdor pel UUID
         Supplier supplier = supplierRepository.findByUuid(orderRequestDTO.getSupplierUuid())
                 .orElseThrow(() -> new ResourceNotFoundException("Proveïdor no trobat"));
         order.setSupplier(supplier);
 
-        // Llista per acumular els items i calcular el total
+        // Crear els items associats a la comanda
         BigDecimal totalAmount = BigDecimal.ZERO;
         List<OrderItem> orderItems = new ArrayList<>();
 
-        // Crear els items associats a la comanda
         for (OrderItemRequestDTO itemDTO : orderRequestDTO.getItems()) {
             OrderItem item = new OrderItem();
             item.setUuid(UUID.randomUUID().toString());
-            item.setOrder(order); // associació bidireccional
+            item.setOrder(order);
+
             Product product = productRepository.findByUuid(itemDTO.getProductUuid())
-                    .orElseThrow(() -> new ResourceNotFoundException("Producte no trobat: " + itemDTO.getProductUuid()));
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Producte no trobat: " + itemDTO.getProductUuid()));
+
             item.setProduct(product);
             item.setQuantity(itemDTO.getQuantity());
-            item.setUnitPrice(itemDTO.getUnitPrice() != null ? itemDTO.getUnitPrice() : BigDecimal.ZERO);
+            item.setUnitPrice(itemDTO.getUnitPrice() != null ?
+                    itemDTO.getUnitPrice() : product.getPrice());
             item.setSubtotal(item.getQuantity().multiply(item.getUnitPrice()));
             item.setNotes(itemDTO.getNotes());
 
@@ -100,14 +102,69 @@ public class OrderServiceImpl implements OrderService {
             orderItems.add(item);
         }
 
-        // Assignar el total calculat i guardar
+        // Assignar el total i guardar
         order.setTotalAmount(totalAmount);
         order.setItems(orderItems);
 
         orderRepository.save(order);
         orderItemRepository.saveAll(orderItems);
 
-        // Convertir a DTO de resposta
+        log.info("Comanda {} creada correctament per l'usuari {} amb estat PENDING",
+                order.getUuid(), username);
+
+        return buildOrderResponseDTO(order);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Envia la comanda al proveïdor per email i actualitza l'estat a SENT.</p>
+     *
+     * <p>Validacions:
+     * <ul>
+     *   <li>La comanda ha d'existir</li>
+     *   <li>La comanda ha d'estar en estat PENDING</li>
+     *   <li>El proveïdor ha de tenir email configurat</li>
+     * </ul>
+     * </p>
+     */
+    @Override
+    @Transactional
+    public OrderResponseDTO sendOrder(String orderUuid) {
+        log.info("Intentant enviar la comanda {}", orderUuid);
+
+        // Buscar la comanda
+        Order order = orderRepository.findByUuid(orderUuid)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Comanda no trobada: " + orderUuid));
+
+        // Validar que està en estat PENDING
+        if (order.getStatus() != Order.OrderStatus.PENDING) {
+            throw new IllegalStateException(
+                    "La comanda " + orderUuid + " no es pot enviar. Estat actual: " + order.getStatus());
+        }
+
+        // Enviar notificació per email
+        // Si falla, la transacció fa rollback i l'estat no canvia
+        notificationService.sendOrderNotification(order);
+
+        // Actualitzar estat (ja es fa dins de notificationService, però per seguretat)
+        order.setStatus(Order.OrderStatus.SENT);
+        orderRepository.save(order);
+
+        log.info("Comanda {} enviada correctament a {}",
+                orderUuid, order.getSupplier().getEmail());
+
+        return buildOrderResponseDTO(order);
+    }
+
+    /**
+     * Construeix el DTO de resposta a partir d'una entitat Order.
+     *
+     * @param order l'entitat Order
+     * @return el DTO OrderResponseDTO
+     */
+    private OrderResponseDTO buildOrderResponseDTO(Order order) {
         return OrderResponseDTO.builder()
                 .uuid(order.getUuid())
                 .name(order.getName())
@@ -115,13 +172,14 @@ public class OrderServiceImpl implements OrderService {
                 .totalAmount(order.getTotalAmount())
                 .notes(order.getNotes())
                 .deliveryDate(order.getDeliveryDate())
-                .notificationMethod(order.getNotificationMethod() != null ? order.getNotificationMethod().name() : null)
                 .createdAt(order.getCreatedAt())
                 .updatedAt(order.getUpdatedAt())
-                .supplierUuid(orderRequestDTO.getSupplierUuid()) // per ara, fins que tinguem l’entitat
-                .items(orderItems.stream().map(item -> OrderItemResponseDTO.builder()
+                .supplierUuid(order.getSupplier().getUuid())
+                .items(order.getItems().stream()
+                        .map(item -> OrderItemResponseDTO.builder()
                                 .uuid(item.getUuid())
                                 .productUuid(item.getProduct() != null ? item.getProduct().getUuid() : null)
+                                .productName(item.getProduct() != null ? item.getProduct().getName() : null)
                                 .quantity(item.getQuantity())
                                 .unitPrice(item.getUnitPrice())
                                 .subtotal(item.getSubtotal())

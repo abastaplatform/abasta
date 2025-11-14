@@ -21,8 +21,7 @@ import lombok.NoArgsConstructor;
  *   <li><code>supplierUuid</code> → Identificador únic del proveïdor (obligatori).</li>
  *   <li><code>notes</code> → Notes/observacions (opcional).</li>
  *   <li><code>deliveryDate</code> → Data d'entrega (opcional).</li>
- *   <li><code>notificationMethod</code> → Mètode de notificació (obligatori).</li>
- *   <li><code>List items</code> → Llistat d'items d'una comadna.</li>
+ *   <li><code>List items</code> → Llistat d'ítems d'una comada.</li>
  * </ul>
  *
  * <p>Els camps <code>uuid</code>, <code>created_at</code> i <code>updated_at</code>
@@ -58,12 +57,6 @@ public class OrderRequestDTO {
      * Data d'entrega de la comanda
      */
     private LocalDate deliveryDate;
-
-    /**
-     * Mètode de notificació
-     */
-    @NotBlank
-    private String notificationMethod;
 
     /**
      * Llistat d'items de la comanda (productes)

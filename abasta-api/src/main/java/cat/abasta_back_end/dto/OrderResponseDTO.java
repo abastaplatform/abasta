@@ -55,11 +55,6 @@ public class OrderResponseDTO {
     private LocalDate deliveryDate;
 
     /**
-     * Mètode de notificació seleccionat
-     */
-    private String notificationMethod;
-
-    /**
      * Data de creació de la comanda
      */
     private LocalDateTime createdAt;

@@ -143,6 +143,37 @@ public class EmailServiceImpl implements EmailService {
     }
 
     /**
+     * {@inheritDoc}
+     * <p>
+     * Envia un correu HTML amb els detalls d'una comanda al proveïdor.
+     * El correu inclou el nom de la comanda, els productes sol·licitats,
+     * l'import total, la data d'entrega i notes addicionals si n'hi ha.
+     *
+     * @throws RuntimeException si es produeix un error en l'enviament del correu
+     */
+    @Override
+    public void sendOrderNotification(String to, String supplierName, String orderName,
+                                      String orderDetails, String totalAmount,
+                                      String deliveryDate, String notes) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(to);
+            helper.setSubject("Nova Comanda - " + orderName + " - Abasta");
+            helper.setText(buildOrderNotificationBody(supplierName, orderName, orderDetails,
+                    totalAmount, deliveryDate, notes), true);
+
+            mailSender.send(message);
+            log.info("Email de comanda enviat a: {} per a la comanda: {}", to, orderName);
+        } catch (MessagingException e) {
+            log.error("Error en enviar l'email de comanda: {}", e.getMessage());
+            throw new RuntimeException("Error en enviar l'email de comanda");
+        }
+    }
+
+    /**
      * Construeix el cos HTML del correu de recuperació de contrasenya.
      *
      * <p>La plantilla HTML inclou:
@@ -464,5 +495,157 @@ public class EmailServiceImpl implements EmailService {
                         </body>
                         </html>
                 \s""".formatted(userName, companyName, verificationLink, verificationLink);
+    }
+
+    /**
+     * Construeix el cos HTML del correu de notificació de comanda.
+     *
+     * <p>La plantilla HTML inclou:
+     * <ul>
+     *   <li>Capçalera amb el nom de la comanda</li>
+     *   <li>Salutació personalitzada amb el nom del proveïdor</li>
+     *   <li>Taula amb els detalls dels productes</li>
+     *   <li>Import total destacat</li>
+     *   <li>Data d'entrega si està disponible</li>
+     *   <li>Notes addicionals si n'hi ha</li>
+     *   <li>Informació de contacte</li>
+     * </ul>
+     * </p>
+     *
+     * @param supplierName el nom del proveïdor
+     * @param orderName el nom de la comanda
+     * @param orderDetails HTML amb la taula de productes
+     * @param totalAmount l'import total formatat
+     * @param deliveryDate la data d'entrega (pot ser null)
+     * @param notes notes addicionals (pot ser null)
+     * @return el cos HTML del correu com a String
+     */
+    private String buildOrderNotificationBody(String supplierName, String orderName,
+                                              String orderDetails, String totalAmount,
+                                              String deliveryDate, String notes) {
+
+        // Construir la secció de data d'entrega si existeix
+        String deliverySection = "";
+        if (deliveryDate != null && !deliveryDate.isEmpty()) {
+            deliverySection = """
+                <tr>
+                    <td style="padding: 15px 30px; border-bottom: 1px solid #eeeeee;">
+                        <p style="margin: 0; color: #666666; font-size: 15px;">
+                            <strong style="color: #333333;">📅 Data d'entrega prevista:</strong> %s
+                        </p>
+                    </td>
+                </tr>
+                """.formatted(deliveryDate);
+        }
+
+        // Construir la secció de notes si existeix
+        String notesSection = "";
+        if (notes != null && !notes.isEmpty()) {
+            notesSection = """
+                <tr>
+                    <td style="padding: 15px 30px; border-bottom: 1px solid #eeeeee;">
+                        <p style="margin: 0 0 5px 0; color: #333333; font-size: 15px; font-weight: bold;">
+                            📝 Notes addicionals:
+                        </p>
+                        <p style="margin: 0; color: #666666; font-size: 14px; line-height: 1.6;">
+                            %s
+                        </p>
+                    </td>
+                </tr>
+                """.formatted(notes);
+        }
+
+        return """
+                <!DOCTYPE html>
+                <html lang="ca">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Nova Comanda - %s</title>
+                </head>
+                <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+                    <table width="100%%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px;">
+                        <tr>
+                            <td align="center">
+                                <table width="650" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                    <!-- Header -->
+                                    <tr>
+                                        <td style="background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%); padding: 40px 20px; text-align: center;">
+                                            <h1 style="color: #ffffff; margin: 0; font-size: 28px;">🛒 Nova Comanda</h1>
+                                            <p style="color: #ffffff; margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">%s</p>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Body -->
+                                    <tr>
+                                        <td style="padding: 40px 30px 20px 30px;">
+                                            <h2 style="color: #333333; margin-top: 0;">Hola %s,</h2>
+
+                                            <p style="color: #666666; font-size: 16px; line-height: 1.6;">
+                                                Has rebut una nova comanda a través de la plataforma Abasta. A continuació trobaràs els detalls:
+                                            </p>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Order Details -->
+                                    <tr>
+                                        <td style="padding: 0 30px;">
+                                            %s
+                                        </td>
+                                    </tr>
+
+                                    <!-- Total Amount -->
+                                    <tr>
+                                        <td style="padding: 20px 30px; background-color: #f8f9fa;">
+                                            <table width="100%%" cellpadding="0" cellspacing="0">
+                                                <tr>
+                                                    <td style="text-align: right;">
+                                                        <p style="margin: 0; color: #333333; font-size: 20px; font-weight: bold;">
+                                                            💰 Total: <span style="color: #667eea;">%s</span>
+                                                        </p>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Delivery Date -->
+                                    %s
+
+                                    <!-- Notes -->
+                                    %s
+
+                                    <!-- Contact Info -->
+                                    <tr>
+                                        <td style="padding: 30px; background-color: #f0f4ff;">
+                                            <p style="margin: 0 0 10px 0; color: #333333; font-size: 15px; font-weight: bold;">
+                                                ℹ️ Informació important:
+                                            </p>
+                                            <p style="margin: 0; color: #666666; font-size: 14px; line-height: 1.6;">
+                                                Si tens qualsevol dubte sobre aquesta comanda, si us plau contacta amb nosaltres a través de la plataforma Abasta
+                                                 o respon a aquest correu electrònic.
+                                            </p>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Footer -->
+                                    <tr>
+                                        <td style="background-color: #f8f8f8; padding: 20px 30px; text-align: center; border-top: 1px solid #eeeeee;">
+                                            <p style="color: #999999; font-size: 12px; margin: 0;">
+                                                © 2025 Abasta - Plataforma de Gestió de Comandes
+                                            </p>
+                                            <p style="color: #999999; font-size: 11px; margin: 10px 0 0 0;">
+                                                Aquest és un correu automàtic generat pel sistema Abasta
+                                            </p>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </body>
+                </html>
+                """.formatted(orderName, orderName, supplierName, orderDetails,
+                totalAmount, deliverySection, notesSection);
     }
 }
