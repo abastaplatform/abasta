@@ -84,6 +84,9 @@ public class NotificationServiceImpl implements NotificationService {
             emailService.sendOrderNotification(
                     supplier.getEmail(),
                     supplier.getName(),
+                    order.getCompany().getName(),
+                    order.getCompany().getAddress(),
+                    order.getCompany().getPhone(),
                     order.getName(),
                     orderDetailsHtml,
                     totalAmount,
@@ -122,17 +125,17 @@ public class NotificationServiceImpl implements NotificationService {
     private String buildOrderDetailsHtml(Order order) {
         StringBuilder html = new StringBuilder();
         html.append("""
-            <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
-                <thead>
-                    <tr style="background-color: #667eea;">
-                        <th style="padding: 12px; text-align: left; color: #ffffff; font-size: 14px;">Producte</th>
-                        <th style="padding: 12px; text-align: center; color: #ffffff; font-size: 14px;">Quantitat</th>
-                        <th style="padding: 12px; text-align: right; color: #ffffff; font-size: 14px;">Preu Unit.</th>
-                        <th style="padding: 12px; text-align: right; color: #ffffff; font-size: 14px;">Subtotal</th>
-                    </tr>
-                </thead>
-                <tbody>
-            """);
+                <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
+                    <thead>
+                        <tr style="background-color: #667eea;">
+                            <th style="padding: 12px; text-align: left; color: #ffffff; font-size: 14px;">Producte</th>
+                            <th style="padding: 12px; text-align: center; color: #ffffff; font-size: 14px;">Quantitat</th>
+                            <th style="padding: 12px; text-align: right; color: #ffffff; font-size: 14px;">Preu Unit.</th>
+                            <th style="padding: 12px; text-align: right; color: #ffffff; font-size: 14px;">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                """);
 
         for (OrderItem item : order.getItems()) {
             String productName = item.getProduct() != null ?
@@ -144,15 +147,15 @@ public class NotificationServiceImpl implements NotificationService {
                             item.getNotes() + "</span>" : "";
 
             html.append(String.format("""
-                <tr style="border-bottom: 1px solid #eeeeee;">
-                    <td style="padding: 15px; color: #333333;">
-                        <strong>%s</strong>%s
-                    </td>
-                    <td style="padding: 15px; text-align: center; color: #666666;">%s %s</td>
-                    <td style="padding: 15px; text-align: right; color: #666666;">%s</td>
-                    <td style="padding: 15px; text-align: right; color: #667eea; font-weight: bold;">%s</td>
-                </tr>
-                """,
+                            <tr style="border-bottom: 1px solid #eeeeee;">
+                                <td style="padding: 15px; color: #333333;">
+                                    <strong>%s</strong>%s
+                                </td>
+                                <td style="padding: 15px; text-align: center; color: #666666;">%s %s</td>
+                                <td style="padding: 15px; text-align: right; color: #666666;">%s</td>
+                                <td style="padding: 15px; text-align: right; color: #667eea; font-weight: bold;">%s</td>
+                            </tr>
+                            """,
                     productName,
                     notes,
                     item.getQuantity(),
@@ -163,9 +166,9 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         html.append("""
-                </tbody>
-            </table>
-            """);
+                    </tbody>
+                </table>
+                """);
 
         return html.toString();
     }
