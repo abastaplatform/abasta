@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
  *   <li>Recuperació de contrasenya amb enllaç temporal</li>
  *   <li>Verificació d'email per a usuaris estàndard</li>
  *   <li>Verificació d'empresa per a administradors</li>
+ *   <li>Notificacions de comandes</li>
  * </ul>
  * </p>
  *
@@ -152,8 +153,9 @@ public class EmailServiceImpl implements EmailService {
      * @throws RuntimeException si es produeix un error en l'enviament del correu
      */
     @Override
-    public void sendOrderNotification(String to, String supplierName, String orderName,
-                                      String orderDetails, String totalAmount,
+    public void sendOrderNotification(String to, String supplierName, String companyName,
+                                      String companyAddress, String companyPhone,
+                                      String orderName, String orderDetails, String totalAmount,
                                       String deliveryDate, String notes) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -162,8 +164,8 @@ public class EmailServiceImpl implements EmailService {
             helper.setFrom(fromEmail);
             helper.setTo(to);
             helper.setSubject("Nova Comanda - " + orderName + " - Abasta");
-            helper.setText(buildOrderNotificationBody(supplierName, orderName, orderDetails,
-                    totalAmount, deliveryDate, notes), true);
+            helper.setText(buildOrderNotificationBody(supplierName, companyName, companyAddress, companyPhone,
+                    orderName, orderDetails, totalAmount, deliveryDate, notes), true);
 
             mailSender.send(message);
             log.info("Email de comanda enviat a: {} per a la comanda: {}", to, orderName);
@@ -504,6 +506,7 @@ public class EmailServiceImpl implements EmailService {
      * <ul>
      *   <li>Capçalera amb el nom de la comanda</li>
      *   <li>Salutació personalitzada amb el nom del proveïdor</li>
+     *   <li>Nom de l'empresa que fa la comanda</li>
      *   <li>Taula amb els detalls dels productes</li>
      *   <li>Import total destacat</li>
      *   <li>Data d'entrega si està disponible</li>
@@ -513,50 +516,76 @@ public class EmailServiceImpl implements EmailService {
      * </p>
      *
      * @param supplierName el nom del proveïdor
-     * @param orderName el nom de la comanda
+     * @param companyName  el nom de l'empresa que fa la comanda
+     * @param orderName    el nom de la comanda
      * @param orderDetails HTML amb la taula de productes
-     * @param totalAmount l'import total formatat
+     * @param totalAmount  l'import total formatat
      * @param deliveryDate la data d'entrega (pot ser null)
-     * @param notes notes addicionals (pot ser null)
+     * @param notes        notes addicionals (pot ser null)
      * @return el cos HTML del correu com a String
      */
-    private String buildOrderNotificationBody(String supplierName, String orderName,
-                                              String orderDetails, String totalAmount,
-                                              String deliveryDate, String notes) {
+    private String buildOrderNotificationBody(String supplierName, String companyName,
+                                              String companyAddress, String companyPhone,
+                                              String orderName, String orderDetails,
+                                              String totalAmount, String deliveryDate,
+                                              String notes) {
 
         // Construir la secció de data d'entrega si existeix
         String deliverySection = "";
         if (deliveryDate != null && !deliveryDate.isEmpty()) {
             deliverySection = """
-                <tr>
-                    <td style="padding: 15px 30px; border-bottom: 1px solid #eeeeee;">
-                        <p style="margin: 0; color: #666666; font-size: 15px;">
-                            <strong style="color: #333333;">📅 Data d'entrega prevista:</strong> %s
-                        </p>
-                    </td>
-                </tr>
-                """.formatted(deliveryDate);
+                    <tr>
+                        <td style="padding: 15px 30px; border-bottom: 1px solid #eeeeee;">
+                            <p style="margin: 0; color: #666666; font-size: 15px;">
+                                <strong style="color: #333333;">📅 Data d'entrega prevista:</strong> %s
+                            </p>
+                        </td>
+                    </tr>
+                    """.formatted(deliveryDate);
         }
 
         // Construir la secció de notes si existeix
         String notesSection = "";
         if (notes != null && !notes.isEmpty()) {
             notesSection = """
+                    <tr>
+                        <td style="padding: 15px 30px; border-bottom: 1px solid #eeeeee;">
+                            <p style="margin: 0 0 5px 0; color: #333333; font-size: 15px; font-weight: bold;">
+                                📝 Notes addicionals:
+                            </p>
+                            <p style="margin: 0; color: #666666; font-size: 14px; line-height: 1.6;">
+                                %s
+                            </p>
+                        </td>
+                    </tr>
+                    """.formatted(notes);
+        }
+
+        // Construir la secció de dades del client
+        String clientDataSection = """
                 <tr>
-                    <td style="padding: 15px 30px; border-bottom: 1px solid #eeeeee;">
-                        <p style="margin: 0 0 5px 0; color: #333333; font-size: 15px; font-weight: bold;">
-                            📝 Notes addicionals:
+                    <td style="padding: 20px 30px; background-color: #f8f9ff; border-bottom: 1px solid #eeeeee;">
+                        <p style="margin: 0 0 8px 0; color: #333333; font-size: 15px; font-weight: bold;">
+                            🧾 Dades del client:
                         </p>
-                        <p style="margin: 0; color: #666666; font-size: 14px; line-height: 1.6;">
-                            %s
+                
+                        <p style="margin: 0; color: #444444; font-size: 14px; line-height: 1.5;">
+                            <strong>Empresa:</strong> %s
+                        </p>
+                
+                        <p style="margin: 0; color: #444444; font-size: 14px; line-height: 1.5;">
+                            <strong>Adreça:</strong> %s
+                        </p>
+                
+                        <p style="margin: 0; color: #444444; font-size: 14px; line-height: 1.5;">
+                            <strong>Telèfon:</strong> %s
                         </p>
                     </td>
                 </tr>
-                """.formatted(notes);
-        }
+                """.formatted(companyName, companyAddress, companyPhone);
 
         return """
-                <!DOCTYPE html>
+                    <!DOCTYPE html>
                 <html lang="ca">
                 <head>
                     <meta charset="UTF-8">
@@ -575,26 +604,30 @@ public class EmailServiceImpl implements EmailService {
                                             <p style="color: #ffffff; margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">%s</p>
                                         </td>
                                     </tr>
-
+                
                                     <!-- Body -->
                                     <tr>
                                         <td style="padding: 40px 30px 20px 30px;">
                                             <h2 style="color: #333333; margin-top: 0;">Hola %s,</h2>
-
+                
                                             <p style="color: #666666; font-size: 16px; line-height: 1.6;">
-                                                Has rebut una nova comanda a través de la plataforma Abasta. A continuació trobaràs els detalls:
+                                                Has rebut una nova comanda de <strong style="color: #667eea;">%s</strong> a través de la plataforma Abasta.
+                                                 A continuació trobaràs els detalls:
                                             </p>
                                         </td>
                                     </tr>
-
+                
+                                    <!-- Client Data -->
+                                    %s
+                
                                     <!-- Order Details -->
                                     <tr>
                                         <td style="padding: 0 30px;">
                                             %s
                                         </td>
                                     </tr>
-
-                                    <!-- Total Amount -->
+                
+                                    <!-- Total -->
                                     <tr>
                                         <td style="padding: 20px 30px; background-color: #f8f9fa;">
                                             <table width="100%%" cellpadding="0" cellspacing="0">
@@ -608,13 +641,10 @@ public class EmailServiceImpl implements EmailService {
                                             </table>
                                         </td>
                                     </tr>
-
-                                    <!-- Delivery Date -->
-                                    %s
-
-                                    <!-- Notes -->
-                                    %s
-
+                
+                                    %s  <!-- delivery -->
+                                    %s  <!-- notes -->
+                
                                     <!-- Contact Info -->
                                     <tr>
                                         <td style="padding: 30px; background-color: #f0f4ff;">
@@ -627,7 +657,7 @@ public class EmailServiceImpl implements EmailService {
                                             </p>
                                         </td>
                                     </tr>
-
+                
                                     <!-- Footer -->
                                     <tr>
                                         <td style="background-color: #f8f8f8; padding: 20px 30px; text-align: center; border-top: 1px solid #eeeeee;">
@@ -645,7 +675,16 @@ public class EmailServiceImpl implements EmailService {
                     </table>
                 </body>
                 </html>
-                """.formatted(orderName, orderName, supplierName, orderDetails,
-                totalAmount, deliverySection, notesSection);
+                """.formatted(
+                orderName,
+                orderName,
+                supplierName,
+                companyName,
+                clientDataSection,
+                orderDetails,
+                totalAmount,
+                deliverySection,
+                notesSection
+        );
     }
 }

@@ -1,12 +1,20 @@
 package cat.abasta_back_end.services;
 
 /**
- * Interfície de servei per gestionar l'enviament de correus electrònics.
- * Proporciona mètodes per enviar diferents tipus de correus relacionats amb
- * l'autenticació i gestió d'usuaris.
+ * Interfície que defineix les operacions per enviar correus electrònics.
+ *
+ * <p>Aquesta interfície estableix el contracte per a l'enviament de diferents
+ * tipus de correus electrònics dins del sistema Abasta, incloent-hi:
+ * <ul>
+ *   <li>Recuperació de contrasenyes</li>
+ *   <li>Verificació de comptes d'usuari</li>
+ *   <li>Verificació d'empreses i administradors</li>
+ *   <li>Notificacions de comandes</li>
+ * </ul>
+ * </p>
  *
  * @author Enrique Pérez
- * @version 1.0
+ * @version 1.1
  * @since 2025
  */
 public interface EmailService {
@@ -51,7 +59,8 @@ public interface EmailService {
      * @param deliveryDate la data d'entrega prevista (pot ser null)
      * @param notes notes addicionals de la comanda (pot ser null)
      */
-    void sendOrderNotification(String to, String supplierName, String orderName,
-                               String orderDetails, String totalAmount,
+    void sendOrderNotification(String to, String supplierName, String companyName,
+                               String companyAddress, String companyPhone,
+                               String orderName, String orderDetails, String totalAmount,
                                String deliveryDate, String notes);
 }
