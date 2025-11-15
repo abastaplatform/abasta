@@ -93,8 +93,7 @@ public class OrderServiceImpl implements OrderService {
 
             item.setProduct(product);
             item.setQuantity(itemDTO.getQuantity());
-            item.setUnitPrice(itemDTO.getUnitPrice() != null ?
-                    itemDTO.getUnitPrice() : product.getPrice());
+            item.setUnitPrice(product.getPrice());
             item.setSubtotal(item.getQuantity().multiply(item.getUnitPrice()));
             item.setNotes(itemDTO.getNotes());
 
