@@ -18,7 +18,6 @@ import lombok.NoArgsConstructor;
  * <ul>
  *   <li><code>product uuid</code> → Identificador únic del producte (obligatori).</li>
  *   <li><code>quantity</code> → Quantitat de producte (obligatori no null).</li>
- *   <li><code>unit price</code> → Preu unitari producte (obligatori no null).</li>
  *   <li><code>notes</code> → Notes/Observacions (opcional).</li>
  * </ul>
  *
@@ -46,12 +45,6 @@ public class OrderItemRequestDTO {
     @NotNull
     @DecimalMin(value = "0.01")
     private BigDecimal quantity;
-
-    /**
-     * Preu per unitat del producte
-     */
-    @DecimalMin(value = "0.00")
-    private BigDecimal unitPrice;
 
     /**
      * Notes/Observacions del producte
