@@ -64,6 +64,18 @@ public interface ProductService {
     ProductResponseDTO deactivateProduct(String uuid);
 
     /**
+     * Realitza la cerca de productes associats a un usuari/companyia
+     * <p>
+     * Aquesta operació permet llistat els productes d'un usuari a través
+     * de la companyia a la qual pertany. Les dades les agafem de l'usuari loginat.
+     * Retorna amb criteris de paginació i ordenació.
+     * </p>
+     * @param pageable Objecte {@link Pageable} que defineix la paginació i l'ordenació dels resultats.
+     * @return Una pàgina de {@link ProductResponseDTO} amb el llistat de tots els productes
+     */
+    Page<ProductResponseDTO> listProductsByCompany(Pageable pageable);
+
+    /**
      * Realitza una cerca bàsica de productes associats a un proveïdor concret.
      * <p>
      * Aquesta operació permet cercar productes pel seu nom o altres camps de text

@@ -1,5 +1,6 @@
 package cat.abasta_back_end.repositories;
 
+import cat.abasta_back_end.entities.Company;
 import cat.abasta_back_end.entities.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,47 +32,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      */
     Optional<Product> findByUuid(String uuid);
 
-    /**
-     * Retorna una pàgina de productes associats a un proveïdor i marcats com a actius.
-     *
-     * @param supplierId identificador del proveïdor
-     * @param pageable   objecte de paginació (page, size, sort)
-     * @return una {@link Page} de {@link Product}
-     */
-    /*Page<Product> findBySupplierIdAndIsActiveTrue(Long supplierId, Pageable pageable);*/
 
-    /**
-     * Cerca i filtra productes actius segons diversos criteris opcionals.
-     * <p>
-     * Si un paràmetre és {@code null}, no s’aplica el filtre corresponent.
-     * </p>
-     *
-     * @param q         query lliure de cerca (pot ser null)
-     * @param name         nom parcial o complet del producte (pot ser null)
-     * @param category     categoria del producte (pot ser null)
-     * @param supplierUuid UUID del proveïdor (pot ser null)
-     * @param pageable     configuració de paginació
-     * @return pàgina de productes que compleixen els criteris especificats
-     */
-    /*@Query("""
-    SELECT p FROM Product p
-    WHERE p.isActive = true
-      AND (
-            :q IS NULL
-            OR LOWER(p.name) LIKE LOWER(CONCAT('%', :q, '%'))
-            OR LOWER(p.description) LIKE LOWER(CONCAT('%', :q, '%'))
-            OR LOWER(p.category) LIKE LOWER(CONCAT('%', :q, '%'))
-          )
-      AND (:name IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%')))
-      AND (:category IS NULL OR LOWER(p.category) LIKE LOWER(CONCAT('%', :category, '%')))
-      AND (:supplierUuid IS NULL OR p.supplier.uuid = :supplierUuid)
-    """)
-    Page<Product> searchProducts(
-            @Param("q") String q,
-            @Param("name") String name,
-            @Param("category") String category,
-            @Param("supplierUuid") String supplierUuid,
-            Pageable pageable);*/
+    @Query("SELECT p FROM Product p " +
+            "JOIN p.supplier s " +
+            "WHERE s.company.id = :companyId")
+    Page<Product> findProductsByCompanyId(@Param("companyId") Long companyId, Pageable pageable);
 
     /**
      * Cerca avançada de productes amb múltiples filtres.
