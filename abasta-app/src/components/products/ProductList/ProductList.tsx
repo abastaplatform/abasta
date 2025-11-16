@@ -7,6 +7,7 @@ import Button from '../../common/Button/Button';
 import Alert from '../../common/Alert/Alert';
 import Pagination from '../../common/Pagination/Pagination';
 import DeleteModal from '../../common/DeleteModal/DeleteModal';
+import SendOrderModal from '../../common/SendOrderModal/SendOrderModal';
 
 import './ProductList.scss';
 
@@ -48,6 +49,7 @@ const ProductList = () => {
   const [isAdvancedSearch, setIsAdvancedSearch] = useState(false);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [productToDelete, setProductToDelete] = useState<{
     uuid: string;
     name: string;
@@ -211,6 +213,7 @@ const ProductList = () => {
   };
 
   return (
+
     <div className="product-list-container form-container">
       <div className="container-fluid py-4">
         <PageHeader
@@ -229,6 +232,17 @@ const ProductList = () => {
 <button onClick={() => navigate(`/products/efed51aa-c1bf-4379-a200-cf201094a175`)}>
   Detall
 </button>
+<Button title="Enviar comanda" onClick={() => setShowModal(true)} />
+    <SendOrderModal
+      show={showModal}
+      onClose={() => setShowModal(false)}
+      onSend={(method) => console.log("Enviant per:", method)}
+      providerName="Nestlé S.L."
+      totalPrice="260,00€"
+      itemsCount={4}
+      email="comandes@nestle.com"
+      phone="+34 666 777 888"
+    />
         {isLoading ? (
           <div className="text-center py-5">
             <div className="spinner-border text-primary"></div>

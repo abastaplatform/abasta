@@ -39,25 +39,21 @@ export const useProductForm = ({ mode, initialData }: UseProductFormParams) => {
   const [successMessage, setSuccessMessage] = useState("");
   const [error, setError] = useState("");
 
-  // DELETE STATE
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
 
-  // SUPPLIER AUTOCOMPLETE
   const [supplierQuery, setSupplierQuery] = useState("");
   const [supplierPage, setSupplierPage] = useState(0);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [hasMoreSuppliers, setHasMoreSuppliers] = useState(true);
   const [loadingSuppliers, setLoadingSuppliers] = useState(false);
 
-  // Load initial data received from ProductManager
   useEffect(() => {
     if (initialData) {
       setFormData(initialData);
     }
   }, [initialData]);
 
-  // SUPPLIER AUTOCOMPLETE
   const searchSuppliers = async (clear = false) => {
     if (loadingSuppliers || (!hasMoreSuppliers && !clear)) return;
 
@@ -102,7 +98,6 @@ export const useProductForm = ({ mode, initialData }: UseProductFormParams) => {
     }
   };
 
-  // FIELD REGISTER
   const register =
     (field: keyof ProductFormData) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -110,7 +105,6 @@ export const useProductForm = ({ mode, initialData }: UseProductFormParams) => {
       setFormData((prev) => ({ ...prev, [field]: value }));
     };
 
-  // SUBMIT
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -146,7 +140,6 @@ export const useProductForm = ({ mode, initialData }: UseProductFormParams) => {
     }
   };
 
-  // DELETE PRODUCT
   const deleteProduct = async () => {
     if (!formData.uuid) return;
 
@@ -188,12 +181,10 @@ export const useProductForm = ({ mode, initialData }: UseProductFormParams) => {
     handleSubmit,
     handleCancel,
 
-    // DELETE
     deleteProduct,
     isDeleting,
     deleteError,
 
-    // SUPPLIER AUTOCOMPLETE
     supplierQuery,
     setSupplierQuery,
     suppliers,

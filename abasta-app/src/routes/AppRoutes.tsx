@@ -18,6 +18,7 @@ import Accessibility from '../pages/Home/Accessibility/Accessibility';
 import SupplierManager from '../components/suppliers/SupplierManager/SupplierManager';
 import ProductList from '../components/products/ProductList/ProductList';
 import ProductManager from '../components/products/ProductManager/ProductManager';
+import Orders from '../components/orders/sendOrder/SendOrder';
 
 const AppRoutes = () => {
   return (
@@ -50,7 +51,7 @@ const AppRoutes = () => {
           path="/suppliers/edit/:uuid"
           element={<SupplierManager mode="edit" />}
         />
-        <Route path="/orders" element={<div>Orders page</div>} />
+        <Route path="/orders" element={<Orders />} />
         <Route 
           path="/products" 
           element={<ProductList />} 

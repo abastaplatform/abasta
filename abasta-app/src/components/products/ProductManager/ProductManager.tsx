@@ -56,7 +56,6 @@ const ProductManager = ({ mode }: ProductManagerProps) => {
         initialData: undefined,
     });
 
-    // ---------- BREADCRUMB ----------
     const breadcrumbItem = useMemo(() => {
         if (mode === "create") return "Nou producte";
         if (mode === "edit") return formData?.name || "";
@@ -69,7 +68,6 @@ const ProductManager = ({ mode }: ProductManagerProps) => {
         return formData?.name || "Detall del producte";
     }, [mode, formData?.name]);
 
-    // ---------- CARREGAR PRODUCTE ----------
     useEffect(() => {
         if (!uuid || isCreateMode) return;
 
@@ -78,14 +76,13 @@ const ProductManager = ({ mode }: ProductManagerProps) => {
             if (response.success && response.data) {
                 const data = productToFormData(response.data);
                 setFormData(data);
-                setSupplierQuery(""); // després carregarem el nom real
+                setSupplierQuery(""); 
             }
         };
 
         loadProduct();
     }, [uuid, isCreateMode, setFormData, setSupplierQuery]);
 
-    // ---------- CARREGAR NOM DEL PROVEÏDOR ----------
     useEffect(() => {
         if (!formData.supplierUuid) return;
 
@@ -99,7 +96,6 @@ const ProductManager = ({ mode }: ProductManagerProps) => {
         loadSupplierName();
     }, [formData.supplierUuid]);
 
-    // ---------- VALIDACIÓ ----------
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
 
