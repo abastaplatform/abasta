@@ -1,0 +1,49 @@
+.product-table-container {
+  margin-top: 1.5rem;
+  overflow-x: auto;
+
+  .product-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+    border-radius: 8px;
+    overflow: hidden;
+
+    th {
+      background: #f8f9fa;
+      padding: 12px;
+      font-weight: 600;
+      text-align: left;
+      border-bottom: 1px solid #e6e6e6;
+    }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #f1f1f1;
+      vertical-align: middle;
+    }
+
+    tr:hover td {
+      background: #fafbfd;
+    }
+
+    .product-name {
+      font-weight: 600;
+    }
+
+    .text-end {
+      text-align: end;
+    }
+  }
+}
+
+.product-table-empty {
+  padding: 3rem 0;
+  text-align: center;
+  color: #777;
+
+  i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+}

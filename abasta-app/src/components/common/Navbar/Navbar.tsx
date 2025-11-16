@@ -111,7 +111,13 @@ const Navbar = () => {
               <ul
                 className={`dropdown-menu dropdown-menu-end ${isUserDropdownOpen ? 'show' : ''}`}
               >
-                <li>
+                <li><button
+                    className="dropdown-item"
+                    onClick={() => navigate('/dashboard')}
+                  >
+                    <i className="bi bi-ui-checks-grid me-2"></i>
+                    Panell de control
+                  </button>
                   <button className="dropdown-item" onClick={handleLogout}>
                     <i className="bi bi-box-arrow-right me-2"></i>
                     Tancar sessió
@@ -137,6 +143,12 @@ const Navbar = () => {
                 </div>
               </div>
             </div>
+            <button
+              className="btn btn-outline-light w-100 mt-2 bg-transparent"
+                onClick={() => navigate('/dashboard')}
+              >
+                Panell de control
+            </button>
             <button
               className="btn btn-outline-light w-100 mt-2 bg-transparent"
               onClick={() => {

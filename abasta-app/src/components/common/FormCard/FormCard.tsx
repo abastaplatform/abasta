@@ -18,9 +18,9 @@ const FormCard = ({
   return (
     <div className={`form-card card shadow-sm ${className}`}>
       <div className="card-body">
-        <h5 className="form-card-title card-title mb-3 text-primary fw-bold">
+        <h2 className="form-card-title card-title mb-3 text-primary fw-bold">
           {title}
-        </h5>
+        </h2>
         {subtitle && (
           <p className="form-card-subtitle text-muted mb-4">{subtitle}</p>
         )}
