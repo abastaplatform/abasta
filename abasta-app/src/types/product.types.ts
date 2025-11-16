@@ -15,6 +15,27 @@ export interface Product {
     name: string;
   };
 }
+export interface BasicSearchParams {
+  searchText?: string;
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  sortDir?: 'asc' | 'desc';
+}
+
+export interface AdvancedSearchParams {
+  name?: string;
+  supplierUuid?: string;
+  category?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  volume?: number;
+  unit?: string;
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  sortDir?: 'asc' | 'desc';
+}
 
 export interface PaginatedResponse<T> {
   content: T[];
@@ -35,6 +56,17 @@ export interface ApiResponse<T> {
   success: boolean;
   message: string;
   data?: T;
+}
+
+export interface SearchFilters {
+  query: string;
+  name: string;
+  category: string;
+  minPrice: number;
+  maxPrice: number;
+  supplierUuid: string;
+  volume: number;
+  unit: string;
 }
 
 export interface PaginationParams {

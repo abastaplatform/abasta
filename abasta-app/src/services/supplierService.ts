@@ -137,4 +137,49 @@ export const supplierService = {
 
     return await api.get(`/suppliers/filter?${queryParams.toString()}`);
   },
+
+  getSuppliersForAutocomplete: async (
+    page: number,
+    query: string,
+    size: number = 20
+  ): Promise<{ suppliers: Supplier[]; hasMore: boolean }> => {
+    try {
+      let response;
+
+      if (query) {
+        const searchParams: BasicSearchParams = {
+          searchText: query,
+          page: page - 1,
+          size,
+          sortBy: 'name',
+          sortDir: 'asc',
+        };
+        response = await supplierService.searchSuppliers(searchParams);
+      } else {
+        const paginationParams: PaginationParams = {
+          page: page - 1,
+          size,
+          sortBy: 'name',
+          sortDir: 'asc',
+        };
+        response = await supplierService.getSuppliers(paginationParams);
+      }
+
+      if (response.success && response.data) {
+        const { content, pageable } = response.data;
+        const currentPage = pageable.page + 1;
+        const hasMore = currentPage < pageable.totalPages;
+
+        return {
+          suppliers: content,
+          hasMore,
+        };
+      }
+
+      return { suppliers: [], hasMore: false };
+    } catch (error) {
+      console.error('Error fetching suppliers for autocomplete:', error);
+      return { suppliers: [], hasMore: false };
+    }
+  },
 };

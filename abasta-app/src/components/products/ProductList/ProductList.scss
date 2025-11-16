@@ -1,0 +1,37 @@
+@import '../../../assets/styles/variables';
+
+.product-list-container {
+  min-height: 100vh;
+  background-color: $light;
+
+  .spinner-border {
+    width: 3rem;
+    height: 3rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    .page-actions {
+      width: 100%;
+
+      button {
+        width: 100%;
+      }
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.product-table-container,
+.product-card-container {
+  animation: fadeIn 0.3s ease;
+}
