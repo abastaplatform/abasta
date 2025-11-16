@@ -140,6 +140,40 @@ public class ProductController {
     }
 
     /**
+     * Llista productes d'un usuari/companyia (només actius) amb paginació.
+     * El llistat es fa en base a la companyia de l'usuari loginat.
+     * Exemple: GET /api/products
+     *
+     * @return pàgina de {@link ProductResponseDTO}
+     */
+    @GetMapping
+    public ResponseEntity<ApiResponseDTO<PagedResponseDTO<ProductResponseDTO>>> listProductsByCompany() {
+
+        // Valors per defect
+        int defaultPage = 0;
+        int defaultSize = 20;
+        String defaultSortBy = "name";
+        String defaultSortDir = "asc";
+
+        // Creem el sort
+        Sort sort = defaultSortDir.equalsIgnoreCase("desc") ?
+                Sort.by(defaultSortBy).descending() :
+                Sort.by(defaultSortBy).ascending();
+
+        // Creem el pageable
+        Pageable pageable = PageRequest.of(defaultPage, defaultSize, sort);
+
+        // Crida al servei
+        Page<ProductResponseDTO> products = productService.listProductsByCompany(pageable);
+
+        // Convertir Page a PagedResponseDTO
+        PagedResponseDTO<ProductResponseDTO> pagedResponse = PagedResponseDTO.of(products);
+
+        return ResponseEntity.ok(
+                ApiResponseDTO.success(pagedResponse, "Llistat de productes de la companyia completat"));
+    }
+
+    /**
      * Llista productes d'un proveïdor (només actius) amb paginació.
      *
      * Exemple: GET /api/products?supplierId=1&page=0&size=20&sort=name,asc

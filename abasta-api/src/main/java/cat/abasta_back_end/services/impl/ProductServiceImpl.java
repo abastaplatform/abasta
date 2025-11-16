@@ -1,12 +1,17 @@
 package cat.abasta_back_end.services.impl;
 
 import cat.abasta_back_end.dto.*;
+import cat.abasta_back_end.entities.Company;
 import cat.abasta_back_end.entities.Product;
 import cat.abasta_back_end.entities.Supplier;
+import cat.abasta_back_end.entities.User;
 import cat.abasta_back_end.exceptions.ResourceNotFoundException;
 import cat.abasta_back_end.repositories.ProductRepository;
 import cat.abasta_back_end.repositories.SupplierRepository;
+import cat.abasta_back_end.repositories.UserRepository;
+import cat.abasta_back_end.repositories.*;
 import cat.abasta_back_end.services.ProductService;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
@@ -41,6 +46,7 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final SupplierRepository supplierRepository;
+    private final UserRepository userRepository;
 
     /**
      * Constructor amb injecció de dependències.
@@ -48,9 +54,10 @@ public class ProductServiceImpl implements ProductService {
      * @param productRepository  repositori de productes
      * @param supplierRepository repositori de proveïdors
      */
-    public ProductServiceImpl(ProductRepository productRepository, SupplierRepository supplierRepository) {
+    public ProductServiceImpl(ProductRepository productRepository, SupplierRepository supplierRepository, UserRepository userRepository) {
         this.productRepository = productRepository;
         this.supplierRepository = supplierRepository;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -142,6 +149,26 @@ public class ProductServiceImpl implements ProductService {
 
         // Retornar DTO
         return mapToResponseDTO(product);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public Page<ProductResponseDTO> listProductsByCompany(Pageable pageable){
+
+        // Assignar company i usuari
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat: " + username));
+        Long companyId = user.getCompany().getId();
+
+        Page<Product> products = productRepository.findProductsByCompanyId(companyId, pageable);
+
+        return products.map(this::mapToResponseDTO);
+
+
     }
 
     /**
