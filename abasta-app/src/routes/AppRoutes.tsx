@@ -16,6 +16,7 @@ import Terms from '../pages/Home/Terms/Terms';
 import Cookies from '../pages/Home/Cookies/Cookies';
 import Accessibility from '../pages/Home/Accessibility/Accessibility';
 import SupplierManager from '../components/suppliers/SupplierManager/SupplierManager';
+import ProductList from '../components/products/ProductList/ProductList';
 
 const AppRoutes = () => {
   return (
@@ -49,7 +50,7 @@ const AppRoutes = () => {
           element={<SupplierManager mode="edit" />}
         />
         <Route path="/orders" element={<div>Orders page</div>} />
-        <Route path="/products" element={<div>Products page</div>} />
+        <Route path="/products" element={<ProductList />} />
         <Route path="/reports" element={<div>Reports page</div>} />
         <Route path="/Company" element={<CompanyConfigForm />} />
         <Route path="/Users" element={<div>Users page</div>} />
