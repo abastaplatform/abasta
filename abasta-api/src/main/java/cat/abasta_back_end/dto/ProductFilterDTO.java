@@ -107,6 +107,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ProductFilterDTO {
 
+    /**
+     * Identificador únic de proveïdor
+     */
+    private String supplierUuid;
+
     // Filtres de text (cerca parcial, insensible a majúscules
     private String name;        // Nom del producte
     private String description; // Descripció del producte
