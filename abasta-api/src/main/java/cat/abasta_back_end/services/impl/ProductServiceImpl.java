@@ -176,16 +176,25 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<ProductResponseDTO> searchProductsBySupplierWithSearch(String supplierUuid, String searchText, Pageable pageable){
+    public Page<ProductResponseDTO> searchProducts(ProductSearchDTO dto, Pageable pageable){
 
-        // Validar que el proveïdor existeix
-        Supplier supplier = supplierRepository.findByUuid(supplierUuid)
-                .orElseThrow(() -> new IllegalArgumentException("El proveïdor especificat no existeix."));
+        Page<Product> products = null;
 
-        Page<Product> products = productRepository.findProductsBySupplierWithSearch(supplier.getId(), searchText, pageable);
-
+        if (dto.getSupplierUuid() != null && !dto.getSupplierUuid().isBlank()) {
+            // Proveïdor especificat - Validar que el proveïdor existeix
+            Supplier supplier = supplierRepository.findByUuid(dto.getSupplierUuid())
+                    .orElseThrow(() -> new IllegalArgumentException("El proveïdor especificat no existeix."));
+            Long supplierId = supplier.getId();
+            products = productRepository.searchProductsBySupplierId(supplierId, dto.getSearchText(), pageable);
+        }else{
+            // Proveïdor no especificat - cercar company de l'usuari.
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            User user = userRepository.findByEmail(username)
+                    .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat: " + username));
+            Long companyId = user.getCompany().getId();
+            products = productRepository.searchProductsByCompanyId(companyId, dto.getSearchText(), pageable);
+        }
         return products.map(this::mapToResponseDTO);
-
     }
 
     /**
@@ -193,33 +202,44 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<ProductResponseDTO> searchProductsBySupplierWithFilter(String supplierUuid, ProductFilterDTO filterDTO, Pageable pageable){
+    public Page<ProductResponseDTO> filterProducts(ProductFilterDTO dto, Pageable pageable){
 
-        // Validar que el proveïdor existeix
-        Supplier supplier = supplierRepository.findByUuid(supplierUuid)
-                .orElseThrow(() -> new IllegalArgumentException("El proveïdor especificat no existeix."));
+        Page<Product> products = null;
 
-        // Si isActive viene nulo o vacío, por defecto mostramos solo los activos
-        Boolean isActive = filterDTO.getIsActive();
-        if (isActive == null) {
-            isActive = true;
+        // Si isActive ve nul o buit per defecte mostrem només els actius
+        Boolean isActive = dto.getIsActive();
+        if (isActive == null) { isActive = true; }
+
+        if (dto.getSupplierUuid() != null && !dto.getSupplierUuid().isBlank()) {
+            // Proveïdor especificat - Validar que el proveïdor existeix
+            Supplier supplier = supplierRepository.findByUuid(dto.getSupplierUuid())
+                    .orElseThrow(() -> new IllegalArgumentException("El proveïdor especificat no existeix."));
+            Long supplierId = supplier.getId();
+            products = productRepository.filterProductsBySupplierId(supplierId,
+                    dto.getName(),
+                    dto.getDescription(),
+                    dto.getCategory(),
+                    dto.getVolume(),
+                    dto.getUnit(),
+                    dto.getMinPrice(),
+                    dto.getMaxPrice(),
+                    isActive, pageable);
+        }else{
+            // Proveïdor no especificat - cercar company de l'usuari.
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            User user = userRepository.findByEmail(username)
+                    .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat: " + username));
+            Long companyId = user.getCompany().getId();
+            products = productRepository.filterProductsByCompanyId(companyId,
+                    dto.getName(),
+                    dto.getDescription(),
+                    dto.getCategory(),
+                    dto.getVolume(),
+                    dto.getUnit(),
+                    dto.getMinPrice(),
+                    dto.getMaxPrice(),
+                    isActive, pageable);
         }
-
-
-        // Usar el mètode del repositori amb tots els filtres expandits
-        Page<Product> products = productRepository.findProductsBySupplierWithFilter(
-                supplier.getId(),
-                filterDTO.getName(),
-                filterDTO.getDescription(),
-                filterDTO.getCategory(),
-                filterDTO.getVolume(),
-                filterDTO.getUnit(),
-                filterDTO.getMinPrice(),
-                filterDTO.getMaxPrice(),
-                isActive,
-                pageable
-        );
-
         return products.map(this::mapToResponseDTO);
 
     }
