@@ -147,21 +147,19 @@ public class ProductController {
      * @return pàgina de {@link ProductResponseDTO}
      */
     @GetMapping
-    public ResponseEntity<ApiResponseDTO<PagedResponseDTO<ProductResponseDTO>>> listProductsByCompany() {
+    public ResponseEntity<ApiResponseDTO<PagedResponseDTO<ProductResponseDTO>>> listProductsByCompany(@Valid ProductSearchDTO searchDTO) {
 
-        // Valors per defect
-        int defaultPage = 0;
-        int defaultSize = 20;
-        String defaultSortBy = "name";
-        String defaultSortDir = "asc";
+        // Crear Sort segons el DTO
+        Sort sort = searchDTO.getSortDir().equalsIgnoreCase("desc") ?
+                Sort.by(searchDTO.getSortBy()).descending() :
+                Sort.by(searchDTO.getSortBy()).ascending();
 
-        // Creem el sort
-        Sort sort = defaultSortDir.equalsIgnoreCase("desc") ?
-                Sort.by(defaultSortBy).descending() :
-                Sort.by(defaultSortBy).ascending();
-
-        // Creem el pageable
-        Pageable pageable = PageRequest.of(defaultPage, defaultSize, sort);
+        // Crear Pageable segons el DTO
+        Pageable pageable = PageRequest.of(
+                searchDTO.getPage(),
+                searchDTO.getSize(),
+                sort
+        );
 
         // Crida al servei
         Page<ProductResponseDTO> products = productService.listProductsByCompany(pageable);
@@ -175,14 +173,13 @@ public class ProductController {
 
     /**
      * Llista productes d'un proveïdor (només actius) amb paginació.
-     *
      * Exemple: GET /api/products?supplierUuid=8856585-58545&page=0&size=20&sort=name
      *
      * @param searchDTO   objecte amb paràmetres de paginació (page, size, sort)
      * @return pàgina de {@link ProductResponseDTO}
      */
     @GetMapping("/search")
-    public ResponseEntity<ApiResponseDTO<PagedResponseDTO<ProductResponseDTO>>> listProductsBySupplierWithSearch(@Valid ProductSearchDTO searchDTO) {
+    public ResponseEntity<ApiResponseDTO<PagedResponseDTO<ProductResponseDTO>>> searchProducts(@Valid ProductSearchDTO searchDTO) {
 
         Sort sort = searchDTO.getSortDir().equalsIgnoreCase("desc") ?
                 Sort.by(searchDTO.getSortBy()).descending() :
@@ -190,13 +187,12 @@ public class ProductController {
 
         Pageable pageable = PageRequest.of(searchDTO.getPage(), searchDTO.getSize(), sort);
 
-        Page<ProductResponseDTO> products = productService.searchProductsBySupplierWithSearch(searchDTO.getSupplierUuid(), searchDTO.getSearchText(), pageable);
+        Page<ProductResponseDTO> products = productService.searchProducts(searchDTO, pageable);
 
         // Convertir Page a PagedResponseDTO per evitar warning de serialització
         PagedResponseDTO<ProductResponseDTO> pagedResponse = PagedResponseDTO.of(products);
 
-        return ResponseEntity.ok(
-                ApiResponseDTO.success(pagedResponse, "Cerca bàsica de productes per proveïdor completada"));
+        return ResponseEntity.ok(ApiResponseDTO.success(pagedResponse, "Cerca bàsica de productes completada"));
     }
 
     /**
@@ -232,7 +228,7 @@ public class ProductController {
      * @return resposta amb la pàgina de proveïdors filtrats
      */
     @GetMapping("/filter")
-    public ResponseEntity<ApiResponseDTO<PagedResponseDTO<ProductResponseDTO>>> listProductsBySupplierWithFilter(@Valid ProductFilterDTO filterDTO) {
+    public ResponseEntity<ApiResponseDTO<PagedResponseDTO<ProductResponseDTO>>> filterProducts(@Valid ProductFilterDTO filterDTO) {
 
         Sort sort = filterDTO.getSortDir().equalsIgnoreCase("desc") ?
                 Sort.by(filterDTO.getSortBy()).descending() :
@@ -240,16 +236,13 @@ public class ProductController {
 
         Pageable pageable = PageRequest.of(filterDTO.getPage(), filterDTO.getSize(), sort);
 
-        Page<ProductResponseDTO> products = productService.searchProductsBySupplierWithFilter(filterDTO.getSupplierUuid(), filterDTO, pageable);
+        Page<ProductResponseDTO> products = productService.filterProducts(filterDTO, pageable);
 
         // Convertir Page a PagedResponseDTO per evitar warning de serialització
         PagedResponseDTO<ProductResponseDTO> pagedResponse = PagedResponseDTO.of(products);
 
-        String message = String.format("Cerca avançada completada. Filtres aplicats: text=%s",
-                filterDTO.hasTextFilters());
-
-        return ResponseEntity.ok(
-                ApiResponseDTO.success(pagedResponse, message));
+        String message = String.format("Cerca avançada completada. Filtres aplicats: text=%s", filterDTO.hasTextFilters());
+        return ResponseEntity.ok(ApiResponseDTO.success(pagedResponse, message));
     }
 
     /**
@@ -269,7 +262,7 @@ public class ProductController {
      * <p><strong>Exemple amb Postman:</strong></p>
      * <ul>
      *   <li><b>Mètode:</b> POST</li>
-     *   <li><b>URL:</b> <code>http://localhost:8084/api/products/upload/{productUuid}</code></li>
+     *   <li><b>URL:</b> <code>/api/products/upload/{productUuid}</code></li>
      *   <li><b>Body:</b> form-data → key: <code>image</code> (type: File) → value: [selecciona la imatge]</li>
      * </ul>
      *
@@ -287,9 +280,7 @@ public class ProductController {
      * @return URL relativa de la imatge desada dins la carpeta /img/productes/
      */
     @PostMapping("/upload/{productUuid}")
-    public ResponseEntity<ApiResponseDTO<String>> uploadProductImage(
-            @PathVariable String productUuid,
-            @RequestParam("image") MultipartFile file) {
+    public ResponseEntity<ApiResponseDTO<String>> uploadProductImage(@PathVariable String productUuid, @RequestParam("image") MultipartFile file) {
 
         String imageUrl = productService.saveProductImage(productUuid, file);
 
@@ -311,7 +302,7 @@ public class ProductController {
      * <p><strong>Exemple amb Postman:</strong></p>
      * <ul>
      *   <li><b>Mètode:</b> POST</li>
-     *   <li><b>URL:</b> <code>http://localhost:8084/api/products/upload-temp</code></li>
+     *   <li><b>URL:</b> <code>/api/products/upload-temp</code></li>
      *   <li><b>Body:</b> form-data → key: <code>image</code> (type: File) → value: [selecciona la imatge]</li>
      * </ul>
      *
