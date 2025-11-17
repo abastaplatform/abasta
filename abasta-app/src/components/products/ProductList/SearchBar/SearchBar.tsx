@@ -165,7 +165,7 @@ const SearchBar = ({
                 <Form.Control
                   type="number"
                   placeholder="Cercar per volum"
-                  value={filters.volume}
+                  value={filters.volume || 0}
                   onChange={e =>
                     setFilters({ ...filters, volume: Number(e.target.value) })
                   }
@@ -192,7 +192,7 @@ const SearchBar = ({
                 <Form.Control
                   type="number"
                   placeholder="Cercar per preu mínim"
-                  value={filters.minPrice}
+                  value={filters.minPrice || 0}
                   onChange={e =>
                     setFilters({ ...filters, minPrice: Number(e.target.value) })
                   }
@@ -206,7 +206,7 @@ const SearchBar = ({
                 <Form.Control
                   type="number"
                   placeholder="Cercar per telèfon"
-                  value={filters.maxPrice}
+                  value={filters.maxPrice || 0}
                   onChange={e =>
                     setFilters({ ...filters, maxPrice: Number(e.target.value) })
                   }

@@ -45,9 +45,9 @@ const ProductList = () => {
     name: '',
     supplierUuid: '',
     category: '',
-    minPrice: 0,
-    maxPrice: 0,
-    volume: 0,
+    minPrice: null,
+    maxPrice: null,
+    volume: null,
     unit: '',
   });
   const [isAdvancedSearch, setIsAdvancedSearch] = useState(false);
@@ -92,7 +92,25 @@ const ProductList = () => {
     setIsLoading(true);
     setError('');
     try {
-      if (hasActiveFilters()) {
+      if (supplierUuid) {
+        if (hasOtherActiveFilters()) {
+          await performSearch(currentFilters, isAdvancedSearch);
+        } else {
+          const paginationParams: PaginationParams = {
+            page: currentPage,
+            size: itemsPerPage,
+            sortBy: 'name',
+            sortDir: 'asc',
+          };
+          const response = await productService.getProductBySupplier(
+            supplierUuid,
+            paginationParams
+          );
+          setProducts(response.data?.content || []);
+          setTotalElements(response.data?.pageable.totalElements || 0);
+          setTotalPages(response.data?.pageable.totalPages || 0);
+        }
+      } else if (hasActiveFilters()) {
         await performSearch(currentFilters, isAdvancedSearch);
       } else {
         const paginationParams: PaginationParams = {
@@ -101,12 +119,7 @@ const ProductList = () => {
           sortBy: 'name',
           sortDir: 'asc',
         };
-        const response = supplierUuid
-          ? await productService.getProductBySupplier(
-              supplierUuid,
-              paginationParams
-            )
-          : await productService.getProducts(paginationParams);
+        const response = await productService.getProducts(paginationParams);
         setProducts(response.data?.content || []);
         setTotalElements(response.data?.pageable.totalElements || 0);
         setTotalPages(response.data?.pageable.totalPages || 0);
@@ -125,6 +138,18 @@ const ProductList = () => {
       currentFilters.query ||
       currentFilters.name ||
       currentFilters.supplierUuid ||
+      currentFilters.category ||
+      currentFilters.minPrice ||
+      currentFilters.maxPrice ||
+      currentFilters.volume ||
+      currentFilters.unit
+    );
+  };
+
+  const hasOtherActiveFilters = (): boolean => {
+    return !!(
+      currentFilters.query ||
+      currentFilters.name ||
       currentFilters.category ||
       currentFilters.minPrice ||
       currentFilters.maxPrice ||
@@ -195,10 +220,10 @@ const ProductList = () => {
       query: '',
       name: '',
       category: '',
-      minPrice: 0,
-      maxPrice: 0,
+      minPrice: null,
+      maxPrice: null,
       supplierUuid: '',
-      volume: 0,
+      volume: null,
       unit: '',
     };
     setCurrentFilters(emptyFilters);
@@ -267,7 +292,7 @@ const ProductList = () => {
               title="Nou Producte"
               onClick={() =>
                 navigate(
-                  `/products/new ${supplierUuid ? `?supplier=${supplierUuid}` : ''}`
+                  `/products/new${supplierUuid ? `?supplier=${supplierUuid}` : ''}`
                 )
               }
             />
@@ -280,7 +305,7 @@ const ProductList = () => {
         <SearchBar
           onSearch={handleSearch}
           onClear={handleClearSearch}
-          supplierName={'test'}
+          supplierName={supplierName}
           supplierUuid={supplierUuid}
         />
 

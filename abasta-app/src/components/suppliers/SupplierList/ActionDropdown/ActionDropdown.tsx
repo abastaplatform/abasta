@@ -47,7 +47,7 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({
   };
 
   const handleViewProducts = () => {
-    navigate(`/suppliers/${supplierUuid}/products`);
+    navigate(`/products?supplier=${supplierUuid}`);
     setIsOpen(false);
   };
 

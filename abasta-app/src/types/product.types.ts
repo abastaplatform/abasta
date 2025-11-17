@@ -106,10 +106,10 @@ export interface SearchFilters {
   query: string;
   name: string;
   category: string;
-  minPrice: number;
-  maxPrice: number;
+  minPrice: number | null;
+  maxPrice: number | null;
   supplierUuid: string;
-  volume: number;
+  volume: number | null;
   unit: string;
 }
 
