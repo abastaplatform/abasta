@@ -48,6 +48,19 @@
         border-bottom: none;
       }
 
+      &.selectable-row {
+        cursor: pointer;
+
+        &.selected {
+          background-color: #e7f3ff;
+          border-left: 3px solid #0d6efd;
+
+          &:hover {
+            background-color: #d0e8ff;
+          }
+        }
+      }
+
       td {
         padding: 1rem 1.5rem;
         font-size: 0.95rem;
