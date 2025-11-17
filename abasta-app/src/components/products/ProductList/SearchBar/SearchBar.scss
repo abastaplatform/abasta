@@ -1,0 +1,41 @@
+.search-bar-container {
+  margin-bottom: 1.5rem;
+
+  .search-bar-basic {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: space-between;
+
+    .search-input-group {
+      flex: 1;
+      display: flex;
+      gap: 0.5rem;
+
+      .search-input {
+        flex: 1;
+      }
+
+      .search-btn {
+        white-space: nowrap;
+      }
+    }
+
+    .advanced-btn {
+      white-space: nowrap;
+    }
+  }
+
+  .search-bar-advanced {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+
+    .advanced-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.2rem;
+    }
+  }
+}

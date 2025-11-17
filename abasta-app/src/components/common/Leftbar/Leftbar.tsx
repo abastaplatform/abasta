@@ -94,6 +94,7 @@ const Leftbar = () => {
             <li key={item.path} className="nav-item">
               <Link
                 to={item.path}
+                aria-label={item.label}
                 className={`nav-link text-white d-flex align-items-center gap-3 px-4 py-3 ${
                   location.pathname === item.path ? 'active fw-semibold' : ''
                 }`}
