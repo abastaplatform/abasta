@@ -66,6 +66,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ProductSearchDTO {
 
+
+    /**
+     * Identificador únic de proveïdor
+     */
+    private String supplierUuid;
+
     /**
      * Text a cercar en múltiples camps del producte (cerca parcial opcional, insensible a majúscules).
      * Cerca simultàniament en: name, description i category.

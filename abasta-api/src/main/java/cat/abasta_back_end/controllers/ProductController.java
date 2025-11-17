@@ -176,15 +176,13 @@ public class ProductController {
     /**
      * Llista productes d'un proveïdor (només actius) amb paginació.
      *
-     * Exemple: GET /api/products?supplierId=1&page=0&size=20&sort=name,asc
+     * Exemple: GET /api/products?supplierUuid=8856585-58545&page=0&size=20&sort=name
      *
-     * @param supplierUuid identificador del proveïdor (paràmetre obligatori)
      * @param searchDTO   objecte amb paràmetres de paginació (page, size, sort)
      * @return pàgina de {@link ProductResponseDTO}
      */
-    @GetMapping("/search/supplier/{supplierUuid}")
-    public ResponseEntity<ApiResponseDTO<PagedResponseDTO<ProductResponseDTO>>> listProductsBySupplierWithSearch(
-            @PathVariable @NotBlank(message = "L'UUID no pot estar buit") String supplierUuid, @Valid ProductSearchDTO searchDTO) {
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponseDTO<PagedResponseDTO<ProductResponseDTO>>> listProductsBySupplierWithSearch(@Valid ProductSearchDTO searchDTO) {
 
         Sort sort = searchDTO.getSortDir().equalsIgnoreCase("desc") ?
                 Sort.by(searchDTO.getSortBy()).descending() :
@@ -192,7 +190,7 @@ public class ProductController {
 
         Pageable pageable = PageRequest.of(searchDTO.getPage(), searchDTO.getSize(), sort);
 
-        Page<ProductResponseDTO> products = productService.searchProductsBySupplierWithSearch(supplierUuid, searchDTO.getSearchText(), pageable);
+        Page<ProductResponseDTO> products = productService.searchProductsBySupplierWithSearch(searchDTO.getSupplierUuid(), searchDTO.getSearchText(), pageable);
 
         // Convertir Page a PagedResponseDTO per evitar warning de serialització
         PagedResponseDTO<ProductResponseDTO> pagedResponse = PagedResponseDTO.of(products);
@@ -217,7 +215,7 @@ public class ProductController {
      *
      * <p>Exemple d'ús complet:
      * <pre>
-     * GET /filter/supplier/{supplierUuid}?name=Catalunya&contactName=Joan&email=@provcat.com
+     * GET /filter?supplierUuid=56632252-12551246&name=Catalunya&contactName=Joan&email=@provcat.com
      *     &phone=93&address=Barcelona&notes=important&isActive=true
      *     &createdAfter=2024-01-01T00:00:00&createdBefore=2024-12-31T23:59:59
      *     &page=0&size=10&sortBy=name&sortDir=asc
@@ -233,9 +231,8 @@ public class ProductController {
      * @param filterDTO paràmetres de filtratge (Spring els mapeja automàticament des dels query params)
      * @return resposta amb la pàgina de proveïdors filtrats
      */
-    @GetMapping("/filter/supplier/{supplierUuid}")
-    public ResponseEntity<ApiResponseDTO<PagedResponseDTO<ProductResponseDTO>>> listProductsBySupplierWithFilter(
-            @PathVariable @NotBlank(message = "L'UUID no pot estar buit") String supplierUuid, @Valid ProductFilterDTO filterDTO) {
+    @GetMapping("/filter")
+    public ResponseEntity<ApiResponseDTO<PagedResponseDTO<ProductResponseDTO>>> listProductsBySupplierWithFilter(@Valid ProductFilterDTO filterDTO) {
 
         Sort sort = filterDTO.getSortDir().equalsIgnoreCase("desc") ?
                 Sort.by(filterDTO.getSortBy()).descending() :
@@ -243,7 +240,7 @@ public class ProductController {
 
         Pageable pageable = PageRequest.of(filterDTO.getPage(), filterDTO.getSize(), sort);
 
-        Page<ProductResponseDTO> products = productService.searchProductsBySupplierWithFilter(supplierUuid, filterDTO, pageable);
+        Page<ProductResponseDTO> products = productService.searchProductsBySupplierWithFilter(filterDTO.getSupplierUuid(), filterDTO, pageable);
 
         // Convertir Page a PagedResponseDTO per evitar warning de serialització
         PagedResponseDTO<ProductResponseDTO> pagedResponse = PagedResponseDTO.of(products);
