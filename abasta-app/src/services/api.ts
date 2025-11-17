@@ -118,6 +118,13 @@ class ApiService {
       method: 'DELETE',
     });
   }
+  upload<T>(endpoint: string, formData: FormData): Promise<T> {
+  return this.request<T>(endpoint, {
+    method: 'POST',
+    body: formData,
+    headers: {}
+  });
+}
 }
 
 export default new ApiService();

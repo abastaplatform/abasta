@@ -148,15 +148,15 @@ public class EmailServiceImpl implements EmailService {
      * <p>
      * Envia un correu HTML amb els detalls d'una comanda al proveïdor.
      * El correu inclou el nom de la comanda, els productes sol·licitats,
-     * l'import total, la data d'entrega i notes addicionals si n'hi ha.
+     * i notes addicionals si n'hi ha.
      *
      * @throws RuntimeException si es produeix un error en l'enviament del correu
      */
     @Override
     public void sendOrderNotification(String to, String supplierName, String companyName,
                                       String companyAddress, String companyPhone,
-                                      String orderName, String orderDetails, String totalAmount,
-                                      String deliveryDate, String notes) {
+                                      String orderName, String orderDetails,
+                                      String notes) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -165,7 +165,7 @@ public class EmailServiceImpl implements EmailService {
             helper.setTo(to);
             helper.setSubject("Nova Comanda - " + orderName + " - Abasta");
             helper.setText(buildOrderNotificationBody(supplierName, companyName, companyAddress, companyPhone,
-                    orderName, orderDetails, totalAmount, deliveryDate, notes), true);
+                    orderName, orderDetails, notes), true);
 
             mailSender.send(message);
             log.info("Email de comanda enviat a: {} per a la comanda: {}", to, orderName);
@@ -508,8 +508,6 @@ public class EmailServiceImpl implements EmailService {
      *   <li>Salutació personalitzada amb el nom del proveïdor</li>
      *   <li>Nom de l'empresa que fa la comanda</li>
      *   <li>Taula amb els detalls dels productes</li>
-     *   <li>Import total destacat</li>
-     *   <li>Data d'entrega si està disponible</li>
      *   <li>Notes addicionals si n'hi ha</li>
      *   <li>Informació de contacte</li>
      * </ul>
@@ -517,32 +515,17 @@ public class EmailServiceImpl implements EmailService {
      *
      * @param supplierName el nom del proveïdor
      * @param companyName  el nom de l'empresa que fa la comanda
+     * @param companyAddress  la direcció de l'empresa que fa la comanda
+     * @param companyPhone  el telèfon de l'empresa que fa la comanda
      * @param orderName    el nom de la comanda
      * @param orderDetails HTML amb la taula de productes
-     * @param totalAmount  l'import total formatat
-     * @param deliveryDate la data d'entrega (pot ser null)
-     * @param notes        notes addicionals (pot ser null)
+     * @param notes notes addicionals (pot ser null)
      * @return el cos HTML del correu com a String
      */
     private String buildOrderNotificationBody(String supplierName, String companyName,
                                               String companyAddress, String companyPhone,
                                               String orderName, String orderDetails,
-                                              String totalAmount, String deliveryDate,
                                               String notes) {
-
-        // Construir la secció de data d'entrega si existeix
-        String deliverySection = "";
-        if (deliveryDate != null && !deliveryDate.isEmpty()) {
-            deliverySection = """
-                    <tr>
-                        <td style="padding: 15px 30px; border-bottom: 1px solid #eeeeee;">
-                            <p style="margin: 0; color: #666666; font-size: 15px;">
-                                <strong style="color: #333333;">📅 Data d'entrega prevista:</strong> %s
-                            </p>
-                        </td>
-                    </tr>
-                    """.formatted(deliveryDate);
-        }
 
         // Construir la secció de notes si existeix
         String notesSection = "";
@@ -585,7 +568,7 @@ public class EmailServiceImpl implements EmailService {
                 """.formatted(companyName, companyAddress, companyPhone);
 
         return """
-                    <!DOCTYPE html>
+                <!DOCTYPE html>
                 <html lang="ca">
                 <head>
                     <meta charset="UTF-8">
@@ -627,22 +610,6 @@ public class EmailServiceImpl implements EmailService {
                                         </td>
                                     </tr>
                 
-                                    <!-- Total -->
-                                    <tr>
-                                        <td style="padding: 20px 30px; background-color: #f8f9fa;">
-                                            <table width="100%%" cellpadding="0" cellspacing="0">
-                                                <tr>
-                                                    <td style="text-align: right;">
-                                                        <p style="margin: 0; color: #333333; font-size: 20px; font-weight: bold;">
-                                                            💰 Total: <span style="color: #667eea;">%s</span>
-                                                        </p>
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                        </td>
-                                    </tr>
-                
-                                    %s  <!-- delivery -->
                                     %s  <!-- notes -->
                 
                                     <!-- Contact Info -->
@@ -682,8 +649,6 @@ public class EmailServiceImpl implements EmailService {
                 companyName,
                 clientDataSection,
                 orderDetails,
-                totalAmount,
-                deliverySection,
                 notesSection
         );
     }

@@ -28,6 +28,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(response.data.user);
   };
 
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const token = localStorage.getItem("token");
+      const userlocal = localStorage.getItem("user");
+
+      if (!token || !userlocal) {
+        logout();
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, [user]);
+
   const register = async (data: RegisterCompanyData): Promise<void> => {
     await authService.register(data);
   };

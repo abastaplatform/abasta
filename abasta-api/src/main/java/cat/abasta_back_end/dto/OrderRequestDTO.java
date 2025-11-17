@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
  *   <li><code>supplierUuid</code> → Identificador únic del proveïdor (obligatori).</li>
  *   <li><code>notes</code> → Notes/observacions (opcional).</li>
  *   <li><code>deliveryDate</code> → Data d'entrega (opcional).</li>
- *   <li><code>List items</code> → Llistat d'ítems d'una comada.</li>
+ *   <li><code>List items</code> → Llistat d'ítems d'una comanda.</li>
  * </ul>
  *
  * <p>Els camps <code>uuid</code>, <code>created_at</code> i <code>updated_at</code>

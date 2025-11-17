@@ -9,10 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.text.NumberFormat;
-import java.time.format.DateTimeFormatter;
-import java.util.Locale;
-
 /**
  * Implementació del servei de notificacions de comandes.
  *
@@ -23,7 +19,6 @@ import java.util.Locale;
  * <p>Funcionalitats principals:
  * <ul>
  *   <li>Generació de missatges HTML per a correus electrònics</li>
- *   <li>Formatació d'imports monetaris i dates</li>
  *   <li>Gestió d'errors amb logging detallat</li>
  * </ul>
  * </p>
@@ -40,10 +35,6 @@ import java.util.Locale;
 public class NotificationServiceImpl implements NotificationService {
 
     private final EmailService emailService;
-
-    // Constants per formatació
-    private static final Locale CATALAN_LOCALE = Locale.of("ca", "ES");
-    private static final String DATE_PATTERN = "d 'de' MMMM 'de' yyyy";
 
     /**
      * {@inheritDoc}
@@ -75,22 +66,17 @@ public class NotificationServiceImpl implements NotificationService {
 
         // Construir els detalls de la comanda
         String orderDetailsHtml = buildOrderDetailsHtml(order);
-        String totalAmount = formatCurrency(order.getTotalAmount());
-        String deliveryDate = order.getDeliveryDate() != null ?
-                formatDate(order.getDeliveryDate()) : null;
 
         try {
             // Enviar email
             emailService.sendOrderNotification(
                     supplier.getEmail(),
-                    supplier.getName(),
+                    supplier.getContactName(),
                     order.getCompany().getName(),
                     order.getCompany().getAddress(),
                     order.getCompany().getPhone(),
                     order.getName(),
                     orderDetailsHtml,
-                    totalAmount,
-                    deliveryDate,
                     order.getNotes()
             );
 
@@ -112,9 +98,8 @@ public class NotificationServiceImpl implements NotificationService {
      * <p>Genera una taula HTML amb els productes de la comanda incloent:
      * <ul>
      *   <li>Nom del producte</li>
-     *   <li>Quantitat i unitat</li>
-     *   <li>Preu unitari</li>
-     *   <li>Subtotal</li>
+     *   <li>Quantitat</li>
+     *   <li>Unitat</li>
      *   <li>Notes (si n'hi ha)</li>
      * </ul>
      * </p>
@@ -130,8 +115,8 @@ public class NotificationServiceImpl implements NotificationService {
                         <tr style="background-color: #667eea;">
                             <th style="padding: 12px; text-align: left; color: #ffffff; font-size: 14px;">Producte</th>
                             <th style="padding: 12px; text-align: center; color: #ffffff; font-size: 14px;">Quantitat</th>
-                            <th style="padding: 12px; text-align: right; color: #ffffff; font-size: 14px;">Preu Unit.</th>
-                            <th style="padding: 12px; text-align: right; color: #ffffff; font-size: 14px;">Subtotal</th>
+                            <th style="padding: 12px; text-align: right; color: #ffffff; font-size: 14px;">Volum</th>
+                            <th style="padding: 12px; text-align: right; color: #ffffff; font-size: 14px;">Unitat</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -151,17 +136,16 @@ public class NotificationServiceImpl implements NotificationService {
                                 <td style="padding: 15px; color: #333333;">
                                     <strong>%s</strong>%s
                                 </td>
-                                <td style="padding: 15px; text-align: center; color: #666666;">%s %s</td>
+                                <td style="padding: 15px; text-align: center; color: #666666;">%s</td>
                                 <td style="padding: 15px; text-align: right; color: #666666;">%s</td>
-                                <td style="padding: 15px; text-align: right; color: #667eea; font-weight: bold;">%s</td>
+                                <td style="padding: 15px; text-align: right; color: #666666;">%s</td>
                             </tr>
                             """,
                     productName,
                     notes,
                     item.getQuantity(),
-                    unit,
-                    formatCurrency(item.getUnitPrice()),
-                    formatCurrency(item.getSubtotal())
+                    item.getProduct() != null ? item.getProduct().getVolume() : "",
+                    unit
             ));
         }
 
@@ -173,27 +157,4 @@ public class NotificationServiceImpl implements NotificationService {
         return html.toString();
     }
 
-    /**
-     * Formata un import monetari amb el símbol d'euro.
-     *
-     * @param amount l'import a formatar
-     * @return l'import formatat amb dues decimals i el símbol €
-     */
-    private String formatCurrency(java.math.BigDecimal amount) {
-        if (amount == null) return "0,00 €";
-        NumberFormat formatter = NumberFormat.getCurrencyInstance(CATALAN_LOCALE);
-        return formatter.format(amount);
-    }
-
-    /**
-     * Formata una data en format llegible català.
-     *
-     * @param date la data a formatar
-     * @return la data formatada (ex: "15 de novembre de 2025")
-     */
-    private String formatDate(java.time.LocalDate date) {
-        if (date == null) return null;
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_PATTERN, CATALAN_LOCALE);
-        return date.format(formatter);
-    }
 }
