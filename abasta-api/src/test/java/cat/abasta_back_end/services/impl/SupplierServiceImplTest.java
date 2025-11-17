@@ -5,45 +5,49 @@ import cat.abasta_back_end.dto.SupplierRequestDTO;
 import cat.abasta_back_end.dto.SupplierResponseDTO;
 import cat.abasta_back_end.entities.Company;
 import cat.abasta_back_end.entities.Supplier;
+import cat.abasta_back_end.entities.User;
 import cat.abasta_back_end.exceptions.DuplicateResourceException;
 import cat.abasta_back_end.exceptions.ResourceNotFoundException;
 import cat.abasta_back_end.repositories.CompanyRepository;
 import cat.abasta_back_end.repositories.SupplierRepository;
+import cat.abasta_back_end.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
- * Tests unitaris per SupplierServiceImpl.
- * Verifica la lògica de negoci del servei de proveïdors.
+ * Tests unitaris ACTUALITZATS per SupplierServiceImpl.
+ * Verificació de la lògica de negoci del servei de proveïdors.
+ * ACTUALITZAT per incloure els nous mètodes i noms de repositori actualitzats.
  *
  * @author Enrique Pérez
- * @version 1.0
+ * @version 3.0 - Updated
  */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("SupplierService Tests")
+@DisplayName("SupplierServiceImpl Tests Updated")
 class SupplierServiceImplTest {
 
     @Mock
@@ -52,874 +56,490 @@ class SupplierServiceImplTest {
     @Mock
     private CompanyRepository companyRepository;
 
+    @Mock
+    private UserRepository userRepository;
+
+    // Security mocks - només quan es necessitin
+    @Mock
+    private SecurityContext securityContext;
+
+    @Mock
+    private Authentication authentication;
+
     @InjectMocks
     private SupplierServiceImpl supplierService;
 
     private SupplierRequestDTO validSupplierRequest;
     private Company testCompany;
-    private Supplier savedSupplier;
+    private User testUser;
+    private Supplier testSupplier;
+    private final String TEST_USER_EMAIL = "test@company.com";
+    private final String TEST_COMPANY_UUID = "company-uuid-123";
+    private final String TEST_SUPPLIER_UUID = "supplier-uuid-456";
 
     @BeforeEach
     void setUp() {
-        // Company de test
+        setupTestData();
+    }
+
+    private void setupTestData() {
+        validSupplierRequest = SupplierRequestDTO.builder()
+                .name("Proveïdors Catalunya SL")
+                .contactName("Joan Martinez")
+                .email("joan@provcat.com")
+                .phone("938765432")
+                .address("Av. Diagonal 123, Barcelona")
+                .notes("Proveïdor de materials de construcció")
+                .isActive(true)
+                .build();
+
         testCompany = Company.builder()
                 .id(1L)
-                .uuid("company-uuid-123")
+                .uuid(TEST_COMPANY_UUID)
                 .name("Test Company SL")
-                .taxId("B12345678")
-                .email("test@company.com")
                 .build();
 
-        // SupplierRequestDTO vàlid
-        validSupplierRequest = SupplierRequestDTO.builder()
-                .companyUuid("company-uuid-123")
+        testUser = User.builder()
+                .id(1L)
+                .email(TEST_USER_EMAIL)
+                .company(testCompany)
+                .build();
+
+        testSupplier = Supplier.builder()
+                .id(1L)
+                .uuid(TEST_SUPPLIER_UUID)
+                .company(testCompany)
                 .name("Proveïdors Catalunya SL")
-                .contactName("Joan Martínez")
+                .contactName("Joan Martinez")
                 .email("joan@provcat.com")
                 .phone("938765432")
                 .address("Av. Diagonal 123, Barcelona")
-                .notes("Notes del proveïdor")
-                .isActive(true)
-                .build();
-
-        // Supplier que retornaria save()
-        savedSupplier = Supplier.builder()
-                .id(1L)
-                .uuid("supplier-uuid-123")
-                .company(testCompany)
-                .name("Proveïdors Catalunya SL")
-                .contactName("Joan Martínez")
-                .email("joan@provcat.com")
-                .phone("938765432")
-                .address("Av. Diagonal 123, Barcelona")
-                .notes("Notes del proveïdor")
+                .notes("Proveïdor de materials de construcció")
                 .isActive(true)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
     }
 
-    @Test
-    @DisplayName("createSupplier hauria de crear proveïdor correctament quan les dades són vàlides")
-    void createSupplier_ShouldCreateSupplier_WhenValidData() {
-        // Given
-        when(companyRepository.findByUuid(validSupplierRequest.getCompanyUuid()))
-                .thenReturn(Optional.of(testCompany));
-        when(supplierRepository.existsByCompanyUuidAndNameIgnoreCase(
-                validSupplierRequest.getCompanyUuid(),
-                validSupplierRequest.getName()))
-                .thenReturn(false);
-        when(supplierRepository.save(any(Supplier.class)))
-                .thenReturn(savedSupplier);
-
-        // When
-        SupplierResponseDTO result = supplierService.createSupplier(validSupplierRequest);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.getUuid()).isEqualTo("supplier-uuid-123");
-        assertThat(result.getCompanyUuid()).isEqualTo("company-uuid-123");
-        assertThat(result.getCompanyName()).isEqualTo("Test Company SL");
-        assertThat(result.getName()).isEqualTo("Proveïdors Catalunya SL");
-        assertThat(result.getContactName()).isEqualTo("Joan Martínez");
-        assertThat(result.getEmail()).isEqualTo("joan@provcat.com");
-        assertThat(result.getPhone()).isEqualTo("938765432");
-        assertThat(result.getAddress()).isEqualTo("Av. Diagonal 123, Barcelona");
-        assertThat(result.getNotes()).isEqualTo("Notes del proveïdor");
-        assertThat(result.getIsActive()).isTrue();
-        assertThat(result.getCreatedAt()).isNotNull();
-        assertThat(result.getUpdatedAt()).isNotNull();
-
-        // Verify
-        verify(companyRepository).findByUuid(validSupplierRequest.getCompanyUuid());
-        verify(supplierRepository).existsByCompanyUuidAndNameIgnoreCase(
-                validSupplierRequest.getCompanyUuid(),
-                validSupplierRequest.getName());
-        verify(supplierRepository).save(any(Supplier.class));
+    private void setupSecurityContextForAuthenticatedUser() {
+        when(authentication.getName()).thenReturn(TEST_USER_EMAIL);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
     }
 
-    @Test
-    @DisplayName("createSupplier hauria de llançar ResourceNotFoundException quan l'empresa no existeix")
-    void createSupplier_ShouldThrowResourceNotFoundException_WhenCompanyNotFound() {
-        // Given
-        when(companyRepository.findByUuid(validSupplierRequest.getCompanyUuid()))
-                .thenReturn(Optional.empty());
+    @Nested
+    @DisplayName("Tests de createSupplier")
+    class CreateSupplierTests {
 
-        // When & Then
-        assertThatThrownBy(() -> supplierService.createSupplier(validSupplierRequest))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("Empresa no trobada amb UUID: company-uuid-123");
+        @Test
+        @DisplayName("hauria de crear proveïdor correctament")
+        void createSupplier_ShouldCreateSupplier_WhenValidData() {
+            // Given
+            setupSecurityContextForAuthenticatedUser();
 
-        // Verify
-        verify(companyRepository).findByUuid(validSupplierRequest.getCompanyUuid());
-        verify(supplierRepository, never()).existsByCompanyUuidAndNameIgnoreCase(anyString(), anyString());
-        verify(supplierRepository, never()).save(any(Supplier.class));
+            when(userRepository.findByEmail(TEST_USER_EMAIL)).thenReturn(Optional.of(testUser));
+            when(companyRepository.findByUuid(TEST_COMPANY_UUID)).thenReturn(Optional.of(testCompany));
+            when(supplierRepository.existsByCompanyUuidAndNameIgnoreCase(TEST_COMPANY_UUID, "Proveïdors Catalunya SL"))
+                    .thenReturn(false);
+            when(supplierRepository.save(any(Supplier.class))).thenReturn(testSupplier);
+
+            // When
+            SupplierResponseDTO result;
+            try (MockedStatic<SecurityContextHolder> mockedHolder = mockStatic(SecurityContextHolder.class)) {
+                mockedHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+                result = supplierService.createSupplier(validSupplierRequest);
+            }
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.getName()).isEqualTo("Proveïdors Catalunya SL");
+            assertThat(result.getCompanyUuid()).isEqualTo(TEST_COMPANY_UUID);
+            assertThat(result.getEmail()).isEqualTo("joan@provcat.com");
+
+            verify(supplierRepository).save(any(Supplier.class));
+            verify(companyRepository).findByUuid(TEST_COMPANY_UUID);
+        }
+
+        @Test
+        @DisplayName("hauria de llançar excepció quan l'empresa no existeix")
+        void createSupplier_ShouldThrowException_WhenCompanyNotFound() {
+            // Given
+            setupSecurityContextForAuthenticatedUser();
+
+            when(userRepository.findByEmail(TEST_USER_EMAIL)).thenReturn(Optional.of(testUser));
+            when(companyRepository.findByUuid(TEST_COMPANY_UUID)).thenReturn(Optional.empty());
+
+            // When & Then
+            try (MockedStatic<SecurityContextHolder> mockedHolder = mockStatic(SecurityContextHolder.class)) {
+                mockedHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+
+                assertThatThrownBy(() -> supplierService.createSupplier(validSupplierRequest))
+                        .isInstanceOf(ResourceNotFoundException.class)
+                        .hasMessageContaining("Empresa no trobada amb UUID");
+            }
+        }
+
+        @Test
+        @DisplayName("hauria de llançar excepció quan ja existeix proveïdor amb mateix nom")
+        void createSupplier_ShouldThrowException_WhenDuplicateName() {
+            // Given
+            setupSecurityContextForAuthenticatedUser();
+
+            when(userRepository.findByEmail(TEST_USER_EMAIL)).thenReturn(Optional.of(testUser));
+            when(companyRepository.findByUuid(TEST_COMPANY_UUID)).thenReturn(Optional.of(testCompany));
+            when(supplierRepository.existsByCompanyUuidAndNameIgnoreCase(TEST_COMPANY_UUID, "Proveïdors Catalunya SL"))
+                    .thenReturn(true);
+
+            // When & Then
+            try (MockedStatic<SecurityContextHolder> mockedHolder = mockStatic(SecurityContextHolder.class)) {
+                mockedHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+
+                assertThatThrownBy(() -> supplierService.createSupplier(validSupplierRequest))
+                        .isInstanceOf(DuplicateResourceException.class)
+                        .hasMessageContaining("Ja existeix un proveïdor amb el nom");
+            }
+        }
     }
 
-    @Test
-    @DisplayName("createSupplier hauria de llançar DuplicateResourceException quan ja existeix proveïdor amb mateix nom")
-    void createSupplier_ShouldThrowDuplicateResourceException_WhenSupplierNameAlreadyExists() {
-        // Given
-        when(companyRepository.findByUuid(validSupplierRequest.getCompanyUuid()))
-                .thenReturn(Optional.of(testCompany));
-        when(supplierRepository.existsByCompanyUuidAndNameIgnoreCase(
-                validSupplierRequest.getCompanyUuid(),
-                validSupplierRequest.getName()))
-                .thenReturn(true);
+    @Nested
+    @DisplayName("Tests de getSupplierByUuid")
+    class GetSupplierByUuidTests {
 
-        // When & Then
-        assertThatThrownBy(() -> supplierService.createSupplier(validSupplierRequest))
-                .isInstanceOf(DuplicateResourceException.class)
-                .hasMessage("Ja existeix un proveïdor amb el nom 'Proveïdors Catalunya SL' a l'empresa especificada");
+        @Test
+        @DisplayName("hauria de retornar proveïdor quan UUID existeix")
+        void getSupplierByUuid_ShouldReturnSupplier_WhenUuidExists() {
+            // Given
+            when(supplierRepository.findByUuid(TEST_SUPPLIER_UUID)).thenReturn(Optional.of(testSupplier));
 
-        // Verify
-        verify(companyRepository).findByUuid(validSupplierRequest.getCompanyUuid());
-        verify(supplierRepository).existsByCompanyUuidAndNameIgnoreCase(
-                validSupplierRequest.getCompanyUuid(),
-                validSupplierRequest.getName());
-        verify(supplierRepository, never()).save(any(Supplier.class));
+            // When
+            SupplierResponseDTO result = supplierService.getSupplierByUuid(TEST_SUPPLIER_UUID);
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.getUuid()).isEqualTo(TEST_SUPPLIER_UUID);
+            assertThat(result.getName()).isEqualTo("Proveïdors Catalunya SL");
+
+            verify(supplierRepository).findByUuid(TEST_SUPPLIER_UUID);
+        }
+
+        @Test
+        @DisplayName("hauria de llançar excepció quan UUID no existeix")
+        void getSupplierByUuid_ShouldThrowException_WhenUuidNotFound() {
+            // Given
+            String nonExistentUuid = "non-existent-uuid";
+            when(supplierRepository.findByUuid(nonExistentUuid)).thenReturn(Optional.empty());
+
+            // When & Then
+            assertThatThrownBy(() -> supplierService.getSupplierByUuid(nonExistentUuid))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessageContaining("Proveïdor no trobat amb UUID");
+        }
     }
 
-    @Test
-    @DisplayName("createSupplier hauria de crear proveïdor amb camps opcionals null")
-    void createSupplier_ShouldCreateSupplier_WithOptionalFieldsNull() {
-        // Given
-        SupplierRequestDTO minimalRequest = SupplierRequestDTO.builder()
-                .companyUuid("company-uuid-123")
-                .name("Proveïdor Mínim")
-                .isActive(true)
-                .build();
+    @Nested
+    @DisplayName("Tests de updateSupplier")
+    class UpdateSupplierTests {
 
-        Supplier minimalSupplier = Supplier.builder()
-                .id(2L)
-                .uuid("supplier-uuid-456")
-                .company(testCompany)
-                .name("Proveïdor Mínim")
-                .contactName(null)
-                .email(null)
-                .phone(null)
-                .address(null)
-                .notes(null)
-                .isActive(true)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
+        @Test
+        @DisplayName("hauria d'actualitzar proveïdor correctament")
+        void updateSupplier_ShouldUpdateSupplier_WhenValidData() {
+            // Given
+            setupSecurityContextForAuthenticatedUser();
 
-        when(companyRepository.findByUuid(minimalRequest.getCompanyUuid()))
-                .thenReturn(Optional.of(testCompany));
-        when(supplierRepository.existsByCompanyUuidAndNameIgnoreCase(
-                minimalRequest.getCompanyUuid(),
-                minimalRequest.getName()))
-                .thenReturn(false);
-        when(supplierRepository.save(any(Supplier.class)))
-                .thenReturn(minimalSupplier);
+            SupplierRequestDTO updateRequest = SupplierRequestDTO.builder()
+                    .name("Proveïdors Barcelona SL")
+                    .contactName("Maria Garcia")
+                    .email("maria@provbar.com")
+                    .phone("934567890")
+                    .address("Carrer Valencia 456, Barcelona")
+                    .notes("Proveïdor actualitzat")
+                    .isActive(true)
+                    .build();
 
-        // When
-        SupplierResponseDTO result = supplierService.createSupplier(minimalRequest);
+            when(userRepository.findByEmail(TEST_USER_EMAIL)).thenReturn(Optional.of(testUser));
+            when(supplierRepository.findByUuid(TEST_SUPPLIER_UUID)).thenReturn(Optional.of(testSupplier));
+            when(supplierRepository.existsByCompanyUuidAndNameIgnoreCaseAndUuidNot(
+                    TEST_COMPANY_UUID, "Proveïdors Barcelona SL", TEST_SUPPLIER_UUID))
+                    .thenReturn(false);
+            when(supplierRepository.save(any(Supplier.class))).thenReturn(testSupplier);
 
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.getUuid()).isEqualTo("supplier-uuid-456");
-        assertThat(result.getName()).isEqualTo("Proveïdor Mínim");
-        assertThat(result.getContactName()).isNull();
-        assertThat(result.getEmail()).isNull();
-        assertThat(result.getPhone()).isNull();
-        assertThat(result.getAddress()).isNull();
-        assertThat(result.getNotes()).isNull();
-        assertThat(result.getIsActive()).isTrue();
+            // When
+            SupplierResponseDTO result;
+            try (MockedStatic<SecurityContextHolder> mockedHolder = mockStatic(SecurityContextHolder.class)) {
+                mockedHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+                result = supplierService.updateSupplier(TEST_SUPPLIER_UUID, updateRequest);
+            }
+
+            // Then
+            assertThat(result).isNotNull();
+            verify(supplierRepository).save(any(Supplier.class));
+        }
+
+        @Test
+        @DisplayName("hauria de llançar excepció quan proveïdor no existeix")
+        void updateSupplier_ShouldThrowException_WhenSupplierNotFound() {
+            // Given
+            String nonExistentUuid = "non-existent-uuid";
+            when(supplierRepository.findByUuid(nonExistentUuid)).thenReturn(Optional.empty());
+
+            // When & Then
+            assertThatThrownBy(() -> supplierService.updateSupplier(nonExistentUuid, validSupplierRequest))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessageContaining("Proveïdor no trobat amb UUID");
+        }
     }
 
-    @Test
-    @DisplayName("createSupplier hauria de crear proveïdor inactiu quan isActive és false")
-    void createSupplier_ShouldCreateInactiveSupplier_WhenIsActiveFalse() {
-        // Given
-        SupplierRequestDTO inactiveRequest = SupplierRequestDTO.builder()
-                .companyUuid("company-uuid-123")
-                .name("Proveïdor Inactiu")
-                .isActive(false)
-                .build();
+    @Nested
+    @DisplayName("Tests de toggleSupplierStatus")
+    class ToggleSupplierStatusTests {
 
-        Supplier inactiveSupplier = Supplier.builder()
-                .id(3L)
-                .uuid("supplier-uuid-789")
-                .company(testCompany)
-                .name("Proveïdor Inactiu")
-                .isActive(false)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
+        @Test
+        @DisplayName("hauria de canviar estat del proveïdor")
+        void toggleSupplierStatus_ShouldChangeStatus() {
+            // Given
+            when(supplierRepository.findByUuid(TEST_SUPPLIER_UUID)).thenReturn(Optional.of(testSupplier));
+            when(supplierRepository.save(testSupplier)).thenReturn(testSupplier);
 
-        when(companyRepository.findByUuid(inactiveRequest.getCompanyUuid()))
-                .thenReturn(Optional.of(testCompany));
-        when(supplierRepository.existsByCompanyUuidAndNameIgnoreCase(
-                inactiveRequest.getCompanyUuid(),
-                inactiveRequest.getName()))
-                .thenReturn(false);
-        when(supplierRepository.save(any(Supplier.class)))
-                .thenReturn(inactiveSupplier);
+            // When
+            SupplierResponseDTO result = supplierService.toggleSupplierStatus(TEST_SUPPLIER_UUID, false);
 
-        // When
-        SupplierResponseDTO result = supplierService.createSupplier(inactiveRequest);
+            // Then
+            assertThat(result).isNotNull();
+            verify(supplierRepository).save(testSupplier);
+        }
 
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.getIsActive()).isFalse();
+        @Test
+        @DisplayName("hauria de llançar excepció quan proveïdor no existeix")
+        void toggleSupplierStatus_ShouldThrowException_WhenSupplierNotFound() {
+            // Given
+            String nonExistentUuid = "non-existent-uuid";
+            when(supplierRepository.findByUuid(nonExistentUuid)).thenReturn(Optional.empty());
+
+            // When & Then
+            assertThatThrownBy(() -> supplierService.toggleSupplierStatus(nonExistentUuid, false))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessageContaining("Proveïdor no trobat amb UUID");
+        }
     }
 
-    @Test
-    @DisplayName("createSupplier hauria de gestionar noms amb majúscules i minúscules")
-    void createSupplier_ShouldHandleCaseInsensitiveNames() {
-        // Given
-        SupplierRequestDTO upperCaseRequest = SupplierRequestDTO.builder()
-                .companyUuid("company-uuid-123")
-                .name("PROVEÏDOR EN MAJÚSCULES")
-                .isActive(true)
-                .build();
+    @Nested
+    @DisplayName("Tests de getAllSuppliersPaginated - NOUVEAU")
+    class GetAllSuppliersPaginatedTests {
 
-        when(companyRepository.findByUuid(upperCaseRequest.getCompanyUuid()))
-                .thenReturn(Optional.of(testCompany));
-        when(supplierRepository.existsByCompanyUuidAndNameIgnoreCase(
-                upperCaseRequest.getCompanyUuid(),
-                upperCaseRequest.getName()))
-                .thenReturn(true); // Simular que ja existeix (case insensitive)
+        @Test
+        @DisplayName("hauria de retornar tots els proveïdors actius paginats")
+        void getAllSuppliersPaginated_ShouldReturnActiveSuppliers() {
+            // Given
+            setupSecurityContextForAuthenticatedUser();
 
-        // When & Then
-        assertThatThrownBy(() -> supplierService.createSupplier(upperCaseRequest))
-                .isInstanceOf(DuplicateResourceException.class);
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<Supplier> supplierPage = new PageImpl<>(List.of(testSupplier));
 
-        // Verify que es va cridar amb case insensitive
-        verify(supplierRepository).existsByCompanyUuidAndNameIgnoreCase(
-                upperCaseRequest.getCompanyUuid(),
-                "PROVEÏDOR EN MAJÚSCULES");
+            when(userRepository.findByEmail(TEST_USER_EMAIL)).thenReturn(Optional.of(testUser));
+            when(supplierRepository.findByCompanyUuidAndIsActiveTrue(TEST_COMPANY_UUID, pageable))
+                    .thenReturn(supplierPage);
+
+            // When
+            Page<SupplierResponseDTO> result;
+            try (MockedStatic<SecurityContextHolder> mockedHolder = mockStatic(SecurityContextHolder.class)) {
+                mockedHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+                result = supplierService.getAllSuppliersPaginated(pageable);
+            }
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).hasSize(1);
+            assertThat(result.getContent().getFirst().getName()).isEqualTo("Proveïdors Catalunya SL");
+            assertThat(result.getContent().getFirst().getIsActive()).isTrue();
+
+            verify(supplierRepository).findByCompanyUuidAndIsActiveTrue(TEST_COMPANY_UUID, pageable);
+        }
     }
 
-    @Test
-    @DisplayName("mapToResponseDTO hauria de mapejar correctament tots els camps")
-    void mapToResponseDTO_ShouldMapAllFieldsCorrectly() {
-        // Given
-        when(companyRepository.findByUuid(validSupplierRequest.getCompanyUuid()))
-                .thenReturn(Optional.of(testCompany));
-        when(supplierRepository.existsByCompanyUuidAndNameIgnoreCase(
-                validSupplierRequest.getCompanyUuid(),
-                validSupplierRequest.getName()))
-                .thenReturn(false);
-        when(supplierRepository.save(any(Supplier.class)))
-                .thenReturn(savedSupplier);
+    @Nested
+    @DisplayName("Tests de searchSuppliersByText - ACTUALITZAT")
+    class SearchSuppliersByTextTests {
 
-        // When
-        SupplierResponseDTO result = supplierService.createSupplier(validSupplierRequest);
+        @Test
+        @DisplayName("hauria de retornar proveïdors actius per text de cerca")
+        void searchSuppliersByText_ShouldReturnActiveSuppliers() {
+            // Given
+            setupSecurityContextForAuthenticatedUser();
 
-        // Then - Verificar que tots els camps es mapegen correctament
-        assertThat(result.getUuid()).isEqualTo(savedSupplier.getUuid());
-        assertThat(result.getCompanyUuid()).isEqualTo(savedSupplier.getCompany().getUuid());
-        assertThat(result.getCompanyName()).isEqualTo(savedSupplier.getCompany().getName());
-        assertThat(result.getName()).isEqualTo(savedSupplier.getName());
-        assertThat(result.getContactName()).isEqualTo(savedSupplier.getContactName());
-        assertThat(result.getEmail()).isEqualTo(savedSupplier.getEmail());
-        assertThat(result.getPhone()).isEqualTo(savedSupplier.getPhone());
-        assertThat(result.getAddress()).isEqualTo(savedSupplier.getAddress());
-        assertThat(result.getNotes()).isEqualTo(savedSupplier.getNotes());
-        assertThat(result.getIsActive()).isEqualTo(savedSupplier.getIsActive());
-        assertThat(result.getCreatedAt()).isEqualTo(savedSupplier.getCreatedAt());
-        assertThat(result.getUpdatedAt()).isEqualTo(savedSupplier.getUpdatedAt());
+            String searchText = "Barcelona";
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<Supplier> supplierPage = new PageImpl<>(List.of(testSupplier));
+
+            when(userRepository.findByEmail(TEST_USER_EMAIL)).thenReturn(Optional.of(testUser));
+            when(companyRepository.findByUuid(TEST_COMPANY_UUID)).thenReturn(Optional.of(testCompany));
+            when(supplierRepository.findByCompanyIdAndMultipleFieldsContainingActive(
+                    testCompany.getId(), searchText, pageable))
+                    .thenReturn(supplierPage);
+
+            // When
+            Page<SupplierResponseDTO> result;
+            try (MockedStatic<SecurityContextHolder> mockedHolder = mockStatic(SecurityContextHolder.class)) {
+                mockedHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+                result = supplierService.searchSuppliersByText(searchText, pageable);
+            }
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).hasSize(1);
+            assertThat(result.getContent().getFirst().getName()).isEqualTo("Proveïdors Catalunya SL");
+
+            // Verificar que s'usa el NOU nom del mètode del repositori
+            verify(supplierRepository).findByCompanyIdAndMultipleFieldsContainingActive(
+                    testCompany.getId(), searchText, pageable);
+        }
+
+        @Test
+        @DisplayName("hauria de llançar excepció quan empresa no existeix")
+        void searchSuppliersByText_ShouldThrowException_WhenCompanyNotFound() {
+            // Given
+            setupSecurityContextForAuthenticatedUser();
+
+            when(userRepository.findByEmail(TEST_USER_EMAIL)).thenReturn(Optional.of(testUser));
+            when(companyRepository.findByUuid(TEST_COMPANY_UUID)).thenReturn(Optional.empty());
+
+            // When & Then
+            try (MockedStatic<SecurityContextHolder> mockedHolder = mockStatic(SecurityContextHolder.class)) {
+                mockedHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+
+                assertThatThrownBy(() -> supplierService.searchSuppliersByText("test", PageRequest.of(0, 10)))
+                        .isInstanceOf(ResourceNotFoundException.class)
+                        .hasMessageContaining("Empresa no trobada amb UUID");
+            }
+        }
     }
 
-    @Test
-    @DisplayName("createSupplier hauria de gestionar UUID d'empresa null")
-    void createSupplier_ShouldHandleNullCompanyUuid() {
-        // Given
-        SupplierRequestDTO nullUuidRequest = SupplierRequestDTO.builder()
-                .companyUuid(null)
-                .name("Test Supplier")
-                .isActive(true)
-                .build();
+    @Nested
+    @DisplayName("Tests de searchSuppliersWithFilters - ACTUALITZAT")
+    class SearchSuppliersWithFiltersTests {
 
-        when(companyRepository.findByUuid(null))
-                .thenReturn(Optional.empty());
+        @Test
+        @DisplayName("hauria de retornar proveïdors actius amb filtres")
+        void searchSuppliersWithFilters_ShouldReturnActiveFilteredSuppliers() {
+            // Given
+            setupSecurityContextForAuthenticatedUser();
 
-        // When & Then
-        assertThatThrownBy(() -> supplierService.createSupplier(nullUuidRequest))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("Empresa no trobada amb UUID: null");
+            SupplierFilterDTO filterDTO = SupplierFilterDTO.builder()
+                    .name("Catalunya")
+                    .page(0)
+                    .size(10)
+                    .sortBy("name")
+                    .sortDir("asc")
+                    .build();
+
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<Supplier> supplierPage = new PageImpl<>(List.of(testSupplier));
+
+            when(userRepository.findByEmail(TEST_USER_EMAIL)).thenReturn(Optional.of(testUser));
+            when(companyRepository.findByUuid(TEST_COMPANY_UUID)).thenReturn(Optional.of(testCompany));
+            when(supplierRepository.findByCompanyIdAndCriteriaActive(
+                    eq(testCompany.getId()),
+                    eq("Catalunya"),
+                    eq(null),
+                    eq(null),
+                    eq(null),
+                    eq(null),
+                    eq(pageable)))
+                    .thenReturn(supplierPage);
+
+            // When
+            Page<SupplierResponseDTO> result;
+            try (MockedStatic<SecurityContextHolder> mockedHolder = mockStatic(SecurityContextHolder.class)) {
+                mockedHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+                result = supplierService.searchSuppliersWithFilters(filterDTO, pageable);
+            }
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).hasSize(1);
+
+            // Verificar que s'usa el NOU nom del mètode del repositori
+            verify(supplierRepository).findByCompanyIdAndCriteriaActive(
+                    eq(testCompany.getId()),
+                    eq("Catalunya"),
+                    eq(null),
+                    eq(null),
+                    eq(null),
+                    eq(null),
+                    eq(pageable));
+        }
     }
 
-    // ================= TESTS PER NOUS MÈTODES =================
+    @Nested
+    @DisplayName("Tests de getCompanyUuidFromAuthenticatedUser")
+    class GetCompanyUuidTests {
 
-    @Test
-    @DisplayName("getSupplierByUuid hauria de retornar proveïdor quan existeix")
-    void getSupplierByUuid_ShouldReturnSupplier_WhenExists() {
-        // Given
-        when(supplierRepository.findByUuid("supplier-uuid-123"))
-                .thenReturn(Optional.of(savedSupplier));
+        @Test
+        @DisplayName("hauria de llançar excepció quan usuari no existeix")
+        void getCompanyUuid_ShouldThrowException_WhenUserNotFound() {
+            // Given
+            setupSecurityContextForAuthenticatedUser();
 
-        // When
-        SupplierResponseDTO result = supplierService.getSupplierByUuid("supplier-uuid-123");
+            when(userRepository.findByEmail(TEST_USER_EMAIL)).thenReturn(Optional.empty());
 
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.getUuid()).isEqualTo("supplier-uuid-123");
-        assertThat(result.getName()).isEqualTo("Proveïdors Catalunya SL");
-        assertThat(result.getCompanyUuid()).isEqualTo("company-uuid-123");
+            // When & Then
+            try (MockedStatic<SecurityContextHolder> mockedHolder = mockStatic(SecurityContextHolder.class)) {
+                mockedHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
 
-        verify(supplierRepository).findByUuid("supplier-uuid-123");
+                assertThatThrownBy(() -> supplierService.createSupplier(validSupplierRequest))
+                        .isInstanceOf(ResourceNotFoundException.class)
+                        .hasMessageContaining("Usuari no trobat");
+            }
+        }
+
+        @Test
+        @DisplayName("hauria de llançar excepció quan usuari no té empresa assignada")
+        void getCompanyUuid_ShouldThrowException_WhenUserHasNoCompany() {
+            // Given
+            setupSecurityContextForAuthenticatedUser();
+
+            User userWithoutCompany = User.builder()
+                    .email(TEST_USER_EMAIL)
+                    .company(null)
+                    .build();
+
+            when(userRepository.findByEmail(TEST_USER_EMAIL)).thenReturn(Optional.of(userWithoutCompany));
+
+            // When & Then
+            try (MockedStatic<SecurityContextHolder> mockedHolder = mockStatic(SecurityContextHolder.class)) {
+                mockedHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+
+                assertThatThrownBy(() -> supplierService.createSupplier(validSupplierRequest))
+                        .isInstanceOf(ResourceNotFoundException.class)
+                        .hasMessageContaining("L'usuari no té empresa assignada");
+            }
+        }
     }
 
-    @Test
-    @DisplayName("getSupplierByUuid hauria de llançar ResourceNotFoundException quan no existeix")
-    void getSupplierByUuid_ShouldThrowResourceNotFoundException_WhenNotExists() {
-        // Given
-        when(supplierRepository.findByUuid("uuid-inexistent"))
-                .thenReturn(Optional.empty());
-
-        // When & Then
-        assertThatThrownBy(() -> supplierService.getSupplierByUuid("uuid-inexistent"))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("Proveïdor no trobat amb UUID: uuid-inexistent");
-
-        verify(supplierRepository).findByUuid("uuid-inexistent");
-    }
-
-    @Test
-    @DisplayName("updateSupplier hauria d'actualitzar proveïdor correctament sense canviar empresa")
-    void updateSupplier_ShouldUpdateSupplier_WhenSameCompany() {
-        // Given
-        SupplierRequestDTO updateRequest = SupplierRequestDTO.builder()
-                .companyUuid("company-uuid-123") // Mateixa empresa
-                .name("Nom Actualitzat")
-                .contactName("Contacte Actualitzat")
-                .email("nou@email.com")
-                .phone("987654321")
-                .address("Nova Adreça")
-                .notes("Notes actualitzades")
-                .isActive(false)
-                .build();
-
-        Supplier updatedSupplier = Supplier.builder()
-                .id(1L)
-                .uuid("supplier-uuid-123")
-                .company(testCompany)
-                .name("Nom Actualitzat")
-                .contactName("Contacte Actualitzat")
-                .email("nou@email.com")
-                .phone("987654321")
-                .address("Nova Adreça")
-                .notes("Notes actualitzades")
-                .isActive(false)
-                .createdAt(savedSupplier.getCreatedAt())
-                .updatedAt(LocalDateTime.now())
-                .build();
-
-        when(supplierRepository.findByUuid("supplier-uuid-123"))
-                .thenReturn(Optional.of(savedSupplier));
-        when(supplierRepository.existsByCompanyUuidAndNameIgnoreCaseAndUuidNot(
-                "company-uuid-123", "Nom Actualitzat", "supplier-uuid-123"))
-                .thenReturn(false);
-        when(supplierRepository.save(any(Supplier.class)))
-                .thenReturn(updatedSupplier);
-
-        // When
-        SupplierResponseDTO result = supplierService.updateSupplier("supplier-uuid-123", updateRequest);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.getName()).isEqualTo("Nom Actualitzat");
-        assertThat(result.getContactName()).isEqualTo("Contacte Actualitzat");
-        assertThat(result.getEmail()).isEqualTo("nou@email.com");
-        assertThat(result.getIsActive()).isFalse();
-
-        verify(supplierRepository).findByUuid("supplier-uuid-123");
-        verify(supplierRepository).existsByCompanyUuidAndNameIgnoreCaseAndUuidNot(
-                "company-uuid-123", "Nom Actualitzat", "supplier-uuid-123");
-        verify(supplierRepository).save(any(Supplier.class));
-    }
-
-    @Test
-    @DisplayName("updateSupplier hauria d'actualitzar empresa quan canvia")
-    void updateSupplier_ShouldUpdateCompany_WhenCompanyChanges() {
-        // Given
-        Company newCompany = Company.builder()
-                .id(2L)
-                .uuid("new-company-uuid")
-                .name("Nova Empresa SL")
-                .build();
-
-        SupplierRequestDTO updateRequest = SupplierRequestDTO.builder()
-                .companyUuid("new-company-uuid") // Nova empresa
-                .name("Proveïdors Catalunya SL") // Mateix nom
-                .isActive(true)
-                .build();
-
-        when(supplierRepository.findByUuid("supplier-uuid-123"))
-                .thenReturn(Optional.of(savedSupplier));
-        when(companyRepository.findByUuid("new-company-uuid"))
-                .thenReturn(Optional.of(newCompany));
-        when(supplierRepository.save(any(Supplier.class)))
-                .thenReturn(savedSupplier);
-
-        // When
-        SupplierResponseDTO result = supplierService.updateSupplier("supplier-uuid-123", updateRequest);
-
-        // Then
-        assertThat(result).isNotNull();
-        verify(supplierRepository).findByUuid("supplier-uuid-123");
-        verify(companyRepository).findByUuid("new-company-uuid");
-        verify(supplierRepository).save(any(Supplier.class));
-    }
-
-    @Test
-    @DisplayName("updateSupplier hauria de llançar ResourceNotFoundException quan proveïdor no existeix")
-    void updateSupplier_ShouldThrowResourceNotFoundException_WhenSupplierNotExists() {
-        // Given
-        when(supplierRepository.findByUuid("uuid-inexistent"))
-                .thenReturn(Optional.empty());
-
-        // When & Then
-        assertThatThrownBy(() -> supplierService.updateSupplier("uuid-inexistent", validSupplierRequest))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("Proveïdor no trobat amb UUID: uuid-inexistent");
-
-        verify(supplierRepository).findByUuid("uuid-inexistent");
-        verify(supplierRepository, never()).save(any(Supplier.class));
-    }
-
-    @Test
-    @DisplayName("updateSupplier hauria de llançar ResourceNotFoundException quan nova empresa no existeix")
-    void updateSupplier_ShouldThrowResourceNotFoundException_WhenNewCompanyNotExists() {
-        // Given
-        SupplierRequestDTO updateRequest = SupplierRequestDTO.builder()
-                .companyUuid("company-inexistent")
-                .name("Test Name")
-                .isActive(true)
-                .build();
-
-        when(supplierRepository.findByUuid("supplier-uuid-123"))
-                .thenReturn(Optional.of(savedSupplier));
-        when(companyRepository.findByUuid("company-inexistent"))
-                .thenReturn(Optional.empty());
-
-        // When & Then
-        assertThatThrownBy(() -> supplierService.updateSupplier("supplier-uuid-123", updateRequest))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("Empresa no trobada amb UUID: company-inexistent");
-
-        verify(companyRepository).findByUuid("company-inexistent");
-    }
-
-    @Test
-    @DisplayName("updateSupplier hauria de llançar DuplicateResourceException quan nom ja existeix")
-    void updateSupplier_ShouldThrowDuplicateResourceException_WhenNameAlreadyExists() {
-        // Given
-        SupplierRequestDTO updateRequest = SupplierRequestDTO.builder()
-                .companyUuid("company-uuid-123")
-                .name("Nom Duplicat")
-                .isActive(true)
-                .build();
-
-        when(supplierRepository.findByUuid("supplier-uuid-123"))
-                .thenReturn(Optional.of(savedSupplier));
-        when(supplierRepository.existsByCompanyUuidAndNameIgnoreCaseAndUuidNot(
-                "company-uuid-123", "Nom Duplicat", "supplier-uuid-123"))
-                .thenReturn(true);
-
-        // When & Then
-        assertThatThrownBy(() -> supplierService.updateSupplier("supplier-uuid-123", updateRequest))
-                .isInstanceOf(DuplicateResourceException.class)
-                .hasMessage("Ja existeix un proveïdor amb el nom 'Nom Duplicat' a l'empresa especificada");
-
-        verify(supplierRepository).existsByCompanyUuidAndNameIgnoreCaseAndUuidNot(
-                "company-uuid-123", "Nom Duplicat", "supplier-uuid-123");
-        verify(supplierRepository, never()).save(any(Supplier.class));
-    }
-
-    @Test
-    @DisplayName("getSuppliersByCompanyUuid hauria de retornar llista de proveïdors")
-    void getSuppliersByCompanyUuid_ShouldReturnSuppliersList() {
-        // Given
-        Supplier supplier2 = Supplier.builder()
-                .uuid("supplier-2-uuid")
-                .company(testCompany)
-                .name("Segon Proveïdor")
-                .isActive(true)
-                .build();
-
-        List<Supplier> suppliers = Arrays.asList(savedSupplier, supplier2);
-
-        when(companyRepository.existsByUuid("company-uuid-123"))
-                .thenReturn(true);
-        when(supplierRepository.findByCompanyUuid("company-uuid-123"))
-                .thenReturn(suppliers);
-
-        // When
-        List<SupplierResponseDTO> result = supplierService.getSuppliersByCompanyUuid("company-uuid-123");
-
-        // Then
-        assertThat(result).hasSize(2);
-        assertThat(result.get(0).getUuid()).isEqualTo("supplier-uuid-123");
-        assertThat(result.get(1).getUuid()).isEqualTo("supplier-2-uuid");
-        assertThat(result).allMatch(s -> s.getCompanyUuid().equals("company-uuid-123"));
-
-        verify(companyRepository).existsByUuid("company-uuid-123");
-        verify(supplierRepository).findByCompanyUuid("company-uuid-123");
-    }
-
-    @Test
-    @DisplayName("getSuppliersByCompanyUuid hauria de retornar llista buida quan no hi ha proveïdors")
-    void getSuppliersByCompanyUuid_ShouldReturnEmptyList_WhenNoSuppliers() {
-        // Given
-        when(companyRepository.existsByUuid("company-uuid-123"))
-                .thenReturn(true);
-        when(supplierRepository.findByCompanyUuid("company-uuid-123"))
-                .thenReturn(List.of());
-
-        // When
-        List<SupplierResponseDTO> result = supplierService.getSuppliersByCompanyUuid("company-uuid-123");
-
-        // Then
-        assertThat(result).isEmpty();
-
-        verify(companyRepository).existsByUuid("company-uuid-123");
-        verify(supplierRepository).findByCompanyUuid("company-uuid-123");
-    }
-
-    @Test
-    @DisplayName("getSuppliersByCompanyUuid hauria de llançar ResourceNotFoundException quan empresa no existeix")
-    void getSuppliersByCompanyUuid_ShouldThrowResourceNotFoundException_WhenCompanyNotExists() {
-        // Given
-        when(companyRepository.existsByUuid("company-inexistent"))
-                .thenReturn(false);
-
-        // When & Then
-        assertThatThrownBy(() -> supplierService.getSuppliersByCompanyUuid("company-inexistent"))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("Empresa no trobada amb UUID: company-inexistent");
-
-        verify(companyRepository).existsByUuid("company-inexistent");
-        verify(supplierRepository, never()).findByCompanyUuid(anyString());
-    }
-
-    @Test
-    @DisplayName("toggleSupplierStatus hauria d'activar proveïdor correctament")
-    void toggleSupplierStatus_ShouldActivateSupplier() {
-        // Given
-        Supplier inactiveSupplier = Supplier.builder()
-                .id(1L)
-                .uuid("supplier-uuid-123")
-                .company(testCompany)
-                .name("Test Supplier")
-                .isActive(false)
-                .build();
-
-        Supplier activatedSupplier = Supplier.builder()
-                .id(1L)
-                .uuid("supplier-uuid-123")
-                .company(testCompany)
-                .name("Test Supplier")
-                .isActive(true)
-                .build();
-
-        when(supplierRepository.findByUuid("supplier-uuid-123"))
-                .thenReturn(Optional.of(inactiveSupplier));
-        when(supplierRepository.save(any(Supplier.class)))
-                .thenReturn(activatedSupplier);
-
-        // When
-        SupplierResponseDTO result = supplierService.toggleSupplierStatus("supplier-uuid-123", true);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.getIsActive()).isTrue();
-
-        verify(supplierRepository).findByUuid("supplier-uuid-123");
-        verify(supplierRepository).save(any(Supplier.class));
-    }
-
-    @Test
-    @DisplayName("toggleSupplierStatus hauria de desactivar proveïdor correctament")
-    void toggleSupplierStatus_ShouldDeactivateSupplier() {
-        // Given
-        Supplier deactivatedSupplier = Supplier.builder()
-                .id(1L)
-                .uuid("supplier-uuid-123")
-                .company(testCompany)
-                .name("Test Supplier")
-                .isActive(false)
-                .build();
-
-        when(supplierRepository.findByUuid("supplier-uuid-123"))
-                .thenReturn(Optional.of(savedSupplier)); // Actiu inicialment
-        when(supplierRepository.save(any(Supplier.class)))
-                .thenReturn(deactivatedSupplier);
-
-        // When
-        SupplierResponseDTO result = supplierService.toggleSupplierStatus("supplier-uuid-123", false);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.getIsActive()).isFalse();
-
-        verify(supplierRepository).findByUuid("supplier-uuid-123");
-        verify(supplierRepository).save(any(Supplier.class));
-    }
-
-    @Test
-    @DisplayName("toggleSupplierStatus hauria de llançar ResourceNotFoundException quan proveïdor no existeix")
-    void toggleSupplierStatus_ShouldThrowResourceNotFoundException_WhenSupplierNotExists() {
-        // Given
-        when(supplierRepository.findByUuid("uuid-inexistent"))
-                .thenReturn(Optional.empty());
-
-        // When & Then
-        assertThatThrownBy(() -> supplierService.toggleSupplierStatus("uuid-inexistent", true))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("Proveïdor no trobat amb UUID: uuid-inexistent");
-
-        verify(supplierRepository).findByUuid("uuid-inexistent");
-        verify(supplierRepository, never()).save(any(Supplier.class));
-    }
-
-    @Test
-    @DisplayName("updateSupplier no hauria de validar nom quan no canvia")
-    void updateSupplier_ShouldNotValidateName_WhenNameDoesNotChange() {
-        // Given
-        SupplierRequestDTO updateRequest = SupplierRequestDTO.builder()
-                .companyUuid("company-uuid-123")
-                .name("Proveïdors Catalunya SL") // Mateix nom
-                .contactName("Nou Contacte")
-                .isActive(true)
-                .build();
-
-        when(supplierRepository.findByUuid("supplier-uuid-123"))
-                .thenReturn(Optional.of(savedSupplier));
-        when(supplierRepository.save(any(Supplier.class)))
-                .thenReturn(savedSupplier);
-
-        // When
-        SupplierResponseDTO result = supplierService.updateSupplier("supplier-uuid-123", updateRequest);
-
-        // Then
-        assertThat(result).isNotNull();
-
-        verify(supplierRepository).findByUuid("supplier-uuid-123");
-        verify(supplierRepository, never()).existsByCompanyUuidAndNameIgnoreCaseAndUuidNot(anyString(), anyString(), anyString());
-        verify(supplierRepository).save(any(Supplier.class));
-    }
-
-    // ================= TESTS PER searchSuppliersByCompanyAndName =================
-
-    @Test
-    @DisplayName("searchSuppliersByCompanyAndName hauria de retornar pàgina de proveïdors correctament")
-    void searchSuppliersByCompanyAndName_ShouldReturnPageOfSuppliers() {
-        // Given
-        Pageable pageable = PageRequest.of(0, 10);
-        List<Supplier> suppliers = Collections.singletonList(savedSupplier);
-        Page<Supplier> suppliersPage = new PageImpl<>(suppliers, pageable, 1);
-
-        when(companyRepository.findByUuid("company-uuid-123"))
-                .thenReturn(Optional.of(testCompany));
-        when(supplierRepository.findByCompanyIdAndNameContaining(
-                eq(1L), eq("Catalunya"), any(Pageable.class)))
-                .thenReturn(suppliersPage);
-
-        // When
-        Page<SupplierResponseDTO> result = supplierService.searchSuppliersByCompanyAndName(
-                "company-uuid-123", "Catalunya", pageable);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().getFirst().getUuid()).isEqualTo("supplier-uuid-123");
-        assertThat(result.getTotalElements()).isEqualTo(1);
-
-        verify(companyRepository).findByUuid("company-uuid-123");
-        verify(supplierRepository).findByCompanyIdAndNameContaining(1L, "Catalunya", pageable);
-    }
-
-    @Test
-    @DisplayName("searchSuppliersByCompanyAndName hauria de llançar ResourceNotFoundException quan empresa no existeix")
-    void searchSuppliersByCompanyAndName_ShouldThrowResourceNotFoundException_WhenCompanyNotExists() {
-        // Given
-        Pageable pageable = PageRequest.of(0, 10);
-        when(companyRepository.findByUuid("company-inexistent"))
-                .thenReturn(Optional.empty());
-
-        // When & Then
-        assertThatThrownBy(() -> supplierService.searchSuppliersByCompanyAndName(
-                "company-inexistent", "test", pageable))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("Empresa no trobada amb UUID: company-inexistent");
-
-        verify(companyRepository).findByUuid("company-inexistent");
-        verify(supplierRepository, never()).findByCompanyIdAndNameContaining(anyLong(), anyString(), any(Pageable.class));
-    }
-
-    @Test
-    @DisplayName("searchSuppliersByCompanyAndName hauria de retornar pàgina buida quan no hi ha proveïdors")
-    void searchSuppliersByCompanyAndName_ShouldReturnEmptyPage_WhenNoSuppliers() {
-        // Given
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<Supplier> emptyPage = new PageImpl<>(List.of(), pageable, 0);
-
-        when(companyRepository.findByUuid("company-uuid-123"))
-                .thenReturn(Optional.of(testCompany));
-        when(supplierRepository.findByCompanyIdAndNameContaining(
-                eq(1L), eq("inexistent"), any(Pageable.class)))
-                .thenReturn(emptyPage);
-
-        // When
-        Page<SupplierResponseDTO> result = supplierService.searchSuppliersByCompanyAndName(
-                "company-uuid-123", "inexistent", pageable);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.getContent()).isEmpty();
-        assertThat(result.getTotalElements()).isZero();
-
-        verify(companyRepository).findByUuid("company-uuid-123");
-        verify(supplierRepository).findByCompanyIdAndNameContaining(1L, "inexistent", pageable);
-    }
-
-    @Test
-    @DisplayName("searchSuppliersByCompanyAndName hauria de gestionar nom null")
-    void searchSuppliersByCompanyAndName_ShouldHandleNullName() {
-        // Given
-        Pageable pageable = PageRequest.of(0, 10);
-        List<Supplier> suppliers = Collections.singletonList(savedSupplier);
-        Page<Supplier> suppliersPage = new PageImpl<>(suppliers, pageable, 1);
-
-        when(companyRepository.findByUuid("company-uuid-123"))
-                .thenReturn(Optional.of(testCompany));
-        when(supplierRepository.findByCompanyIdAndNameContaining(
-                eq(1L), eq(null), any(Pageable.class)))
-                .thenReturn(suppliersPage);
-
-        // When
-        Page<SupplierResponseDTO> result = supplierService.searchSuppliersByCompanyAndName(
-                "company-uuid-123", null, pageable);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.getContent()).hasSize(1);
-
-        verify(companyRepository).findByUuid("company-uuid-123");
-        verify(supplierRepository).findByCompanyIdAndNameContaining(1L, null, pageable);
-    }
-
-    // ================= TESTS PER searchSuppliersWithFilters =================
-
-    @Test
-    @DisplayName("searchSuppliersWithFilters hauria de retornar pàgina de proveïdors amb filtres")
-    void searchSuppliersWithFilters_ShouldReturnPageOfSuppliersWithFilters() {
-        // Given
-        Pageable pageable = PageRequest.of(0, 10);
-        List<Supplier> suppliers = Collections.singletonList(savedSupplier);
-        Page<Supplier> suppliersPage = new PageImpl<>(suppliers, pageable, 1);
-
-        // Crear SupplierFilterDTO amb tots els filtres
-        SupplierFilterDTO filterDTO = SupplierFilterDTO.builder()
-                .companyUuid("company-uuid-123")
-                .name("Catalunya")
-                .contactName("Joan")
-                .email("joan@test.com")
-                .phone("93")
-                .address("Barcelona")
-                .notes("notes test")
-                .isActive(true)
-                .createdAfter(LocalDateTime.of(2024, 1, 1, 0, 0))
-                .createdBefore(LocalDateTime.of(2024, 12, 31, 23, 59))
-                .updatedAfter(LocalDateTime.of(2024, 6, 1, 0, 0))
-                .updatedBefore(LocalDateTime.of(2024, 11, 30, 23, 59))
-                .page(0)
-                .size(10)
-                .sortBy("name")
-                .sortDir("asc")
-                .build();
-
-        // Mock del repositori d'empresa
-        when(companyRepository.findByUuid("company-uuid-123"))
-                .thenReturn(Optional.of(testCompany));
-
-        // Mock del repositori de proveïdors amb TOTS els paràmetres
-        when(supplierRepository.findSuppliersWithFilters(
-                eq(1L),                                           // companyId
-                eq("Catalunya"),                                  // name
-                eq("Joan"),                                       // contactName
-                eq("joan@test.com"),                             // email
-                eq("93"),                                         // phone
-                eq("Barcelona"),                                  // address
-                eq("notes test"),                                 // notes
-                eq(true),                                         // isActive
-                eq(LocalDateTime.of(2024, 1, 1, 0, 0)),         // createdAfter
-                eq(LocalDateTime.of(2024, 12, 31, 23, 59)),     // createdBefore
-                eq(LocalDateTime.of(2024, 6, 1, 0, 0)),         // updatedAfter
-                eq(LocalDateTime.of(2024, 11, 30, 23, 59)),     // updatedBefore
-                any(Pageable.class)))
-                .thenReturn(suppliersPage);
-
-        // When
-        Page<SupplierResponseDTO> result = supplierService.searchSuppliersWithFilters(filterDTO, pageable);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().getFirst().getUuid()).isEqualTo("supplier-uuid-123");
-        assertThat(result.getTotalElements()).isEqualTo(1);
-
-        // Verify
-        verify(companyRepository).findByUuid("company-uuid-123");
-        verify(supplierRepository).findSuppliersWithFilters(
-                1L, "Catalunya", "Joan", "joan@test.com", "93", "Barcelona", "notes test", true,
-                LocalDateTime.of(2024, 1, 1, 0, 0),
-                LocalDateTime.of(2024, 12, 31, 23, 59),
-                LocalDateTime.of(2024, 6, 1, 0, 0),
-                LocalDateTime.of(2024, 11, 30, 23, 59),
-                pageable);
-    }
-
-    // Test per verificar que llança excepció quan empresa no existeix
-    @Test
-    @DisplayName("searchSuppliersWithFilters hauria de llançar excepció quan empresa no existeix")
-    void searchSuppliersWithFilters_WhenCompanyNotFound_ShouldThrowException() {
-        // Given
-        Pageable pageable = PageRequest.of(0, 10);
-        SupplierFilterDTO filterDTO = SupplierFilterDTO.builder()
-                .companyUuid("non-existing-uuid")
-                .name("Catalunya")
-                .build();
-
-        when(companyRepository.findByUuid("non-existing-uuid"))
-                .thenReturn(Optional.empty());
-
-        // When & Then
-        assertThatThrownBy(() -> supplierService.searchSuppliersWithFilters(filterDTO, pageable))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Empresa no trobada amb UUID: non-existing-uuid");
-
-        verify(companyRepository).findByUuid("non-existing-uuid");
-        verifyNoInteractions(supplierRepository);
-    }
-
-    // Test per verificar els mètodes utilitaris del DTO
-    @Test
-    @DisplayName("hauria de utilitzar correctament els mètodes hasTextFilters i hasDateFilters")
-    void shouldUseUtilityMethodsCorrectly() {
-        // Given - DTO amb filtres de text
-        SupplierFilterDTO dtoWithTextFilters = SupplierFilterDTO.builder()
-                .companyUuid("company-uuid-123")
-                .name("Catalunya")
-                .email("test@test.com")
-                .build();
-
-        // Given - DTO amb filtres de dates
-        SupplierFilterDTO dtoWithDateFilters = SupplierFilterDTO.builder()
-                .companyUuid("company-uuid-123")
-                .createdAfter(LocalDateTime.now().minusDays(30))
-                .build();
-
-        // Then
-        assertThat(dtoWithTextFilters.hasTextFilters()).isTrue();
-        assertThat(dtoWithTextFilters.hasDateFilters()).isFalse();
-
-        assertThat(dtoWithDateFilters.hasTextFilters()).isFalse();
-        assertThat(dtoWithDateFilters.hasDateFilters()).isTrue();
+    @Nested
+    @DisplayName("Tests de mapToResponseDTO")
+    class MapToResponseDTOTests {
+
+        @Test
+        @DisplayName("hauria de mapar entitat a DTO correctament")
+        void mapToResponseDTO_ShouldMapCorrectly() {
+            // Given - configurem un supplier per testejar el mapping directament
+            when(supplierRepository.findByUuid(TEST_SUPPLIER_UUID)).thenReturn(Optional.of(testSupplier));
+
+            // When
+            SupplierResponseDTO result = supplierService.getSupplierByUuid(TEST_SUPPLIER_UUID);
+
+            // Then
+            assertThat(result.getUuid()).isEqualTo(testSupplier.getUuid());
+            assertThat(result.getCompanyUuid()).isEqualTo(testSupplier.getCompany().getUuid());
+            assertThat(result.getCompanyName()).isEqualTo(testSupplier.getCompany().getName());
+            assertThat(result.getName()).isEqualTo(testSupplier.getName());
+            assertThat(result.getContactName()).isEqualTo(testSupplier.getContactName());
+            assertThat(result.getEmail()).isEqualTo(testSupplier.getEmail());
+            assertThat(result.getPhone()).isEqualTo(testSupplier.getPhone());
+            assertThat(result.getAddress()).isEqualTo(testSupplier.getAddress());
+            assertThat(result.getNotes()).isEqualTo(testSupplier.getNotes());
+            assertThat(result.getIsActive()).isEqualTo(testSupplier.getIsActive());
+            assertThat(result.getCreatedAt()).isEqualTo(testSupplier.getCreatedAt());
+            assertThat(result.getUpdatedAt()).isEqualTo(testSupplier.getUpdatedAt());
+        }
     }
 }

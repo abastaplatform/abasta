@@ -99,6 +99,7 @@ public class NotificationServiceImpl implements NotificationService {
      * <ul>
      *   <li>Nom del producte</li>
      *   <li>Quantitat</li>
+     *   <li>Volum</li>
      *   <li>Unitat</li>
      *   <li>Notes (si n'hi ha)</li>
      * </ul>
