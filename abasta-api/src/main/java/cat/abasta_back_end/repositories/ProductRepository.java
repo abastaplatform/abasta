@@ -34,54 +34,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Query("SELECT p FROM Product p " +
             "JOIN p.supplier s " +
-            "WHERE s.company.id = :companyId")
+            "WHERE s.company.id = :companyId AND p.isActive = true")
     Page<Product> findProductsByCompanyId(@Param("companyId") Long companyId, Pageable pageable);
-
-    /**
-     * Cerca avançada de productes amb múltiples filtres.
-     * Inclou tots els camps disponibles per a una cerca completa.
-     *
-     * @param name el nom a cercar (opcional, cerca parcial)
-     * @param description la descripció a cercar (opcional, cerca parcial)
-     * @param category la categoria a cercar (opcional, cerca parcial)
-     * @param isActive l'estat d'activitat (opcional)
-     * @param pageable informació de paginació
-     * @return pàgina de productes que compleixen els criteris
-     */
-    /*@Query("SELECT p FROM Product p WHERE p.supplier.id = :supplierId AND " +
-            "(:name IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
-            "(:description IS NULL OR LOWER(p.description) LIKE LOWER(CONCAT('%', :description, '%'))) AND " +
-            "(:category IS NULL OR LOWER(p.category) LIKE LOWER(CONCAT('%', :category, '%'))) AND " +
-            "(:volume IS NULL OR p.volume = :volume) AND " +
-            "(:unit IS NULL OR LOWER(p.unit) = LOWER(:unit)) AND " +
-            "(:minPrice IS NULL OR p.price >= :minPrice) AND " +
-            "(:maxPrice IS NULL OR p.price <= :maxPrice) AND " +
-            "(:isActive IS NULL OR p.isActive = :isActive)")
-    Page<Product> findProductsBySupplierWithFilter(@Param("supplierId") Long supplierId,
-                                            @Param("name") String name,
-                                            @Param("description") String description,
-                                            @Param("category") String category,
-                                            @Param("volume") BigDecimal volume,
-                                            @Param("unit") String unit,
-                                            @Param("minPrice") BigDecimal minPrice,
-                                            @Param("maxPrice") BigDecimal maxPrice,
-                                            @Param("isActive") Boolean isActive,
-                                            Pageable pageable);*/
-
-    /**
-     * Cerca bàsica de productes d'un proveïdor n múltiples camps de text amb paginació.
-     * Cerca en: name, description, category, forma simultània.
-     *
-     * @param searchText el text a cercar (pot ser null per obtenir tots)
-     * @param pageable informació de paginació
-     * @return pàgina de productes
-     */
-    /*@Query("SELECT p FROM Product p WHERE p.supplier.id = :supplierId AND  p.isActive = true AND" +
-            "(:searchText IS NULL OR " +
-            "LOWER(p.name) LIKE LOWER(CONCAT('%', :searchText, '%')) OR " +
-            "LOWER(p.description) LIKE LOWER(CONCAT('%', :searchText, '%')) OR " +
-            "LOWER(p.category) LIKE LOWER(CONCAT('%', :searchText, '%')))")
-    Page<Product> findProductsBySupplierWithSearch(@Param("supplierId") Long supplierId, @Param("searchText") String searchText, Pageable pageable);*/
 
     /**
      * Cerca bàsica de productes d'un proveïdor amb paginació
@@ -99,6 +53,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             OR LOWER(p.name) LIKE LOWER(CONCAT('%', :searchText, '%'))
             OR LOWER(p.description) LIKE LOWER(CONCAT('%', :searchText, '%'))
             OR LOWER(p.category) LIKE LOWER(CONCAT('%', :searchText, '%')))
+            AND p.isActive = true
            """)
     Page<Product> searchProductsBySupplierId(Long supplierId, String searchText, Pageable pageable);
 
@@ -118,6 +73,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             OR LOWER(p.name) LIKE LOWER(CONCAT('%', :searchText, '%'))    
             OR LOWER(p.description) LIKE LOWER(CONCAT('%', :searchText, '%'))
             OR LOWER(p.category) LIKE LOWER(CONCAT('%', :searchText, '%')))
+            AND p.isActive = true
            """)
     Page<Product> searchProductsByCompanyId(Long companyId, String searchText, Pageable pageable);
 
