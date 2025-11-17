@@ -1,5 +1,4 @@
 import type { Product } from '../../../../types/product.types';
-import ActionDropdown from '../ActionDropdown/ActionDropdown';
 
 import './ProductTable.scss';
 
