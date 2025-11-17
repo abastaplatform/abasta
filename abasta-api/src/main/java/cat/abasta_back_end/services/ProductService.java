@@ -82,12 +82,11 @@ public interface ProductService {
      * relacionats amb el proveïdor, aplicant criteris de paginació i ordenació.
      * </p>
      *
-     * @param supplierUuid Identificador únic (UUID) del proveïdor.
-     * @param text Cadena de text utilitzada per filtrar els resultats (nom, descripció, etc.).
+     * @param dto Objecte {@link ProductSearchDTO} amb els paràmetres de cerca
      * @param pageable Objecte {@link Pageable} que defineix la paginació i l'ordenació dels resultats.
      * @return Una pàgina de {@link ProductResponseDTO} que compleix els criteris de cerca.
      */
-    Page<ProductResponseDTO> searchProductsBySupplierWithSearch(String supplierUuid, String text, Pageable pageable);
+    Page<ProductResponseDTO> searchProducts(ProductSearchDTO dto, Pageable pageable);
 
     /**
      * Realitza una cerca avançada de productes amb múltiples filtres.
@@ -97,12 +96,11 @@ public interface ProductService {
      * així com paràmetres de paginació i ordenació.
      * </p>
      *
-     * @param supplierUuid Identificador únic (UUID) del proveïdor associat als productes.
-     * @param filterDTO Objecte {@link ProductFilterDTO} amb tots els paràmetres de filtratge.
+     * @param dto Objecte {@link ProductFilterDTO} amb tots els paràmetres de filtratge.
      * @param pageable Objecte {@link Pageable} per definir la paginació i ordenació dels resultats.
      * @return Una pàgina de {@link ProductResponseDTO} amb els productes que compleixen els filtres especificats.
      */
-    Page<ProductResponseDTO> searchProductsBySupplierWithFilter(String supplierUuid, ProductFilterDTO filterDTO, Pageable pageable);
+    Page<ProductResponseDTO> filterProducts(ProductFilterDTO dto, Pageable pageable);
 
     /**
      * Desa una imatge associada a un producte existent.
