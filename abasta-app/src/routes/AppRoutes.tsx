@@ -17,7 +17,6 @@ import Cookies from '../pages/Home/Cookies/Cookies';
 import Accessibility from '../pages/Home/Accessibility/Accessibility';
 import SupplierManager from '../components/suppliers/SupplierManager/SupplierManager';
 import ProductList from '../components/products/ProductList/ProductList';
-import ProductList from '../components/products/ProductList/ProductList';
 import ProductManager from '../components/products/ProductManager/ProductManager';
 import Orders from '../components/orders/sendOrder/SendOrder';
 

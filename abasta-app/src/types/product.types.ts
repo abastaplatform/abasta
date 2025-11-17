@@ -17,17 +17,11 @@ export interface Product {
   };
 }
 export interface BasicSearchParams {
-  category?: string;
-  name: string;
-  description?: string;
-  price: number;
-  volume?: number;
-  unit?: string;
-  imageUrl?: string;
-
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  searchText?: string;
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  sortDir?: 'asc' | 'desc';
 }
 
 export interface ProductFormData {
