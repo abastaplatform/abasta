@@ -4,12 +4,16 @@ import { Form, Collapse, Row, Col } from 'react-bootstrap';
 import './SearchBar.scss';
 import Button from '../../../common/Button/Button';
 import type { SearchFilters } from '../../../../types/product.types';
-import { supplierService } from '../../../../services/supplierService';
 import SupplierAutocomplete from '../../../common/SupplierAutocomplete/SupplierAutocomplete';
+import type { CachedSuppliersResult } from '../../../../types/supplier.types';
 
 interface SearchBarProps {
   onSearch: (filters: SearchFilters, isAdvanced: boolean) => void;
   onClear: () => void;
+  fetchSuppliers: (
+    page: number,
+    query: string
+  ) => Promise<CachedSuppliersResult>;
   supplierUuid?: string | null;
   supplierName?: string | null;
 }
@@ -17,6 +21,7 @@ interface SearchBarProps {
 const SearchBar = ({
   onSearch,
   onClear,
+  fetchSuppliers,
   supplierUuid,
   supplierName,
 }: SearchBarProps) => {
@@ -61,18 +66,6 @@ const SearchBar = ({
     onClear();
   };
 
-  const handleQueryChange = (value: string) => {
-    setFilters({ ...filters, query: value });
-  };
-
-  const handleSupplierChange = (uuid: string) => {
-    setFilters({ ...filters, supplierUuid: uuid });
-  };
-
-  const fetchSuppliers = async (page: number, query: string) => {
-    return await supplierService.getSuppliersForAutocomplete(page, query);
-  };
-
   return (
     <div className="search-bar-container">
       <div className="search-bar-basic">
@@ -81,7 +74,7 @@ const SearchBar = ({
             type="text"
             placeholder="Cercar per nom, categoria o proveïdor..."
             value={filters.query}
-            onChange={e => handleQueryChange(e.target.value)}
+            onChange={e => setFilters({ ...filters, category: e.target.value })}
             onKeyDown={e => {
               if (e.key === 'Enter') {
                 handleBasicSearch();
@@ -151,10 +144,18 @@ const SearchBar = ({
               ) : (
                 <SupplierAutocomplete
                   value={filters.supplierUuid}
-                  onChange={handleSupplierChange}
-                  placeholder="Cercar per proveïdor"
+                  onChange={(uuid: string) =>
+                    setFilters(prev => ({ ...prev, supplierUuid: uuid }))
+                  }
+                  placeholder={
+                    supplierUuid
+                      ? supplierName || 'Proveïdor seleccionat'
+                      : 'Cercar per proveïdor'
+                  }
                   label="Proveïdor"
                   fetchSuppliers={fetchSuppliers}
+                  disabled={!!supplierUuid}
+                  readOnlyValue={supplierName || undefined}
                 />
               )}
             </Col>

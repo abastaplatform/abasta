@@ -15,6 +15,7 @@ interface SupplierAutocompleteProps {
   disabled?: boolean;
   isInvalid?: boolean;
   errorMessage?: string;
+  readOnlyValue?: string;
   fetchSuppliers: (
     page: number,
     query: string
@@ -32,15 +33,20 @@ const SupplierAutocomplete = ({
   disabled = false,
   isInvalid = false,
   errorMessage = '',
+  readOnlyValue,
   fetchSuppliers,
 }: SupplierAutocompleteProps) => {
+  const [inputValue, setInputValue] = useState('');
   const [query, setQuery] = useState('');
+
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [selectedName, setSelectedName] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+
   const dropdownRef = useRef<HTMLDivElement>(null);
   const observerTarget = useRef<HTMLDivElement>(null);
   const debounceTimer = useRef<number | null>(null);
@@ -57,6 +63,7 @@ const SupplierAutocomplete = ({
           append ? [...prev, ...result.suppliers] : result.suppliers
         );
         setHasMore(result.hasMore);
+        setHasLoadedOnce(true);
       } catch (error) {
         console.error('Error loading suppliers:', error);
       } finally {
@@ -67,6 +74,8 @@ const SupplierAutocomplete = ({
   );
 
   useEffect(() => {
+    if (!hasLoadedOnce) return;
+
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
     }
@@ -81,7 +90,7 @@ const SupplierAutocomplete = ({
         clearTimeout(debounceTimer.current);
       }
     };
-  }, [query]);
+  }, [query, hasLoadedOnce, loadSuppliers]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -125,41 +134,46 @@ const SupplierAutocomplete = ({
     if (value && suppliers.length > 0) {
       const supplier = suppliers.find(s => s.uuid === value);
       if (supplier) {
-        setSelectedName(supplier.name);
+        setInputValue(supplier.name);
       }
     } else if (!value) {
-      setSelectedName('');
+      setInputValue('');
     }
   }, [value, suppliers]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newQuery = e.target.value;
+
+    setInputValue(newQuery);
     setQuery(newQuery);
     setShowDropdown(true);
 
     if (!newQuery && value) {
       onChange('', '');
-      setSelectedName('');
     }
   };
 
   const handleSelectSupplier = (supplier: Supplier) => {
     onChange(supplier.uuid, supplier.name);
-    setSelectedName(supplier.name);
-    setQuery(supplier.name);
+
+    setInputValue(supplier.name);
+
+    setQuery('');
+
     setShowDropdown(false);
   };
 
   const handleInputFocus = () => {
     setShowDropdown(true);
-    if (suppliers.length === 0) {
-      loadSuppliers(1, query, false);
+
+    if (!hasLoadedOnce) {
+      loadSuppliers(1, '', false);
     }
   };
 
   const handleClear = () => {
+    setInputValue('');
     setQuery('');
-    setSelectedName('');
     onChange('', '');
     setShowDropdown(false);
   };
@@ -167,18 +181,19 @@ const SupplierAutocomplete = ({
   return (
     <Form.Group className="supplier-autocomplete" ref={dropdownRef}>
       {label && <Form.Label>{label}</Form.Label>}
+
       <div className="autocomplete-input-wrapper">
         <Form.Control
           type="text"
           placeholder={placeholder}
-          value={query || selectedName}
+          value={inputValue || (disabled && readOnlyValue ? readOnlyValue : '')}
           onChange={handleInputChange}
           onFocus={handleInputFocus}
           disabled={disabled}
           isInvalid={isInvalid}
           autoComplete="off"
         />
-        {(query || selectedName) && !disabled && (
+        {inputValue && !disabled && (
           <button
             type="button"
             className="clear-btn"
@@ -198,7 +213,7 @@ const SupplierAutocomplete = ({
 
       {showDropdown && !disabled && (
         <Dropdown.Menu show className="autocomplete-dropdown">
-          {suppliers.length === 0 && !loading && (
+          {suppliers.length === 0 && !loading && hasLoadedOnce && (
             <div className="dropdown-item text-muted">
               No s'han trobat proveïdors
             </div>

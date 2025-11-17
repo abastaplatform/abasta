@@ -107,3 +107,8 @@ export interface PaginationParams {
   sortBy?: string;
   sortDir?: 'asc' | 'desc';
 }
+
+export interface CachedSuppliersResult {
+  suppliers: Supplier[];
+  hasMore: boolean;
+}

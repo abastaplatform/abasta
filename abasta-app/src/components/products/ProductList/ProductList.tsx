@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import './ProductList.scss';
@@ -22,12 +22,13 @@ import ProductCard from './ProductCard/ProductCard';
 import DeleteModal from '../../common/DeleteModal/DeleteModal';
 import SearchBar from './SearchBar/SearchBar';
 import { supplierService } from '../../../services/supplierService';
+import type { CachedSuppliersResult } from '../../../types/supplier.types';
 
 const ProductList = () => {
   const navigate = useNavigate();
-
   const [searchParams] = useSearchParams();
   const supplierUuid = searchParams.get('supplier');
+
   const [supplierName, setSupplierName] = useState<string | null>(null);
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -50,7 +51,10 @@ const ProductList = () => {
     volume: null,
     unit: '',
   });
+
   const [isAdvancedSearch, setIsAdvancedSearch] = useState(false);
+
+  const [manualSearchActive, setManualSearchActive] = useState(false);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [productToDelete, setProductToDelete] = useState<{
@@ -58,6 +62,12 @@ const ProductList = () => {
     name: string;
   } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const [suppliersCache, setSuppliersCache] = useState<
+    Map<string, CachedSuppliersResult>
+  >(new Map());
+  const [suppliersCacheInitialized, setSuppliersCacheInitialized] =
+    useState(false);
 
   useEffect(() => {
     const loadSupplierName = async () => {
@@ -79,51 +89,51 @@ const ProductList = () => {
   }, [supplierUuid]);
 
   useEffect(() => {
-    loadProducts();
-  }, [currentPage, itemsPerPage]);
-
-  useEffect(() => {
     if (supplierUuid) {
-      setCurrentFilters({ ...currentFilters, supplierUuid });
+      setCurrentFilters(prev => ({ ...prev, supplierUuid }));
+    } else {
+      setCurrentFilters(prev => ({ ...prev, supplierUuid: '' }));
     }
   }, [supplierUuid]);
+
+  useEffect(() => {
+    const loadForPage = async () => {
+      if (manualSearchActive) {
+        await performSearch(currentFilters, isAdvancedSearch);
+      } else {
+        await loadProducts();
+      }
+    };
+
+    loadForPage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, itemsPerPage]);
 
   const loadProducts = async () => {
     setIsLoading(true);
     setError('');
+
     try {
+      const paginationParams: PaginationParams = {
+        page: currentPage,
+        size: itemsPerPage,
+        sortBy: 'name',
+        sortDir: 'asc',
+      };
+
+      let response;
       if (supplierUuid) {
-        if (hasOtherActiveFilters()) {
-          await performSearch(currentFilters, isAdvancedSearch);
-        } else {
-          const paginationParams: PaginationParams = {
-            page: currentPage,
-            size: itemsPerPage,
-            sortBy: 'name',
-            sortDir: 'asc',
-          };
-          const response = await productService.getProductBySupplier(
-            supplierUuid,
-            paginationParams
-          );
-          setProducts(response.data?.content || []);
-          setTotalElements(response.data?.pageable.totalElements || 0);
-          setTotalPages(response.data?.pageable.totalPages || 0);
-        }
-      } else if (hasActiveFilters()) {
-        await performSearch(currentFilters, isAdvancedSearch);
+        response = await productService.getProductBySupplier(
+          supplierUuid,
+          paginationParams
+        );
       } else {
-        const paginationParams: PaginationParams = {
-          page: currentPage,
-          size: itemsPerPage,
-          sortBy: 'name',
-          sortDir: 'asc',
-        };
-        const response = await productService.getProducts(paginationParams);
-        setProducts(response.data?.content || []);
-        setTotalElements(response.data?.pageable.totalElements || 0);
-        setTotalPages(response.data?.pageable.totalPages || 0);
+        response = await productService.getProducts(paginationParams);
       }
+
+      setProducts(response.data?.content || []);
+      setTotalElements(response.data?.pageable.totalElements || 0);
+      setTotalPages(response.data?.pageable.totalPages || 0);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Error al carregar els productes.';
@@ -133,74 +143,65 @@ const ProductList = () => {
     }
   };
 
-  const hasActiveFilters = (): boolean => {
-    return !!(
-      currentFilters.query ||
-      currentFilters.name ||
-      currentFilters.supplierUuid ||
-      currentFilters.category ||
-      currentFilters.minPrice ||
-      currentFilters.maxPrice ||
-      currentFilters.volume ||
-      currentFilters.unit
-    );
-  };
+  const performSearch = async (
+    filtersParam: SearchFilters,
+    isAdvanced: boolean
+  ) => {
+    setIsLoading(true);
+    setError('');
 
-  const hasOtherActiveFilters = (): boolean => {
-    return !!(
-      currentFilters.query ||
-      currentFilters.name ||
-      currentFilters.category ||
-      currentFilters.minPrice ||
-      currentFilters.maxPrice ||
-      currentFilters.volume ||
-      currentFilters.unit
-    );
-  };
-
-  const performSearch = async (filters: SearchFilters, isAdvanced: boolean) => {
+    console.log('entra', filtersParam);
     try {
-      let response;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let response: any;
 
       if (isAdvanced) {
-        const filterParams: AdvancedSearchParams = {
-          name: filters.name || undefined,
-          supplierUuid: filters.supplierUuid || undefined,
-          category: filters.category || undefined,
-          minPrice: filters.minPrice || undefined,
-          maxPrice: filters.maxPrice || undefined,
-          volume: filters.volume || undefined,
-          unit: filters.unit || undefined,
+        const params: AdvancedSearchParams = {
+          name: filtersParam.name || undefined,
+          supplierUuid: filtersParam.supplierUuid || undefined,
+          category: filtersParam.category || undefined,
+          minPrice: filtersParam.minPrice || undefined,
+          maxPrice: filtersParam.maxPrice || undefined,
+          volume: filtersParam.volume || undefined,
+          unit: filtersParam.unit || undefined,
           page: currentPage,
           size: itemsPerPage,
           sortBy: 'name',
           sortDir: 'asc',
         };
-        response = await productService.filterProducts(filterParams);
+
+        response = await productService.filterProducts(params);
         setIsAdvancedSearch(true);
       } else {
-        const searchParams: BasicSearchParams = {
-          searchText: filters.query,
+        const params: BasicSearchParams = {
+          searchText: filtersParam.query,
           page: currentPage,
           size: itemsPerPage,
           sortBy: 'name',
           sortDir: 'asc',
         };
-        response = await productService.searchProducts(searchParams);
+
+        response = await productService.searchProducts(params);
         setIsAdvancedSearch(false);
       }
 
-      if (response.success && response.data) {
-        const paginatedData = response.data as PaginatedResponse<Product>;
-        setProducts(paginatedData.content);
-        setTotalElements(paginatedData.pageable.totalElements);
-        setTotalPages(paginatedData.pageable.totalPages);
+      if (response?.success && response?.data) {
+        const paginated = response.data as PaginatedResponse<Product>;
+        setProducts(paginated.content);
+        setTotalElements(paginated.pageable.totalElements);
+        setTotalPages(paginated.pageable.totalPages);
+      } else {
+        setProducts([]);
+        setTotalElements(0);
+        setTotalPages(0);
       }
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : 'Error al cercar proveïdors';
+        err instanceof Error ? err.message : 'Error al cercar productes';
       setError(errorMessage);
-      console.error('Search suppliers error:', err);
+      console.error('performSearch error:', err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -209,10 +210,10 @@ const ProductList = () => {
     isAdvanced: boolean = false
   ) => {
     setCurrentFilters(filters);
+    setIsAdvancedSearch(isAdvanced);
+    setManualSearchActive(true);
     setCurrentPage(0);
-    setIsLoading(true);
     await performSearch(filters, isAdvanced);
-    setIsLoading(false);
   };
 
   const handleClearSearch = () => {
@@ -226,11 +227,32 @@ const ProductList = () => {
       volume: null,
       unit: '',
     };
+
     setCurrentFilters(emptyFilters);
-    setCurrentPage(0);
     setIsAdvancedSearch(false);
+    setManualSearchActive(false);
+    setCurrentPage(0);
     loadProducts();
   };
+
+  const fetchSuppliersWithCache = useCallback(
+    async (page: number, query: string) => {
+      const cacheKey = `${page}-${query}`;
+      const cached = suppliersCache.get(cacheKey);
+      if (cached) return cached;
+
+      const result = await supplierService.getSuppliersForAutocomplete(
+        page,
+        query
+      );
+
+      setSuppliersCache(prev => new Map(prev).set(cacheKey, result));
+      if (!suppliersCacheInitialized) setSuppliersCacheInitialized(true);
+
+      return result;
+    },
+    [suppliersCache, suppliersCacheInitialized]
+  );
 
   const handleDeleteClick = (productUuid: string, productName: string) => {
     setProductToDelete({ uuid: productUuid, name: productName });
@@ -242,8 +264,10 @@ const ProductList = () => {
 
     setIsDeleting(true);
     setError('');
+
     try {
       await productService.deleteProduct(productToDelete.uuid);
+
       setSuccessMessage(
         `Producte "${productToDelete.name}" eliminat correctament`
       );
@@ -251,7 +275,11 @@ const ProductList = () => {
       setShowDeleteModal(false);
       setProductToDelete(null);
 
-      await loadProducts();
+      if (manualSearchActive) {
+        await performSearch(currentFilters, isAdvancedSearch);
+      } else {
+        await loadProducts();
+      }
 
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
@@ -305,6 +333,7 @@ const ProductList = () => {
         <SearchBar
           onSearch={handleSearch}
           onClear={handleClearSearch}
+          fetchSuppliers={fetchSuppliersWithCache}
           supplierName={supplierName}
           supplierUuid={supplierUuid}
         />
