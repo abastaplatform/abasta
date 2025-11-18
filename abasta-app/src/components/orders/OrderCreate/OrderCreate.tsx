@@ -422,7 +422,6 @@ const OrderCreate = () => {
   ];
 
   const columnsForOrder = [
-    { key: 'name' as const, label: 'Nom', show: true },
     { key: 'category' as const, label: 'Categoria', show: true },
     {
       key: 'volume' as const,
