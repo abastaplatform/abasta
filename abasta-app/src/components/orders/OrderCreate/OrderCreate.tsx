@@ -31,6 +31,8 @@ import {
   useSendOrder,
 } from '../../../hooks/useSendOrder';
 import { orderService } from '../../../services/orderService';
+import ProductCard from '../../products/ProductList/ProductCard/ProductCard';
+import OrderCreateScrollButton from './OrderCreateScrollButton/OrderCreateScrollButton';
 
 const OrderCreate = () => {
   const navigate = useNavigate();
@@ -141,7 +143,6 @@ const OrderCreate = () => {
     };
 
     loadForPage();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, itemsPerPage]);
 
   const loadProducts = async () => {
@@ -500,9 +501,19 @@ const OrderCreate = () => {
                       onProductClick={handleProductClick}
                       selectedProducts={selectedProductUuids}
                     />
-                    {/*                     <ProductCard
+                    <ProductCard
                       products={products}
-                    /> */}
+                      fields={columnsForOrder.map(col => ({
+                        key: col.key,
+                        label: col.label,
+                        render: col.render,
+                        show: col.show,
+                      }))}
+                      selectable
+                      showActions={false}
+                      onProductClick={handleProductClick}
+                      selectedProducts={selectedProductUuids}
+                    />
                   </>
                 )}
 
@@ -522,20 +533,28 @@ const OrderCreate = () => {
           </div>
 
           <div className="col-lg-4">
-            <OrderSummary
-              supplierName={supplierName || 'Proveïdor'}
-              items={orderItems}
-              notes={notes}
-              onNotesChange={setNotes}
-              onUpdateItem={handleUpdateItem}
-              onRemoveItem={handleRemoveItem}
-              onSubmit={handlePrepareToSend}
-              onCancel={handleCancel}
-              isSubmitting={isSending}
-            />
+            <div id="order-summary-section">
+              <OrderSummary
+                supplierName={supplierName || 'Proveïdor'}
+                items={orderItems}
+                notes={notes}
+                onNotesChange={setNotes}
+                onUpdateItem={handleUpdateItem}
+                onRemoveItem={handleRemoveItem}
+                onSubmit={handlePrepareToSend}
+                onCancel={handleCancel}
+                isSubmitting={isSending}
+              />
+            </div>
           </div>
         </div>
       </div>
+
+      <OrderCreateScrollButton
+        itemsCount={orderItems.length}
+        totalAmount={totalAmount}
+        targetId="order-summary-section"
+      />
 
       {supplierName && supplierEmail && supplierPhone && (
         <SendOrderModal

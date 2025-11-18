@@ -21,6 +21,33 @@
   &:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
+
+  &.selectable-card {
+    cursor: pointer;
+
+    &:active {
+      transform: scale(0.98);
+    }
+
+    &.selected {
+      background: white;
+      border: 2px solid #0d6efd;
+      box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2);
+
+      &:hover {
+        box-shadow: 0 4px 16px rgba(13, 110, 253, 0.3);
+      }
+
+      .product-card-header {
+        background-color: #e7f3ff;
+        border-bottom-color: #0d6efd;
+      }
+
+      .product-card-name {
+        color: #0d6efd;
+      }
+    }
+  }
 }
 
 .product-card-header {
@@ -31,6 +58,7 @@
   background-color: #f8f9fa;
   border-bottom: 1px solid #dee2e6;
   border-radius: $border-radius-lg $border-radius-lg 0 0;
+  transition: all 0.2s ease;
 }
 
 .product-card-name {
@@ -43,6 +71,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   padding-right: 1rem;
+  transition: color 0.2s ease;
 }
 
 .product-card-body {
