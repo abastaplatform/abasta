@@ -260,6 +260,7 @@ const SupplierList = () => {
 
         {!isLoading && suppliers.length > 0 && (
           <Pagination
+            type="proveïdor"
             currentPage={currentPage + 1}
             totalPages={totalPages}
             onPageChange={handlePageChange}

@@ -150,7 +150,6 @@ const ProductList = () => {
     setIsLoading(true);
     setError('');
 
-    console.log('entra', filtersParam);
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let response: any;
@@ -336,6 +335,7 @@ const ProductList = () => {
           fetchSuppliers={fetchSuppliersWithCache}
           supplierName={supplierName}
           supplierUuid={supplierUuid}
+          placeholder="Cercar per nom, categoria, proveïdor..."
         />
 
         {isLoading && (
@@ -355,6 +355,7 @@ const ProductList = () => {
 
         {!isLoading && products.length > 0 && (
           <Pagination
+            type="producte"
             currentPage={currentPage + 1}
             totalPages={totalPages}
             onPageChange={handlePageChange}

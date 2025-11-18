@@ -14,11 +14,11 @@ interface ColumnConfig {
 interface ProductTableProps {
   products: Product[];
   columns?: ColumnConfig[];
-  onDelete?: (productId: string, productName: string) => void;
-  onProductClick?: (productId: string) => void;
+  onDelete?: (productUuid: string, productName: string) => void;
+  onProductClick?: (product: Product) => void;
   selectable?: boolean;
   showActions?: boolean;
-  selectedProducts?: Set<string>;
+  selectedProducts?: Set<string | undefined>;
 }
 
 const defaultColumns: ColumnConfig[] = [
@@ -27,7 +27,7 @@ const defaultColumns: ColumnConfig[] = [
   {
     key: 'volume',
     label: 'Volum',
-    render: product => `${product.volume}${product.unit}`,
+    render: product => `${product.volume} ${product.unit}`,
     show: true,
   },
   {
@@ -63,7 +63,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
 
   const handleRowClick = (product: Product) => {
     if (selectable && onProductClick) {
-      onProductClick(product.uuid);
+      onProductClick(product);
     }
   };
 

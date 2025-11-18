@@ -61,6 +61,7 @@ export const productService = {
   async getProductByUuid(uuid: string): Promise<ApiResponse<Product>> {
     return await api.get<ApiResponse<Product>>(`/products/${uuid}`);
   },
+
   getProducts: async (
     params: PaginationParams
   ): Promise<ApiResponse<PaginatedResponse<Product>>> => {
@@ -86,7 +87,7 @@ export const productService = {
       sortDir: params.sortDir || 'asc',
     }).toString();
     return await api.get<ApiResponse<PaginatedResponse<Product>>>(
-      `/products/search/supplier/${supplierUuid}?${queryString}`
+      `/products/search?supplierUuid=${supplierUuid}&${queryString}`
     );
   },
 

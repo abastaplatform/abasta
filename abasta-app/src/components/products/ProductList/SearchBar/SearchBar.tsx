@@ -16,6 +16,7 @@ interface SearchBarProps {
   ) => Promise<CachedSuppliersResult>;
   supplierUuid?: string | null;
   supplierName?: string | null;
+  placeholder?: string;
 }
 
 const SearchBar = ({
@@ -24,16 +25,17 @@ const SearchBar = ({
   fetchSuppliers,
   supplierUuid,
   supplierName,
+  placeholder = 'Cercar un producte',
 }: SearchBarProps) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [filters, setFilters] = useState<SearchFilters>({
     query: '',
     name: '',
     category: '',
-    minPrice: 0,
-    maxPrice: 0,
+    minPrice: null,
+    maxPrice: null,
     supplierUuid: '',
-    volume: 0,
+    volume: null,
     unit: '',
   });
 
@@ -56,14 +58,18 @@ const SearchBar = ({
       query: '',
       name: '',
       category: '',
-      minPrice: 0,
-      maxPrice: 0,
+      minPrice: null,
+      maxPrice: null,
       supplierUuid: '',
-      volume: 0,
+      volume: null,
       unit: '',
     };
     setFilters(emptyFilters);
     onClear();
+  };
+
+  const handleQueryChange = (value: string) => {
+    setFilters({ ...filters, query: value });
   };
 
   return (
@@ -72,9 +78,9 @@ const SearchBar = ({
         <div className="search-input-group">
           <Form.Control
             type="text"
-            placeholder="Cercar per nom, categoria o proveïdor..."
+            placeholder={placeholder}
             value={filters.query}
-            onChange={e => setFilters({ ...filters, category: e.target.value })}
+            onChange={e => handleQueryChange(e.target.value)}
             onKeyDown={e => {
               if (e.key === 'Enter') {
                 handleBasicSearch();
@@ -166,7 +172,7 @@ const SearchBar = ({
                 <Form.Control
                   type="number"
                   placeholder="Cercar per volum"
-                  value={filters.volume || 0}
+                  value={filters.volume || ''}
                   onChange={e =>
                     setFilters({ ...filters, volume: Number(e.target.value) })
                   }
@@ -193,7 +199,7 @@ const SearchBar = ({
                 <Form.Control
                   type="number"
                   placeholder="Cercar per preu mínim"
-                  value={filters.minPrice || 0}
+                  value={filters.minPrice || ''}
                   onChange={e =>
                     setFilters({ ...filters, minPrice: Number(e.target.value) })
                   }
@@ -207,7 +213,7 @@ const SearchBar = ({
                 <Form.Control
                   type="number"
                   placeholder="Cercar per telèfon"
-                  value={filters.maxPrice || 0}
+                  value={filters.maxPrice || ''}
                   onChange={e =>
                     setFilters({ ...filters, maxPrice: Number(e.target.value) })
                   }

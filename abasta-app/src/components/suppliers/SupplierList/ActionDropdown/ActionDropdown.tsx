@@ -56,6 +56,11 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({
     setIsOpen(false);
   };
 
+  const handleNewOrder = () => {
+    navigate(`/orders/new?supplier=${supplierUuid}`);
+    setIsOpen(false);
+  };
+
   const handleDelete = () => {
     setIsOpen(false);
     onDelete();
@@ -91,6 +96,11 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({
           <button className="action-dropdown-item" onClick={handleAddProduct}>
             <i className="bi bi-plus-circle"></i>
             Afegir producte
+          </button>
+
+          <button className="action-dropdown-item" onClick={handleNewOrder}>
+            <i className="bi bi-cart"></i>
+            Crear comanda
           </button>
 
           <div className="action-dropdown-divider"></div>
