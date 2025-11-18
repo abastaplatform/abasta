@@ -19,6 +19,7 @@ import SupplierManager from '../components/suppliers/SupplierManager/SupplierMan
 import ProductList from '../components/products/ProductList/ProductList';
 import ProductManager from '../components/products/ProductManager/ProductManager';
 import Orders from '../components/orders/sendOrder/SendOrder';
+import OrderCreate from '../components/orders/OrderCreate/OrderCreate';
 
 const AppRoutes = () => {
   return (
@@ -52,6 +53,8 @@ const AppRoutes = () => {
           element={<SupplierManager mode="edit" />}
         />
         <Route path="/orders" element={<Orders />} />
+        <Route path="/orders/new" element={<OrderCreate />} />
+
         <Route path="/products" element={<ProductList />} />
         <Route
           path="/products/new"
