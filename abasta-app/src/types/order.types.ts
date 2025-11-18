@@ -2,7 +2,7 @@ import type { Supplier } from './supplier.types';
 
 export interface OrderItem {
   uuid?: string;
-  productUuid?: string;
+  productUuid: string;
   productName?: string;
   notes?: string;
   quantity: number;

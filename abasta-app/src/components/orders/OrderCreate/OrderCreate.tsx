@@ -12,12 +12,12 @@ import type {
   Product,
   SearchFilters,
 } from '../../../types/product.types';
-import type { OrderItem } from '../../../types/order.types';
+import type { CreateOrderRequest, OrderItem } from '../../../types/order.types';
 import type { CachedSuppliersResult } from '../../../types/supplier.types';
 
 import PageHeader from '../../common/PageHeader/PageHeader';
 import Alert from '../../common/Alert/Alert';
-import SendOrderModal from '../../common/SendOrderModal/SendOrderModal';
+import SendOrderModal from '../SendOrderModal/SendOrderModal';
 
 import { productService } from '../../../services/productService';
 import { supplierService } from '../../../services/supplierService';
@@ -25,8 +25,12 @@ import SearchBar from '../../products/ProductList/SearchBar/SearchBar';
 import ProductTable from '../../products/ProductList/ProductTable/ProductTable';
 import OrderSummary from './OrderSummary/OrderSummary';
 import Pagination from '../../common/Pagination/Pagination';
-import { set } from 'react-hook-form';
 import Form from 'react-bootstrap/esm/Form';
+import {
+  generateWhatsappMessage,
+  useSendOrder,
+} from '../../../hooks/useSendOrder';
+import { orderService } from '../../../services/orderService';
 
 const OrderCreate = () => {
   const navigate = useNavigate();
@@ -38,8 +42,12 @@ const OrderCreate = () => {
   const [supplierPhone, setSupplierPhone] = useState<string | null>(null);
 
   const [products, setProducts] = useState<Product[]>([]);
+  const [orderUuid, setOrderUuid] = useState<string>('');
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const [orderName, setOrderName] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
+
+  const { sendOrder } = useSendOrder();
 
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
@@ -108,6 +116,20 @@ const OrderCreate = () => {
       setCurrentFilters(prev => ({ ...prev, supplierUuid: '' }));
     }
   }, [supplierUuid]);
+
+  useEffect(() => {
+    if (supplierName) {
+      const date = new Date();
+      const formattedDate = date
+        .toLocaleDateString('ca-ES', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        })
+        .replace(/\//g, '-');
+      setOrderName(`Comanda ${supplierName} ${formattedDate}`);
+    }
+  }, [supplierName]);
 
   useEffect(() => {
     const loadForPage = async () => {
@@ -315,21 +337,68 @@ const OrderCreate = () => {
     );
   };
 
-  const handleOpenSendModal = () => {
+  const handlePrepareToSend = async () => {
     if (orderItems.length === 0) {
       setError('Afegeix productes a la comanda');
       return;
     }
+
+    const orderToCreate: CreateOrderRequest = {
+      name: orderName,
+      supplierUuid: supplierUuid || '',
+      items: orderItems.map(item => ({
+        productUuid: item.productUuid,
+        quantity: item.quantity,
+        notes: item.notes,
+      })),
+      notes,
+      notificationMethod: 'BOTH',
+    };
+
+    const result = await orderService.createOrder(orderToCreate);
+
+    if (!result.success || !result.data) {
+      setError(result.message || 'Error creant la comanda');
+      return;
+    }
+
+    setOrderUuid(result.data.uuid);
 
     setError('');
     setShowSendModal(true);
   };
 
   const handleSendOrder = async (method: 'email' | 'whatsapp') => {
+    setSuccessMessage('');
+
     if (!supplierUuid) return;
+
+    if (method === 'whatsapp') {
+      const text = encodeURIComponent(
+        generateWhatsappMessage({ items: orderItems })
+      );
+      const phone = supplierPhone?.replace(/\D/g, '');
+
+      if (!phone) {
+        setError('El proveïdor no té un número de telèfon vàlid');
+        return;
+      }
+
+      window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
+      setSuccessMessage('WhatsApp obert correctament');
+      return;
+    }
 
     setIsSending(true);
     setError('');
+
+    const result = await sendOrder(orderUuid);
+
+    if (result) {
+      navigate('/suppliers', {
+        state: { successMessage: 'Comanda enviada correctament!' },
+      });
+    }
   };
 
   const handlePageChange = (page: number) => {
@@ -383,7 +452,18 @@ const OrderCreate = () => {
             <div className="card mb-4">
               <div className="card-body">
                 <div className="row">
-                  <div className="col-md-12 mb-3">
+                  <div className="col-md-6 mb-3">
+                    <Form.Group>
+                      <Form.Label>Nom de la comanda</Form.Label>
+                      <Form.Control
+                        type="text"
+                        value={orderName}
+                        onChange={e => setOrderName(e.target.value)}
+                        placeholder="Comanda..."
+                      />
+                    </Form.Group>
+                  </div>
+                  <div className="col-md-6 mb-3">
                     <Form.Group>
                       <Form.Label>Proveïdor</Form.Label>
                       <Form.Control
@@ -397,7 +477,7 @@ const OrderCreate = () => {
 
                 <SearchBar
                   onSearch={handleSearch}
-                  onClear={() => {}}
+                  onClear={handleClearSearch}
                   fetchSuppliers={fetchSuppliersWithCache}
                   supplierName={supplierName}
                   supplierUuid={supplierUuid || undefined}
@@ -449,7 +529,7 @@ const OrderCreate = () => {
               onNotesChange={setNotes}
               onUpdateItem={handleUpdateItem}
               onRemoveItem={handleRemoveItem}
-              onSubmit={handleOpenSendModal}
+              onSubmit={handlePrepareToSend}
               onCancel={handleCancel}
               isSubmitting={isSending}
             />
