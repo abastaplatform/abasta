@@ -183,7 +183,7 @@ const SearchBar = ({
               <Form.Group>
                 <Form.Label>Unitat</Form.Label>
                 <Form.Control
-                  type="number"
+                  type="text"
                   placeholder="Cercar per unitat"
                   value={filters.unit}
                   onChange={e =>
@@ -212,7 +212,7 @@ const SearchBar = ({
                 <Form.Label>Preu màxim</Form.Label>
                 <Form.Control
                   type="number"
-                  placeholder="Cercar per telèfon"
+                  placeholder="Cercar per preu màxim"
                   value={filters.maxPrice || ''}
                   onChange={e =>
                     setFilters({ ...filters, maxPrice: Number(e.target.value) })

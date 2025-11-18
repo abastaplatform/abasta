@@ -127,11 +127,17 @@ export const productService = {
     if (params.supplierUuid) {
       queryParams.append('supplierUuid', params.supplierUuid);
     }
+    if (params.volume) {
+      queryParams.append('volume', params.volume.toString());
+    }
+    if (params.unit) {
+      queryParams.append('unit', params.unit);
+    }
     if (params.minPrice) {
-      queryParams.append('phone', params.minPrice.toString());
+      queryParams.append('minPrice', params.minPrice.toString());
     }
     if (params.maxPrice) {
-      queryParams.append('phone', params.maxPrice.toString());
+      queryParams.append('maxPrice', params.maxPrice.toString());
     }
     if (params.page !== undefined) {
       queryParams.append('page', params.page.toString());
