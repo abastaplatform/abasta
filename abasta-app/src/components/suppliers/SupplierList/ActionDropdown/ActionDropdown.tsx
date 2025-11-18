@@ -17,7 +17,6 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  // Tancar dropdown quan es clica fora
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -48,12 +47,17 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({
   };
 
   const handleViewProducts = () => {
-    navigate(`/suppliers/${supplierUuid}/products`);
+    navigate(`/products?supplier=${supplierUuid}`);
     setIsOpen(false);
   };
 
   const handleAddProduct = () => {
     navigate(`/suppliers/${supplierUuid}/products/new`);
+    setIsOpen(false);
+  };
+
+  const handleNewOrder = () => {
+    navigate(`/orders/new?supplier=${supplierUuid}`);
     setIsOpen(false);
   };
 
@@ -92,6 +96,11 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({
           <button className="action-dropdown-item" onClick={handleAddProduct}>
             <i className="bi bi-plus-circle"></i>
             Afegir producte
+          </button>
+
+          <button className="action-dropdown-item" onClick={handleNewOrder}>
+            <i className="bi bi-cart"></i>
+            Crear comanda
           </button>
 
           <div className="action-dropdown-divider"></div>

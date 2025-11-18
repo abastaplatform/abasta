@@ -1,25 +1,49 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Form, Collapse, Row, Col } from 'react-bootstrap';
 
 import './SearchBar.scss';
 import Button from '../../../common/Button/Button';
-import type { ProductSearchFilters } from '../../../../types/product.types';
+import type { SearchFilters } from '../../../../types/product.types';
+import SupplierAutocomplete from '../../../common/SupplierAutocomplete/SupplierAutocomplete';
+import type { CachedSuppliersResult } from '../../../../types/supplier.types';
 
 interface SearchBarProps {
-  onSearch: (filters: ProductSearchFilters, isAdvanced: boolean) => void;
+  onSearch: (filters: SearchFilters, isAdvanced: boolean) => void;
   onClear: () => void;
+  fetchSuppliers: (
+    page: number,
+    query: string
+  ) => Promise<CachedSuppliersResult>;
+  supplierUuid?: string | null;
+  supplierName?: string | null;
+  placeholder?: string;
 }
 
-const SearchBar = ({ onSearch, onClear }: SearchBarProps) => {
+const SearchBar = ({
+  onSearch,
+  onClear,
+  fetchSuppliers,
+  supplierUuid,
+  supplierName,
+  placeholder = 'Cercar un producte',
+}: SearchBarProps) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [filters, setFilters] = useState<ProductSearchFilters>({
+  const [filters, setFilters] = useState<SearchFilters>({
     query: '',
     name: '',
     category: '',
-    minPrice: '',
-    maxPrice: '',
+    minPrice: null,
+    maxPrice: null,
+    supplierUuid: '',
+    volume: null,
     unit: '',
   });
+
+  useEffect(() => {
+    if (supplierUuid) {
+      setFilters(prev => ({ ...prev, supplierUuid }));
+    }
+  }, [supplierUuid]);
 
   const handleBasicSearch = () => {
     onSearch(filters, false);
@@ -30,12 +54,14 @@ const SearchBar = ({ onSearch, onClear }: SearchBarProps) => {
   };
 
   const handleClear = () => {
-    const emptyFilters: ProductSearchFilters = {
+    const emptyFilters: SearchFilters = {
       query: '',
       name: '',
       category: '',
-      minPrice: '',
-      maxPrice: '',
+      minPrice: null,
+      maxPrice: null,
+      supplierUuid: '',
+      volume: null,
       unit: '',
     };
     setFilters(emptyFilters);
@@ -52,7 +78,7 @@ const SearchBar = ({ onSearch, onClear }: SearchBarProps) => {
         <div className="search-input-group">
           <Form.Control
             type="text"
-            placeholder="Cercar per nom, categoria..."
+            placeholder={placeholder}
             value={filters.query}
             onChange={e => handleQueryChange(e.target.value)}
             onKeyDown={e => {
@@ -102,7 +128,7 @@ const SearchBar = ({ onSearch, onClear }: SearchBarProps) => {
                 <Form.Label>Categoria</Form.Label>
                 <Form.Control
                   type="text"
-                  placeholder="Cercar per categoria"
+                  placeholder="Cercar per cetegoria"
                   value={filters.category}
                   onChange={e =>
                     setFilters({ ...filters, category: e.target.value })
@@ -111,43 +137,85 @@ const SearchBar = ({ onSearch, onClear }: SearchBarProps) => {
               </Form.Group>
             </Col>
 
-            <Col md={2}>
-              <Form.Group>
-                <Form.Label>Preu mínim</Form.Label>
-                <Form.Control
-                  type="number"
-                  placeholder="Mínim"
-                  value={filters.minPrice}
-                  onChange={e =>
-                    setFilters({ ...filters, minPrice: e.target.value })
-                  }
-                />
-              </Form.Group>
-            </Col>
-
-            <Col md={2}>
-              <Form.Group>
-                <Form.Label>Preu màxim</Form.Label>
-                <Form.Control
-                  type="number"
-                  placeholder="Màxim"
-                  value={filters.maxPrice}
-                  onChange={e =>
-                    setFilters({ ...filters, maxPrice: e.target.value })
-                  }
-                />
-              </Form.Group>
-            </Col>
-
             <Col md={4}>
+              {supplierUuid ? (
+                <Form.Group>
+                  <Form.Label>Proveïdor</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={supplierName || '—'}
+                    disabled
+                  />
+                </Form.Group>
+              ) : (
+                <SupplierAutocomplete
+                  value={filters.supplierUuid}
+                  onChange={(uuid: string) =>
+                    setFilters(prev => ({ ...prev, supplierUuid: uuid }))
+                  }
+                  placeholder={
+                    supplierUuid
+                      ? supplierName || 'Proveïdor seleccionat'
+                      : 'Cercar per proveïdor'
+                  }
+                  label="Proveïdor"
+                  fetchSuppliers={fetchSuppliers}
+                  disabled={!!supplierUuid}
+                  readOnlyValue={supplierName || undefined}
+                />
+              )}
+            </Col>
+
+            <Col md={3}>
+              <Form.Group>
+                <Form.Label>Volum</Form.Label>
+                <Form.Control
+                  type="number"
+                  placeholder="Cercar per volum"
+                  value={filters.volume || ''}
+                  onChange={e =>
+                    setFilters({ ...filters, volume: Number(e.target.value) })
+                  }
+                />
+              </Form.Group>
+            </Col>
+            <Col md={3}>
               <Form.Group>
                 <Form.Label>Unitat</Form.Label>
                 <Form.Control
                   type="text"
-                  placeholder="Ex: kg, l, unitats..."
+                  placeholder="Cercar per unitat"
                   value={filters.unit}
                   onChange={e =>
                     setFilters({ ...filters, unit: e.target.value })
+                  }
+                />
+              </Form.Group>
+            </Col>
+
+            <Col md={3}>
+              <Form.Group>
+                <Form.Label>Preu mínim</Form.Label>
+                <Form.Control
+                  type="number"
+                  placeholder="Cercar per preu mínim"
+                  value={filters.minPrice || ''}
+                  onChange={e =>
+                    setFilters({ ...filters, minPrice: Number(e.target.value) })
+                  }
+                />
+              </Form.Group>
+            </Col>
+
+            <Col md={3}>
+              <Form.Group>
+                <Form.Label>Preu màxim</Form.Label>
+                <Form.Control
+                  type="number"
+                  placeholder="Cercar per preu màxim"
+                  value={filters.maxPrice || ''}
+                  onChange={e =>
+                    setFilters({ ...filters, maxPrice: Number(e.target.value) })
                   }
                 />
               </Form.Group>

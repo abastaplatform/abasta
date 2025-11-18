@@ -1,31 +1,35 @@
-import { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+
+import './ProductList.scss';
 
 import { productService } from '../../../services/productService';
+import type {
+  AdvancedSearchParams,
+  BasicSearchParams,
+  PaginatedResponse,
+  PaginationParams,
+  Product,
+  SearchFilters,
+} from '../../../types/product.types';
+
 import PageHeader from '../../common/PageHeader/PageHeader';
 import Button from '../../common/Button/Button';
 import Alert from '../../common/Alert/Alert';
 import Pagination from '../../common/Pagination/Pagination';
-import DeleteModal from '../../common/DeleteModal/DeleteModal';
-import SendOrderModal from '../../common/SendOrderModal/SendOrderModal';
-
-import './ProductList.scss';
-
-import type {
-  AdvancedProductSearchParams,
-  BasicProductSearchParams,
-  PaginatedResponse,
-  PaginationParams,
-  Product,
-} from '../../../types/product.types';
-
-import SearchBar from './SearchBar/SearchBar';
 import ProductTable from './ProductTable/ProductTable';
 import ProductCard from './ProductCard/ProductCard';
+import DeleteModal from '../../common/DeleteModal/DeleteModal';
+import SearchBar from './SearchBar/SearchBar';
+import { supplierService } from '../../../services/supplierService';
+import type { CachedSuppliersResult } from '../../../types/supplier.types';
 
 const ProductList = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const supplierUuid = searchParams.get('supplier');
+
+  const [supplierName, setSupplierName] = useState<string | null>(null);
 
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,99 +41,128 @@ const ProductList = () => {
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
-  const [filters, setFilters] = useState({
+  const [currentFilters, setCurrentFilters] = useState<SearchFilters>({
     query: '',
     name: '',
+    supplierUuid: '',
     category: '',
-    minPrice: '',
-    maxPrice: '',
+    minPrice: null,
+    maxPrice: null,
+    volume: null,
     unit: '',
   });
 
   const [isAdvancedSearch, setIsAdvancedSearch] = useState(false);
 
+  const [manualSearchActive, setManualSearchActive] = useState(false);
+
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showModal, setShowModal] = useState(false);
   const [productToDelete, setProductToDelete] = useState<{
     uuid: string;
     name: string;
   } | null>(null);
-
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // 🟢 Missatge d’èxit després de crear/editar
-  useEffect(() => {
-    if (location.state?.successMessage) {
-      setSuccessMessage(location.state.successMessage);
-      navigate(location.pathname, { replace: true, state: {} });
-      setTimeout(() => setSuccessMessage(''), 3000);
-    }
-  }, [location]);
+  const [suppliersCache, setSuppliersCache] = useState<
+    Map<string, CachedSuppliersResult>
+  >(new Map());
+  const [suppliersCacheInitialized, setSuppliersCacheInitialized] =
+    useState(false);
 
-  // 🔄 Carregar productes cada vegada que es canvia la pàgina
   useEffect(() => {
-    loadProducts();
+    const loadSupplierName = async () => {
+      if (!supplierUuid) {
+        setSupplierName(null);
+        return;
+      }
+
+      try {
+        const response = await supplierService.getSupplierByUuid(supplierUuid);
+        setSupplierName(response.data?.name || null);
+      } catch (err) {
+        console.error('Error carregant el nom del proveïdor:', err);
+        setSupplierName(null);
+      }
+    };
+
+    loadSupplierName();
+  }, [supplierUuid]);
+
+  useEffect(() => {
+    if (supplierUuid) {
+      setCurrentFilters(prev => ({ ...prev, supplierUuid }));
+    } else {
+      setCurrentFilters(prev => ({ ...prev, supplierUuid: '' }));
+    }
+  }, [supplierUuid]);
+
+  useEffect(() => {
+    const loadForPage = async () => {
+      if (manualSearchActive) {
+        await performSearch(currentFilters, isAdvancedSearch);
+      } else {
+        await loadProducts();
+      }
+    };
+
+    loadForPage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, itemsPerPage]);
 
-  const hasFilters = () =>
-    !!(
-      filters.query ||
-      filters.name ||
-      filters.category ||
-      filters.minPrice ||
-      filters.maxPrice ||
-      filters.unit
-    );
-
-  // 📌 Carregar productes (llistat + filtres)
   const loadProducts = async () => {
     setIsLoading(true);
     setError('');
 
     try {
-      let response;
-
-      // 🔍 Si hi ha filtres activats → fer cerca
-      if (hasFilters()) {
-        await performSearch(filters, isAdvancedSearch);
-        return;
-      }
-
-      // 📌 Llistat normal de TOTS els productes
-      const params: PaginationParams = {
+      const paginationParams: PaginationParams = {
         page: currentPage,
         size: itemsPerPage,
         sortBy: 'name',
         sortDir: 'asc',
       };
 
-      response = await productService.getAllProducts(params);
-
-      if (response.success && response.data) {
-        const p = response.data;
-        setProducts(p.content);
-        setTotalElements(p.pageable.totalElements);
-        setTotalPages(p.pageable.totalPages);
+      let response;
+      if (supplierUuid) {
+        response = await productService.getProductBySupplier(
+          supplierUuid,
+          paginationParams
+        );
+      } else {
+        response = await productService.getProducts(paginationParams);
       }
-    } catch {
-      setError('Error al carregar productes');
+
+      setProducts(response.data?.content || []);
+      setTotalElements(response.data?.pageable.totalElements || 0);
+      setTotalPages(response.data?.pageable.totalPages || 0);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Error al carregar els productes.';
+      setError(message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // 🔍 Cerca (bàsica o avançada)
-  const performSearch = async (data: typeof filters, advanced: boolean) => {
-    try {
-      let response;
+  const performSearch = async (
+    filtersParam: SearchFilters,
+    isAdvanced: boolean
+  ) => {
+    setIsLoading(true);
+    setError('');
 
-      if (advanced) {
-        const params: AdvancedProductSearchParams = {
-          name: data.name || undefined,
-          category: data.category || undefined,
-          minPrice: data.minPrice ? Number(data.minPrice) : undefined,
-          maxPrice: data.maxPrice ? Number(data.maxPrice) : undefined,
-          unit: data.unit || undefined,
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let response: any;
+
+      if (isAdvanced) {
+        const params: AdvancedSearchParams = {
+          name: filtersParam.name || undefined,
+          supplierUuid: filtersParam.supplierUuid || undefined,
+          category: filtersParam.category || undefined,
+          minPrice: filtersParam.minPrice || undefined,
+          maxPrice: filtersParam.maxPrice || undefined,
+          volume: filtersParam.volume || undefined,
+          unit: filtersParam.unit || undefined,
           page: currentPage,
           size: itemsPerPage,
           sortBy: 'name',
@@ -139,8 +172,8 @@ const ProductList = () => {
         response = await productService.filterProducts(params);
         setIsAdvancedSearch(true);
       } else {
-        const params: BasicProductSearchParams = {
-          searchText: data.query,
+        const params: BasicSearchParams = {
+          searchText: filtersParam.query,
           page: currentPage,
           size: itemsPerPage,
           sortBy: 'name',
@@ -151,46 +184,77 @@ const ProductList = () => {
         setIsAdvancedSearch(false);
       }
 
-      if (response.success && response.data) {
-        const p = response.data as PaginatedResponse<Product>;
-        setProducts(p.content);
-        setTotalElements(p.pageable.totalElements);
-        setTotalPages(p.pageable.totalPages);
+      if (response?.success && response?.data) {
+        const paginated = response.data as PaginatedResponse<Product>;
+        setProducts(paginated.content);
+        setTotalElements(paginated.pageable.totalElements);
+        setTotalPages(paginated.pageable.totalPages);
+      } else {
+        setProducts([]);
+        setTotalElements(0);
+        setTotalPages(0);
       }
-    } catch {
-      setError('Error al cercar productes');
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Error al cercar productes';
+      setError(errorMessage);
+      console.error('performSearch error:', err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // 🔍 Acció del botó "Cercar"
-  const handleSearch = async (data: typeof filters, advanced: boolean) => {
-    setFilters(data);
+  const handleSearch = async (
+    filters: SearchFilters,
+    isAdvanced: boolean = false
+  ) => {
+    setCurrentFilters(filters);
+    setIsAdvancedSearch(isAdvanced);
+    setManualSearchActive(true);
     setCurrentPage(0);
-    setIsLoading(true);
-    await performSearch(data, advanced);
-    setIsLoading(false);
+    await performSearch(filters, isAdvanced);
   };
 
-  // 🔁 Netejar filtres
   const handleClearSearch = () => {
-    const empty = {
+    const emptyFilters: SearchFilters = {
       query: '',
       name: '',
       category: '',
-      minPrice: '',
-      maxPrice: '',
+      minPrice: null,
+      maxPrice: null,
+      supplierUuid: '',
+      volume: null,
       unit: '',
     };
 
-    setFilters(empty);
-    setCurrentPage(0);
+    setCurrentFilters(emptyFilters);
     setIsAdvancedSearch(false);
+    setManualSearchActive(false);
+    setCurrentPage(0);
     loadProducts();
   };
 
-  // 🗑️ Eliminar producte
-  const handleDeleteClick = (uuid: string, name: string) => {
-    setProductToDelete({ uuid, name });
+  const fetchSuppliersWithCache = useCallback(
+    async (page: number, query: string) => {
+      const cacheKey = `${page}-${query}`;
+      const cached = suppliersCache.get(cacheKey);
+      if (cached) return cached;
+
+      const result = await supplierService.getSuppliersForAutocomplete(
+        page,
+        query
+      );
+
+      setSuppliersCache(prev => new Map(prev).set(cacheKey, result));
+      if (!suppliersCacheInitialized) setSuppliersCacheInitialized(true);
+
+      return result;
+    },
+    [suppliersCache, suppliersCacheInitialized]
+  );
+
+  const handleDeleteClick = (productUuid: string, productName: string) => {
+    setProductToDelete({ uuid: productUuid, name: productName });
     setShowDeleteModal(true);
   };
 
@@ -198,56 +262,91 @@ const ProductList = () => {
     if (!productToDelete) return;
 
     setIsDeleting(true);
+    setError('');
 
     try {
       await productService.deleteProduct(productToDelete.uuid);
-      setSuccessMessage(`Producte "${productToDelete.name}" eliminat`);
-      await loadProducts();
-    } catch {
-      setError('Error al eliminar producte');
-    } finally {
+
+      setSuccessMessage(
+        `Producte "${productToDelete.name}" eliminat correctament`
+      );
+
       setShowDeleteModal(false);
       setProductToDelete(null);
+
+      if (manualSearchActive) {
+        await performSearch(currentFilters, isAdvancedSearch);
+      } else {
+        await loadProducts();
+      }
+
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Error al eliminar el producte';
+      setError(errorMessage);
+      console.error('Delete product error:', err);
+    } finally {
       setIsDeleting(false);
     }
   };
 
-  return (
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
+    setProductToDelete(null);
+  };
 
-    <div className="product-list-container form-container">
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page - 1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleItemsPerPageChange = (items: number) => {
+    setItemsPerPage(items);
+    setCurrentPage(0);
+  };
+
+  const breadcrumbItems = [{ label: 'Productes', active: true }];
+
+  return (
+    <div className="supplier-list-container form-container">
       <div className="container-fluid py-4">
         <PageHeader
-          title="Productes"
-          breadcrumbItems={[{ label: 'Productes', active: true }]}
-          actions={<Button title="Nou Producte" onClick={() => navigate('/products/new')} />}
+          title={`Productes ${supplierName ? `- ${supplierName}` : ''}`}
+          breadcrumbItems={breadcrumbItems}
+          actions={
+            <Button
+              title="Nou Producte"
+              onClick={() =>
+                navigate(
+                  `/products/new${supplierUuid ? `?supplier=${supplierUuid}` : ''}`
+                )
+              }
+            />
+          }
         />
 
         {successMessage && <Alert variant="success" message={successMessage} />}
         {error && <Alert variant="danger" message={error} />}
 
-        <SearchBar onSearch={handleSearch} onClear={handleClearSearch} />
-<button onClick={() => navigate(`/products/edit/efed51aa-c1bf-4379-a200-cf201094a175`)}>
-  Editar
-</button>
-<button onClick={() => navigate(`/products/efed51aa-c1bf-4379-a200-cf201094a175`)}>
-  Detall
-</button>
-<Button title="Enviar comanda" onClick={() => setShowModal(true)} />
-    <SendOrderModal
-      show={showModal}
-      onClose={() => setShowModal(false)}
-      onSend={(method) => console.log("Enviant per:", method)}
-      providerName="Nestlé S.L."
-      totalPrice="260,00€"
-      itemsCount={4}
-      email="comandes@nestle.com"
-      phone="+34 666 777 888"
-    />
-        {isLoading ? (
+        <SearchBar
+          onSearch={handleSearch}
+          onClear={handleClearSearch}
+          fetchSuppliers={fetchSuppliersWithCache}
+          supplierName={supplierName}
+          supplierUuid={supplierUuid}
+          placeholder="Cercar per nom, categoria, proveïdor..."
+        />
+
+        {isLoading && (
           <div className="text-center py-5">
-            <div className="spinner-border text-primary"></div>
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Carregant...</span>
+            </div>
           </div>
-        ) : (
+        )}
+
+        {!isLoading && (
           <>
             <ProductTable products={products} onDelete={handleDeleteClick} />
             <ProductCard products={products} onDelete={handleDeleteClick} />
@@ -256,15 +355,13 @@ const ProductList = () => {
 
         {!isLoading && products.length > 0 && (
           <Pagination
+            type="producte"
             currentPage={currentPage + 1}
             totalPages={totalPages}
-            onPageChange={(p) => setCurrentPage(p - 1)}
+            onPageChange={handlePageChange}
             itemsPerPage={itemsPerPage}
             totalItems={totalElements}
-            onItemsPerPageChange={(n) => {
-              setItemsPerPage(n);
-              setCurrentPage(0);
-            }}
+            onItemsPerPageChange={handleItemsPerPageChange}
           />
         )}
 
@@ -272,7 +369,7 @@ const ProductList = () => {
           show={showDeleteModal}
           entityType="producte"
           itemName={productToDelete?.name || ''}
-          onClose={() => setShowDeleteModal(false)}
+          onClose={handleDeleteCancel}
           onConfirm={handleDeleteConfirm}
           isDeleting={isDeleting}
         />

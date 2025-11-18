@@ -1,41 +1,175 @@
+@import '../../../../assets/styles/variables';
+
 .search-bar-container {
   margin-bottom: 1.5rem;
+}
 
-  .search-bar-basic {
+.search-bar-basic {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+
+  .search-input-group {
+    flex: 1;
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    justify-content: space-between;
+    gap: 0.5rem;
+    min-width: 300px;
 
-    .search-input-group {
+    @media (max-width: 768px) {
+      min-width: auto;
+      width: 100%;
+    }
+
+    .search-input {
       flex: 1;
-      display: flex;
-      gap: 0.5rem;
+      border: 1.5px solid #dee2e6;
+      border-radius: $border-radius;
+      padding: 0.75rem 1rem;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+
+      &:focus {
+        border-color: $primary;
+        box-shadow: 0 0 0 0.2rem rgba($primary, 0.15);
+      }
+
+      &::placeholder {
+        color: #adb5bd;
+      }
+    }
+
+    .search-btn {
+      border-radius: $border-radius;
+      padding: 0.75rem 1.25rem;
+      font-weight: 500;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background-color: #f8f9fa;
+        border-color: $primary;
+        color: $primary;
+      }
+
+      @media (max-width: 576px) {
+        padding: 0.75rem;
+
+        .me-2 {
+          margin-right: 0 !important;
+        }
+
+        &::after {
+          content: none;
+        }
+      }
+    }
+  }
+
+  .advanced-btn {
+    border-radius: $border-radius;
+    padding: 0.75rem 1.25rem;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: #f8f9fa;
+      border-color: $primary;
+      color: $primary;
+    }
+
+    @media (max-width: 768px) {
+      padding: 0.75rem;
+
+      &::after {
+        content: '';
+      }
+    }
+  }
+}
+
+.search-bar-advanced {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: $border-radius-lg;
+  padding: 1.5rem;
+  margin-top: 1rem;
+  animation: slideDown 0.3s ease;
+
+  .form-label {
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .form-control {
+    border: 1.5px solid #dee2e6;
+    border-radius: $border-radius;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+
+    &:focus {
+      border-color: $primary;
+      box-shadow: 0 0 0 0.2rem rgba($primary, 0.15);
+    }
+
+    &::placeholder {
+      color: #adb5bd;
+    }
+  }
+
+  .advanced-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+
+    @media (max-width: 768px) {
+      justify-content: stretch;
+
+      button {
+        flex: 1;
+      }
+    }
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .search-bar-basic {
+    .search-input-group {
+      flex-direction: column;
+      width: 100%;
 
       .search-input {
-        flex: 1;
+        width: 100%;
       }
 
       .search-btn {
-        white-space: nowrap;
+        width: 100%;
       }
     }
 
     .advanced-btn {
-      white-space: nowrap;
+      width: 100%;
     }
   }
 
   .search-bar-advanced {
-    margin-top: 1rem;
     padding: 1rem;
-    background: #f8f9fa;
-    border-radius: 8px;
-
-    .advanced-actions {
-      display: flex;
-      gap: 1rem;
-      margin-top: 1.2rem;
-    }
   }
 }

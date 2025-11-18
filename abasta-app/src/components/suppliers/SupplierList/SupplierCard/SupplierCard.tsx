@@ -1,12 +1,10 @@
-// src/components/suppliers/SupplierList/SupplierCard.tsx
-
 import type { Supplier } from '../../../../types/supplier.types';
 import ActionDropdown from '../ActionDropdown/ActionDropdown';
 import './SupplierCard.scss';
 
 interface SupplierCardProps {
   suppliers: Supplier[];
-  onDelete: (supplierId: string, supplierName: string) => void;
+  onDelete: (productUid: string, supplierName: string) => void;
 }
 
 const SupplierCard: React.FC<SupplierCardProps> = ({ suppliers, onDelete }) => {

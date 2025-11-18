@@ -1,6 +1,7 @@
 import './Pagination.scss';
 
 interface PaginationProps {
+  type: 'producte' | 'proveïdor' | 'comanda';
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
@@ -10,6 +11,7 @@ interface PaginationProps {
 }
 
 const Pagination = ({
+  type,
   currentPage,
   totalPages,
   onPageChange,
@@ -56,12 +58,18 @@ const Pagination = ({
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
+  const typeCases = {
+    producte: ['producte', 'productes'],
+    proveïdor: ['proveïdor', 'proveïdors'],
+    comanda: ['comanda', 'comandes'],
+  };
+
   return (
     <div className="pagination-wrapper">
       <div className="pagination-info">
         <span className="pagination-text">
           Mostrant {startItem}-{endItem} de {totalItems}{' '}
-          {totalItems === 1 ? 'proveïdor' : 'proveïdors'}
+          {totalItems === 1 ? typeCases[type][0] : typeCases[type][1]}
         </span>
 
         {onItemsPerPageChange && (

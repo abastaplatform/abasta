@@ -1,13 +1,72 @@
 import type { Product } from '../../../../types/product.types';
-import ActionDropdown from '../ActionDropDown/ActionDropDown';
+import ActionDropdown from '../ActionDropdown/ActionDropdown';
+
 import './ProductTable.scss';
+
+interface ColumnConfig {
+  key: keyof Product | 'supplier' | 'actions';
+  label: string;
+  render?: (product: Product) => React.ReactNode;
+  className?: string;
+  show?: boolean;
+}
 
 interface ProductTableProps {
   products: Product[];
-  onDelete: (productId: string, productName: string) => void;
+  columns?: ColumnConfig[];
+  onDelete?: (productUuid: string, productName: string) => void;
+  onProductClick?: (product: Product) => void;
+  selectable?: boolean;
+  showActions?: boolean;
+  selectedProducts?: Set<string | undefined>;
 }
 
-const ProductTable: React.FC<ProductTableProps> = ({ products, onDelete }) => {
+const defaultColumns: ColumnConfig[] = [
+  { key: 'name', label: 'Nom', show: true },
+  { key: 'category', label: 'Category', show: true },
+  {
+    key: 'volume',
+    label: 'Volum',
+    render: product => `${product.volume} ${product.unit}`,
+    show: true,
+  },
+  {
+    key: 'price',
+    label: 'Preu',
+    render: product => `${product.price}€`,
+    show: true,
+  },
+  {
+    key: 'supplier',
+    label: 'Proveïdor',
+    render: product => product.supplier.name,
+    show: true,
+  },
+  {
+    key: 'actions',
+    label: 'Accions',
+    className: 'text-end',
+    show: true,
+  },
+];
+
+const ProductTable: React.FC<ProductTableProps> = ({
+  products,
+  columns = defaultColumns,
+  onDelete,
+  onProductClick,
+  selectable = false,
+  showActions = true,
+  selectedProducts = new Set(),
+}) => {
+  const visibleColumns = columns.filter(col => col.show !== false);
+
+  const handleRowClick = (product: Product) => {
+    if (selectable && onProductClick) {
+      onProductClick(product);
+    }
+  };
+
   if (products.length === 0) {
     return (
       <div className="product-table-empty">
@@ -18,43 +77,64 @@ const ProductTable: React.FC<ProductTableProps> = ({ products, onDelete }) => {
   }
 
   return (
-    <div className="product-table-container d-none d-md-block">
+    <div className="product-table-container">
       <table className="product-table">
         <thead>
           <tr>
-            <th>Nom</th>
-            <th>Proveïdor</th>
-            <th>Categoria</th>
-            <th>Preu</th>
-            <th>Unitat</th>
-            <th className="text-end">Accions</th>
+            {visibleColumns.map(col => (
+              <th key={col.key} className={col.className}>
+                {col.label}
+              </th>
+            ))}
           </tr>
         </thead>
-
         <tbody>
-          {products.map(product => (
-            <tr key={product.uuid}>
-              <td className="product-name">{product.name}</td>
+          {products.map(product => {
+            const isSelected = selectedProducts.has(product.uuid);
+            const rowClasses = [
+              selectable ? 'selectable-row' : '',
+              isSelected ? 'selected' : '',
+            ]
+              .filter(Boolean)
+              .join(' ');
 
-              <td>{product.supplier?.name || '-'}</td>
+            return (
+              <tr
+                key={product.uuid}
+                className={rowClasses}
+                onClick={() => handleRowClick(product)}
+              >
+                {visibleColumns.map(col => {
+                  if (col.key === 'actions' && showActions) {
+                    return (
+                      <td key={col.key} className={col.className}>
+                        {onDelete && (
+                          <ActionDropdown
+                            productUuid={product.uuid}
+                            onDelete={() =>
+                              onDelete(product.uuid, product.name)
+                            }
+                          />
+                        )}
+                      </td>
+                    );
+                  }
 
-              <td>{product.category || '-'}</td>
+                  if (col.key === 'actions' && !showActions) {
+                    return null;
+                  }
 
-              <td>{product.price} €</td>
-
-              <td>
-                {product.volume != null ? `${product.volume} ` : ''}
-                {product.unit || ''}
-              </td>
-
-              <td className="text-end">
-                <ActionDropdown
-                  itemUuid={product.uuid}
-                  onDelete={() => onDelete(product.uuid, product.name)}
-                />
-              </td>
-            </tr>
-          ))}
+                  return (
+                    <td key={col.key} className={col.className}>
+                      {col.render
+                        ? col.render(product)
+                        : product[col.key as keyof Product]?.toString() || '-'}
+                    </td>
+                  );
+                })}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

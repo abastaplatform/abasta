@@ -1,13 +1,13 @@
 import api from './api';
 import type {
-  ProductFormData,
-  Product,
-  BasicProductSearchParams,
-  AdvancedProductSearchParams,
-  PaginatedResponse,
+  AdvancedSearchParams,
   ApiResponse,
+  BasicSearchParams,
+  PaginatedResponse,
+  PaginationParams,
+  Product,
+  ProductFormData,
 } from '../types/product.types';
-
 
 const formDataToApiData = (data: ProductFormData) => ({
   supplierUuid: data.supplierUuid,
@@ -33,7 +33,6 @@ const apiDataToFormData = (product: Product): ProductFormData => ({
 });
 
 export const productService = {
-
   async createProduct(data: ProductFormData): Promise<ApiResponse<Product>> {
     return await api.post<ApiResponse<Product>>(
       '/products/create',
@@ -58,136 +57,115 @@ export const productService = {
       data: response.data ? apiDataToFormData(response.data) : undefined,
     };
   },
-    async getAllProducts(
-    params: BasicProductSearchParams
-  ): Promise<ApiResponse<PaginatedResponse<Product>>> {
-    const query = new URLSearchParams();
-
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== '') {
-        query.append(key, String(value));
-      }
-    });
-
-    return await api.get(`/products?${query.toString()}`);
-  },
-  
 
   async getProductByUuid(uuid: string): Promise<ApiResponse<Product>> {
     return await api.get<ApiResponse<Product>>(`/products/${uuid}`);
   },
-  async searchProducts(
-    params: BasicProductSearchParams
-  ): Promise<ApiResponse<PaginatedResponse<Product>>> {
-    const query = new URLSearchParams();
 
-    if (params.searchText) query.append('searchText', params.searchText);
-    if (params.page != null) query.append('page', String(params.page));
-    if (params.size != null) query.append('size', String(params.size));
-    query.append('sortBy', params.sortBy || 'name');
-    query.append('sortDir', params.sortDir || 'asc');
-
-    return await api.get(`/products/search?${query.toString()}`);
-  },
-
-  async searchProductsBySupplier(
-    supplierUuid: string,
-    params: BasicProductSearchParams
-  ): Promise<ApiResponse<PaginatedResponse<Product>>> {
-    const query = new URLSearchParams();
-
-    if (params.searchText) query.append('searchText', params.searchText);
-    if (params.page != null) query.append('page', String(params.page));
-    if (params.size != null) query.append('size', String(params.size));
-    query.append('sortBy', params.sortBy || 'name');
-    query.append('sortDir', params.sortDir || 'asc');
-
-    return await api.get(
-      `/products/search/supplier/${supplierUuid}?${query.toString()}`
+  getProducts: async (
+    params: PaginationParams
+  ): Promise<ApiResponse<PaginatedResponse<Product>>> => {
+    const queryString = new URLSearchParams({
+      page: params.page.toString(),
+      size: params.size.toString(),
+      sortBy: params.sortBy || 'name',
+      sortDir: params.sortDir || 'asc',
+    }).toString();
+    return await api.get<ApiResponse<PaginatedResponse<Product>>>(
+      `/products?${queryString}`
     );
   },
 
-  async filterProductsBySupplier(
+  getProductBySupplier: async (
     supplierUuid: string,
-    params: AdvancedProductSearchParams
-  ): Promise<ApiResponse<PaginatedResponse<Product>>> {
-    const query = new URLSearchParams();
-
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== '') {
-        query.append(key, String(value));
-      }
-    });
-
-    return await api.get(
-      `/products/filter/supplier/${supplierUuid}?${query.toString()}`
-    );
-  },
-  async filterProducts(
-    params: AdvancedProductSearchParams
-  ): Promise<ApiResponse<PaginatedResponse<Product>>> {
-    const query = new URLSearchParams();
-
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== '') {
-        query.append(key, String(value));
-      }
-    });
-
-    return await api.get(`/products/filter?${query.toString()}`);
-  },
-  async listBySupplier(
-    supplierUuid: string,
-    params: BasicProductSearchParams
-  ): Promise<ApiResponse<PaginatedResponse<Product>>> {
-    const query = new URLSearchParams();
-
-    Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== '') {
-        query.append(key, String(value));
-        }
-    });
-
-    return await api.get(
-        `/product/supplier/${supplierUuid}?${query.toString()}`
+    params: PaginationParams
+  ): Promise<ApiResponse<PaginatedResponse<Product>>> => {
+    const queryString = new URLSearchParams({
+      page: params.page.toString(),
+      size: params.size.toString(),
+      sortBy: params.sortBy || 'name',
+      sortDir: params.sortDir || 'asc',
+    }).toString();
+    return await api.get<ApiResponse<PaginatedResponse<Product>>>(
+      `/products/search?supplierUuid=${supplierUuid}&${queryString}`
     );
   },
 
-  async deleteProduct(uuid: string): Promise<ApiResponse<Product>> {
-    try {
-      const res = await api.patch<ApiResponse<Product>>(
-        `/products/deactivate/${uuid}`
-      );
+  deleteProduct: async (uuid: string): Promise<void> => {
+    await api.patch(`/products/deactivate/${uuid}`);
+  },
 
-      return res;
-    } catch (error: any) {
-      return {
-        success: false,
-        message:
-          error.response?.data?.message ||
-          "Error inesperat en eliminar el producte",
-        data: undefined,
-      };
+  searchProducts: async (
+    params: BasicSearchParams
+  ): Promise<ApiResponse<PaginatedResponse<Product>>> => {
+    const queryParams = new URLSearchParams();
+
+    if (params.searchText) {
+      queryParams.append('searchText', params.searchText);
     }
+    if (params.page !== undefined) {
+      queryParams.append('page', params.page.toString());
+    }
+    if (params.size !== undefined) {
+      queryParams.append('size', params.size.toString());
+    }
+
+    return await api.get(`/products/search?${queryParams.toString()}`);
   },
 
-  async uploadImage(uuid: string, file: File) {
-    const formData = new FormData();
-    formData.append('image', file);
+  filterProducts: async (
+    params: AdvancedSearchParams
+  ): Promise<ApiResponse<PaginatedResponse<Product>>> => {
+    const queryParams = new URLSearchParams();
 
-        return await api.upload<ApiResponse<string>>(
-            `/products/upload/${uuid}`,
-            formData
-        );
+    if (params.name) {
+      queryParams.append('name', params.name);
+    }
+    if (params.category) {
+      queryParams.append('category', params.category);
+    }
+    if (params.supplierUuid) {
+      queryParams.append('supplierUuid', params.supplierUuid);
+    }
+    if (params.volume) {
+      queryParams.append('volume', params.volume.toString());
+    }
+    if (params.unit) {
+      queryParams.append('unit', params.unit);
+    }
+    if (params.minPrice) {
+      queryParams.append('minPrice', params.minPrice.toString());
+    }
+    if (params.maxPrice) {
+      queryParams.append('maxPrice', params.maxPrice.toString());
+    }
+    if (params.page !== undefined) {
+      queryParams.append('page', params.page.toString());
+    }
+    if (params.size !== undefined) {
+      queryParams.append('size', params.size.toString());
+    }
+
+    return await api.get(`/products/filter?${queryParams.toString()}`);
   },
 
-  async uploadTempImage(file: File) {
+  uploadImage: async (uuid: string, file: File) => {
     const formData = new FormData();
     formData.append('image', file);
 
     return await api.upload<ApiResponse<string>>(
-        '/products/upload-temp',
-        formData
+      `/products/upload/${uuid}`,
+      formData
+    );
+  },
+
+  uploadTempImage: async (file: File) => {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    return await api.upload<ApiResponse<string>>(
+      '/products/upload-temp',
+      formData
     );
   },
 };

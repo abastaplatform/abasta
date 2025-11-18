@@ -1,14 +1,16 @@
+// src/components/suppliers/SupplierList/ActionDropdown.tsx
+
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ActionDropdown.scss';
 
 interface ActionDropdownProps {
-  itemUuid: string;
+  productUuid: string;
   onDelete: () => void;
 }
 
 const ActionDropdown: React.FC<ActionDropdownProps> = ({
-  itemUuid,
+  productUuid,
   onDelete,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -35,16 +37,16 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({
   }, [isOpen]);
 
   const handleViewDetail = () => {
-    navigate(`/products/${itemUuid}`);
+    navigate(`/products/${productUuid}`);
     setIsOpen(false);
   };
 
   const handleEdit = () => {
-    navigate(`/products/edit/${itemUuid}`);
+    navigate(`/products/edit/${productUuid}`);
     setIsOpen(false);
   };
 
-  const handleDeleteClick = () => {
+  const handleDelete = () => {
     setIsOpen(false);
     onDelete();
   };
@@ -75,7 +77,7 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({
 
           <button
             className="action-dropdown-item action-dropdown-item-danger"
-            onClick={handleDeleteClick}
+            onClick={handleDelete}
           >
             <i className="bi bi-trash"></i>
             Eliminar

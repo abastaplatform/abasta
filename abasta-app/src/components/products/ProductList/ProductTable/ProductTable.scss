@@ -1,49 +1,116 @@
+@import '../../../../assets/styles/variables';
+
 .product-table-container {
-  margin-top: 1.5rem;
-  overflow-x: auto;
+  background: white;
+  border-radius: $border-radius-lg;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: visible;
 
-  .product-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: #ffffff;
-    border-radius: 8px;
-    overflow: hidden;
+  @media (max-width: 991px) {
+    display: none;
+  }
+}
 
-    th {
-      background: #f8f9fa;
-      padding: 12px;
-      font-weight: 600;
-      text-align: left;
-      border-bottom: 1px solid #e6e6e6;
+.product-table {
+  width: 100%;
+  margin: 0;
+
+  thead {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+
+    tr {
+      th {
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: #495057;
+        text-align: left;
+        white-space: nowrap;
+
+        &.text-end {
+          text-align: right;
+        }
+      }
     }
+  }
 
-    td {
-      padding: 12px;
-      border-bottom: 1px solid #f1f1f1;
-      vertical-align: middle;
-    }
+  tbody {
+    tr {
+      border-bottom: 1px solid #f0f0f0;
+      transition: background-color 0.2s ease;
 
-    tr:hover td {
-      background: #fafbfd;
-    }
+      &:hover {
+        background-color: #f8f9fa;
+      }
 
-    .product-name {
-      font-weight: 600;
-    }
+      &:last-child {
+        border-bottom: none;
+      }
 
-    .text-end {
-      text-align: end;
+      &.selectable-row {
+        cursor: pointer;
+
+        &.selected {
+          background-color: #e7f3ff;
+          border-left: 3px solid #0d6efd;
+
+          &:hover {
+            background-color: #d0e8ff;
+          }
+        }
+      }
+
+      td {
+        padding: 1rem 1.5rem;
+        font-size: 0.95rem;
+        color: #495057;
+        vertical-align: middle;
+
+        &.product-name {
+          font-weight: 600;
+          color: #212529;
+        }
+
+        &.text-end {
+          text-align: right;
+        }
+      }
     }
   }
 }
 
 .product-table-empty {
-  padding: 3rem 0;
   text-align: center;
-  color: #777;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: $border-radius-lg;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 
   i {
-    font-size: 3rem;
+    font-size: 4rem;
+    color: #dee2e6;
     margin-bottom: 1rem;
+    display: block;
+  }
+
+  p {
+    color: #6c757d;
+    font-size: 1.1rem;
+    margin: 0;
+  }
+
+  @media (max-width: 991px) {
+    display: none;
+  }
+}
+
+@media (max-width: 1200px) {
+  .product-table {
+    thead tr th,
+    tbody tr td {
+      padding: 0.875rem 1rem;
+      font-size: 0.9rem;
+    }
   }
 }
