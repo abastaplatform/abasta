@@ -48,7 +48,7 @@ public class Order {
     private User user;
 
     /** Nom representatiu de la comanda */
-    @Column(length = 50, nullable = false)
+    @Column(length = 255, nullable = false)
     private String name;
 
     /** Estat de la comanda */
