@@ -294,10 +294,13 @@ const SupplierManager = ({ mode }: SupplierManagerProps) => {
                       required: isCreateMode
                         ? 'El telèfon és obligatori'
                         : undefined,
-                      pattern: {
-                        value:
-                          /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{3,6}$/,
-                        message: 'El telèfon no és vàlid',
+                      validate: value => {
+                        if (!value) return true;
+                        const cleaned = value.replace(/\s/g, '');
+                        const isValid = /^[+]?[0-9]{9,13}$/.test(cleaned);
+                        return (
+                          isValid || 'El telèfon no és vàlid (9-13 dígits)'
+                        );
                       },
                     })}
                     isInvalid={!!errors.phone}
