@@ -478,7 +478,24 @@ const OrderCreate = () => {
     { label: 'Nova comanda', active: true },
   ];
 
-  const columnsForOrder = [
+  const columnsForOrderTable = [
+    { key: 'name' as const, label: 'Nom', show: true },
+    { key: 'category' as const, label: 'Categoria', show: true },
+    {
+      key: 'volume' as const,
+      label: 'Volum',
+      render: (product: Product) => `${product.volume} ${product.unit}`,
+      show: true,
+    },
+    {
+      key: 'price' as const,
+      label: 'Preu',
+      render: (product: Product) => `${product.price}€`,
+      show: true,
+    },
+  ];
+
+  const columnsForOrderCard = [
     { key: 'category' as const, label: 'Categoria', show: true },
     {
       key: 'volume' as const,
@@ -569,7 +586,7 @@ const OrderCreate = () => {
                   <>
                     <ProductTable
                       products={products}
-                      columns={columnsForOrder}
+                      columns={columnsForOrderTable}
                       selectable
                       showActions={false}
                       onProductClick={handleProductClick}
@@ -577,7 +594,7 @@ const OrderCreate = () => {
                     />
                     <ProductCard
                       products={products}
-                      fields={columnsForOrder.map(col => ({
+                      fields={columnsForOrderCard.map(col => ({
                         key: col.key,
                         label: col.label,
                         render: col.render,
