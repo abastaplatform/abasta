@@ -17,6 +17,7 @@ export interface Product {
   };
 }
 export interface BasicSearchParams {
+  supplierUuid?: string;
   searchText?: string;
   page?: number;
   size?: number;

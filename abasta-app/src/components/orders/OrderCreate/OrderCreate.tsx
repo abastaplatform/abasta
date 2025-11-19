@@ -218,6 +218,7 @@ const OrderCreate = () => {
         setIsAdvancedSearch(true);
       } else {
         const params: BasicSearchParams = {
+          supplierUuid: selectedSupplierUuid || undefined,
           searchText: filtersParam.query,
           page: currentPage,
           size: itemsPerPage,
@@ -321,7 +322,6 @@ const OrderCreate = () => {
       setSelectedSupplierUuid(null);
     }
     setOrderItems([]);
-    loadProducts();
     setOrderName('');
     setShowChangeSupplierModal(false);
   };
@@ -546,6 +546,7 @@ const OrderCreate = () => {
                 )}
 
                 <SearchBar
+                  key={selectedSupplierUuid || 'no-supplier'}
                   onSearch={handleSearch}
                   onClear={handleClearSearch}
                   fetchSuppliers={fetchSuppliersWithCache}

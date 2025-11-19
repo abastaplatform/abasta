@@ -100,6 +100,9 @@ export const productService = {
   ): Promise<ApiResponse<PaginatedResponse<Product>>> => {
     const queryParams = new URLSearchParams();
 
+    if (params.supplierUuid !== undefined) {
+      queryParams.append('supplierUuid', params.supplierUuid);
+    }
     if (params.searchText) {
       queryParams.append('searchText', params.searchText);
     }
