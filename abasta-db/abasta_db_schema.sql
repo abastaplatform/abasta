@@ -119,7 +119,7 @@ CREATE TABLE orders (
     company_id BIGINT NOT NULL,
     supplier_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
-    name VARCHAR(50) NOT NULL,
+    name VARCHAR(255) NOT NULL,
     status ENUM('PENDING', 'SENT', 'CONFIRMED', 'REJECTED', 'COMPLETED', 'CANCELLED')
         DEFAULT 'PENDING',
     total_amount DECIMAL(10, 2) NOT NULL DEFAULT 0,
