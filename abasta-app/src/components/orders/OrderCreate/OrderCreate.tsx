@@ -33,12 +33,17 @@ import {
 import { orderService } from '../../../services/orderService';
 import ProductCard from '../../products/ProductList/ProductCard/ProductCard';
 import OrderCreateScrollButton from './OrderCreateScrollButton/OrderCreateScrollButton';
+import SupplierAutocomplete from '../../common/SupplierAutocomplete/SupplierAutocomplete';
+import ConfirmModal from '../../common/ConfirmModal/ConfirmModal';
 
 const OrderCreate = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const supplierUuid = searchParams.get('supplier');
+  const supplierUuidFromUrl = searchParams.get('supplier');
 
+  const [selectedSupplierUuid, setSelectedSupplierUuid] = useState<
+    string | null
+  >(supplierUuidFromUrl);
   const [supplierName, setSupplierName] = useState<string | null>(null);
   const [supplierEmail, setSupplierEmail] = useState<string | null>(null);
   const [supplierPhone, setSupplierPhone] = useState<string | null>(null);
@@ -73,10 +78,14 @@ const OrderCreate = () => {
   });
 
   const [isAdvancedSearch, setIsAdvancedSearch] = useState(false);
-
   const [manualSearchActive, setManualSearchActive] = useState(false);
 
   const [showSendModal, setShowSendModal] = useState(false);
+
+  const [showChangeSupplierModal, setShowChangeSupplierModal] = useState(false);
+  const [pendingSupplierUuid, setPendingSupplierUuid] = useState<string | null>(
+    null
+  );
 
   const [suppliersCache, setSuppliersCache] = useState<
     Map<string, CachedSuppliersResult>
@@ -88,15 +97,20 @@ const OrderCreate = () => {
     orderItems.map(item => item.productUuid)
   );
 
+  const isSupplierFromUrl = !!supplierUuidFromUrl;
+
   useEffect(() => {
-    const loadSupplierName = async () => {
-      if (!supplierUuid) {
+    const loadSupplierInfo = async () => {
+      if (!selectedSupplierUuid) {
         setSupplierName(null);
+        setSupplierEmail(null);
+        setSupplierPhone(null);
         return;
       }
 
       try {
-        const response = await supplierService.getSupplierByUuid(supplierUuid);
+        const response =
+          await supplierService.getSupplierByUuid(selectedSupplierUuid);
         setSupplierName(response.data?.name || null);
         setSupplierEmail(response.data?.email || null);
         setSupplierPhone(response.data?.phone || null);
@@ -108,28 +122,23 @@ const OrderCreate = () => {
       }
     };
 
-    loadSupplierName();
-  }, [supplierUuid]);
+    loadSupplierInfo();
+  }, [selectedSupplierUuid]);
 
   useEffect(() => {
-    if (supplierUuid) {
-      setCurrentFilters(prev => ({ ...prev, supplierUuid }));
+    if (selectedSupplierUuid) {
+      setCurrentFilters(prev => ({
+        ...prev,
+        supplierUuid: selectedSupplierUuid,
+      }));
     } else {
       setCurrentFilters(prev => ({ ...prev, supplierUuid: '' }));
     }
-  }, [supplierUuid]);
+  }, [selectedSupplierUuid]);
 
   useEffect(() => {
     if (supplierName) {
-      const date = new Date();
-      const formattedDate = date
-        .toLocaleDateString('ca-ES', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-        })
-        .replace(/\//g, '-');
-      setOrderName(`Comanda ${supplierName} ${formattedDate}`);
+      setOrderName(`Comanda ${supplierName}`);
     }
   }, [supplierName]);
 
@@ -143,7 +152,7 @@ const OrderCreate = () => {
     };
 
     loadForPage();
-  }, [currentPage, itemsPerPage]);
+  }, [currentPage, itemsPerPage, selectedSupplierUuid]);
 
   const loadProducts = async () => {
     setIsLoading(true);
@@ -158,9 +167,9 @@ const OrderCreate = () => {
       };
 
       let response;
-      if (supplierUuid) {
+      if (selectedSupplierUuid) {
         response = await productService.getProductBySupplier(
-          supplierUuid,
+          selectedSupplierUuid,
           paginationParams
         );
       } else {
@@ -258,7 +267,7 @@ const OrderCreate = () => {
       category: '',
       minPrice: null,
       maxPrice: null,
-      supplierUuid: '',
+      supplierUuid: selectedSupplierUuid || '',
       volume: null,
       unit: '',
     };
@@ -289,7 +298,45 @@ const OrderCreate = () => {
     [suppliersCache, suppliersCacheInitialized]
   );
 
+  const handleSupplierChange = (uuid: string) => {
+    setOrderName('');
+    if (uuid !== selectedSupplierUuid && orderItems.length > 0) {
+      setPendingSupplierUuid(uuid);
+      setShowChangeSupplierModal(true);
+    } else {
+      setSelectedSupplierUuid(uuid);
+      setOrderItems([]);
+      setCurrentPage(0);
+      setManualSearchActive(false);
+    }
+  };
+
+  const handleConfirmSupplierChange = () => {
+    if (pendingSupplierUuid) {
+      setSelectedSupplierUuid(pendingSupplierUuid);
+      setCurrentPage(0);
+      setManualSearchActive(false);
+      setPendingSupplierUuid(null);
+    } else {
+      setSelectedSupplierUuid(null);
+    }
+    setOrderItems([]);
+    loadProducts();
+    setOrderName('');
+    setShowChangeSupplierModal(false);
+  };
+
+  const handleCancelSupplierChange = () => {
+    setPendingSupplierUuid(null);
+    setShowChangeSupplierModal(false);
+  };
+
   const handleProductClick = (product: Product) => {
+    if (!selectedSupplierUuid) {
+      setError("Selecciona un proveïdor abans d'afegir productes a la comanda");
+      return;
+    }
+
     const existingItem = orderItems.find(
       item => item.productUuid === product.uuid
     );
@@ -307,6 +354,7 @@ const OrderCreate = () => {
     };
 
     setOrderItems(prev => [...prev, newItem]);
+    setError('');
   };
 
   const handleUpdateItem = (
@@ -339,6 +387,11 @@ const OrderCreate = () => {
   };
 
   const handlePrepareToSend = async () => {
+    if (!selectedSupplierUuid) {
+      setError('Selecciona un proveïdor');
+      return;
+    }
+
     if (orderItems.length === 0) {
       setError('Afegeix productes a la comanda');
       return;
@@ -346,7 +399,7 @@ const OrderCreate = () => {
 
     const orderToCreate: CreateOrderRequest = {
       name: orderName,
-      supplierUuid: supplierUuid || '',
+      supplierUuid: selectedSupplierUuid || '',
       items: orderItems.map(item => ({
         productUuid: item.productUuid,
         quantity: item.quantity,
@@ -372,7 +425,7 @@ const OrderCreate = () => {
   const handleSendOrder = async (method: 'email' | 'whatsapp') => {
     setSuccessMessage('');
 
-    if (!supplierUuid) return;
+    if (!supplierUuidFromUrl) return;
 
     if (method === 'whatsapp') {
       const text = encodeURIComponent(
@@ -396,7 +449,7 @@ const OrderCreate = () => {
     const result = await sendOrder(orderUuid);
 
     if (result) {
-      navigate('/suppliers', {
+      navigate('/orders/new', {
         state: { successMessage: 'Comanda enviada correctament!' },
       });
     }
@@ -413,11 +466,11 @@ const OrderCreate = () => {
   };
 
   const handleCancel = () => {
-    navigate('/orders');
+    navigate('/orders/new');
   };
 
   const breadcrumbItems = [
-    { label: 'Comandes', path: '/orders' },
+    { label: 'Comandes', path: '/orders/new' },
     { label: 'Nova comanda', active: true },
   ];
 
@@ -464,23 +517,40 @@ const OrderCreate = () => {
                     </Form.Group>
                   </div>
                   <div className="col-md-6 mb-3">
-                    <Form.Group>
-                      <Form.Label>Proveïdor</Form.Label>
-                      <Form.Control
-                        type="text"
-                        value={supplierName || '—'}
-                        disabled
+                    {isSupplierFromUrl ? (
+                      <Form.Group>
+                        <Form.Label>Proveïdor</Form.Label>
+                        <Form.Control
+                          type="text"
+                          value={supplierName || '—'}
+                          disabled
+                        />
+                      </Form.Group>
+                    ) : (
+                      <SupplierAutocomplete
+                        value={selectedSupplierUuid || ''}
+                        onChange={handleSupplierChange}
+                        placeholder="Selecciona un proveïdor"
+                        label="Proveïdor"
+                        fetchSuppliers={fetchSuppliersWithCache}
                       />
-                    </Form.Group>
+                    )}
                   </div>
                 </div>
+
+                {!selectedSupplierUuid && (
+                  <Alert
+                    variant="info"
+                    message="ℹ️ Selecciona un proveïdor per poder afegir productes a la comanda. Pots explorar el catàleg mentre tant."
+                  />
+                )}
 
                 <SearchBar
                   onSearch={handleSearch}
                   onClear={handleClearSearch}
                   fetchSuppliers={fetchSuppliersWithCache}
                   supplierName={supplierName}
-                  supplierUuid={supplierUuid || undefined}
+                  supplierUuid={selectedSupplierUuid || undefined}
                   placeholder="Cercar per nom, categoria..."
                 />
 
@@ -527,6 +597,14 @@ const OrderCreate = () => {
                     onItemsPerPageChange={handleItemsPerPageChange}
                   />
                 )}
+
+                {!isLoading && products.length === 0 && (
+                  <div className="text-center py-4 text-muted">
+                    {selectedSupplierUuid
+                      ? "No s'han trobat productes per aquest proveïdor"
+                      : "No s'han trobat productes"}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -567,6 +645,18 @@ const OrderCreate = () => {
           onSend={handleSendOrder}
         />
       )}
+
+      <ConfirmModal
+        show={showChangeSupplierModal}
+        title="Canviar proveïdor"
+        message="Canviar el proveïdor eliminarà tots els productes seleccionats de la comanda."
+        warning="Aquesta acció no es pot desfer"
+        confirmText="Canviar proveïdor"
+        cancelText="Cancel·lar"
+        onClose={handleCancelSupplierChange}
+        onConfirm={handleConfirmSupplierChange}
+        variant="warning"
+      />
     </div>
   );
 };
