@@ -171,14 +171,14 @@ const CompanyConfig: React.FC = () => {
             <ButtonCustom
               title="Cancel·lar"
               type="button"
-              variant="secondary"
+              variant="outline"
               onClick={handleCancel}
               disabled={isLoading}
             />
             <ButtonCustom
               title={isLoading ? 'Desant...' : 'Desar canvis'}
               type="submit"
-              variant="primary"
+              variant="solid"
               disabled={isLoading}
               isLoading={isLoading}
             />
