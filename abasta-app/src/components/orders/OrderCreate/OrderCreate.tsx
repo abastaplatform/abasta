@@ -541,7 +541,7 @@ const OrderCreate = () => {
                 {!selectedSupplierUuid && (
                   <Alert
                     variant="info"
-                    message="ℹ️ Selecciona un proveïdor per poder afegir productes a la comanda. Pots explorar el catàleg mentre tant."
+                    message="Selecciona un proveïdor per poder afegir productes a la comanda. Pots explorar el catàleg mentre tant."
                   />
                 )}
 

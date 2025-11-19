@@ -38,7 +38,7 @@ const Leftbar = () => {
 
   const allMenuItems = [
     { icon: 'bi-grid', label: 'Panell principal', path: '/dashboard' },
-    { icon: 'bi-cart', label: 'Comandes', path: '/orders' },
+    { icon: 'bi-cart', label: 'Comandes', path: '/orders/new' },
     { icon: 'bi-truck', label: 'Proveïdors', path: '/suppliers' },
     { icon: 'bi-box', label: 'Productes', path: '/products' },
     { icon: 'bi-bar-chart', label: 'Informes', path: '/reports' },
