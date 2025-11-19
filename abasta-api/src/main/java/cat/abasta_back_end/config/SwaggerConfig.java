@@ -130,12 +130,14 @@ public class SwaggerConfig {
                 .title("Abasta Back-End API")
                 .version("1.0")
                 .description("""
-                    API REST per a la gestió d'empreses i usuaris de la plataforma Abasta.
+                    API REST per a la gestió integral de la cadena de subministrament B2B per a PYMES.
                     
                     ## Característiques principals:
                     - 🏢 Gestió completa d'empreses
                     - 👥 Gestió d'usuaris amb rols (ADMIN, USER)
                     - 🚚 Gestió integral de proveïdors
+                    - 📦 Catàleg de productes amb imatges
+                    - 🛒 Sistema de comandes amb notificacions
                     - 🔐 Autenticació JWT
                     - ✉️ Verificació d'email
                     - 🔑 Recuperació de contrasenya
@@ -150,11 +152,43 @@ public class SwaggerConfig {
                     5. Ara pots provar tots els endpoints protegits
                     
                     ## Flux típic:
-                    1. Registrar empresa i admin: `POST /api/companies/register`
-                    2. Verificar email: `POST /api/auth/verify-email`
-                    3. Login: `POST /api/auth/login`
-                    4. Utilitzar el token per accedir als endpoints protegits
-                    5. Gestionar proveïdors: crear, consultar, actualitzar, cercar
+                    1. **Registre:** `POST /api/companies/register`
+                    2. **Verificació:** `POST /api/auth/verify-email`
+                    3. **Login:** `POST /api/auth/login`
+                    4. **Gestió empresa:** `GET/PUT /api/companies`
+                    5. **Gestió proveïdors:** 
+                       - Llistar: `GET /api/suppliers`
+                       - Crear: `POST /api/suppliers`
+                       - Consultar: `GET /api/suppliers/{uuid}`
+                       - Actualitzar: `PUT /api/suppliers/{uuid}`
+                       - Canviar estat: `PATCH /api/suppliers/{uuid}/status`
+                       - Cerca bàsica: `GET /api/suppliers/search?searchText=text`
+                       - Cerca avançada: `GET /api/suppliers/filter?name=...&email=...`
+                    6. **Gestió productes:**
+                       - Llistar per empresa: `GET /api/products`
+                       - Crear: `POST /api/products/create`
+                       - Consultar: `GET /api/products/{uuid}`
+                       - Actualitzar: `PUT /api/products/{uuid}`
+                       - Desactivar: `PATCH /api/products/deactivate/{uuid}`
+                       - Cerca: `GET /api/products/search?supplierUuid=...`
+                       - Filtre avançat: `GET /api/products/filter?category=...`
+                       - Pujar imatge: `POST /api/products/upload/{productUuid}`
+                       - Imatge temporal: `POST /api/products/upload-temp`
+                    7. **Gestió comandes:**
+                       - Crear comanda: `POST /api/orders/create`
+                       - Enviar al proveïdor: `POST /api/orders/{uuid}/send`
+                    
+                    ## Paginació i ordenació:
+                    Tots els endpoints de llistat suporten:
+                    - `page`: número de pàgina (default: 0)
+                    - `size`: elements per pàgina (default: 10)
+                    - `sortBy`: camp d'ordenació (default: "name")
+                    - `sortDir`: direcció (asc/desc, default: "asc")
+                    
+                    ## Cerca i filtres:
+                    - **Cerca bàsica:** cerca en múltiples camps simultàniament
+                    - **Cerca avançada:** filtres específics per cada camp
+                    - Tots els filtres de text són case-insensitive i accepten coincidències parcials
                     """)
                 .contact(new Contact()
                         .name("Equip Abasta")
