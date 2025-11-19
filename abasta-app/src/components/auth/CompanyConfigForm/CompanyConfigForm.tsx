@@ -48,7 +48,7 @@ const CompanyConfig: React.FC = () => {
           <Button
             variant="primary"
             onClick={toggleEdit}
-            className="d-flex align-items-center"
+            className="d-flex align-items-center edit-button"
           >
             <i className="bi bi-pencil me-2"></i> Editar
           </Button>
