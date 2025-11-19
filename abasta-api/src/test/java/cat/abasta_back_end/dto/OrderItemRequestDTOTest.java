@@ -28,6 +28,9 @@ class OrderItemRequestDTOTest {
 
     private Validator validator;
 
+    /**
+     * Validació abans de cada test
+     */
     @BeforeEach
     void setUp() {
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
@@ -35,7 +38,7 @@ class OrderItemRequestDTOTest {
     }
 
     @Test
-    @DisplayName("Builder crea correctament el DTO")
+    @DisplayName("Comprova que Builder crea correctament el DTO")
     void builder_createsDTO() {
         OrderItemRequestDTO dto = OrderItemRequestDTO.builder()
                 .productUuid("prod-123")
@@ -49,7 +52,7 @@ class OrderItemRequestDTOTest {
     }
 
     @Test
-    @DisplayName("Validació falla si el productUuid és nul o buit")
+    @DisplayName("Comprova excepció si productUuid és nul o buit")
     void validation_fails_onInvalidProductUuid() {
         OrderItemRequestDTO dto = OrderItemRequestDTO.builder()
                 .productUuid("")
@@ -62,7 +65,7 @@ class OrderItemRequestDTOTest {
     }
 
     @Test
-    @DisplayName("Validació falla si la quantitat és nul·la")
+    @DisplayName("Comprova excepció si la quantitat és nul·la")
     void validation_fails_onNullQuantity() {
         OrderItemRequestDTO dto = OrderItemRequestDTO.builder()
                 .productUuid("prod-1")
@@ -75,7 +78,7 @@ class OrderItemRequestDTOTest {
     }
 
     @Test
-    @DisplayName("equals i hashCode funcionen correctament")
+    @DisplayName("Comprova que equals i hashCode funcionen correctament")
     void equalsHashCode() {
         OrderItemRequestDTO a = OrderItemRequestDTO.builder()
                 .productUuid("p1")
@@ -92,7 +95,7 @@ class OrderItemRequestDTOTest {
     }
 
     @Test
-    @DisplayName("toString genera informació")
+    @DisplayName("Comprova que toString genera informació")
     void toString_notEmpty() {
         OrderItemRequestDTO dto = OrderItemRequestDTO.builder()
                 .productUuid("x")

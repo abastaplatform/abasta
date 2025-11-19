@@ -48,16 +48,18 @@ public class Order {
     private User user;
 
     /** Nom representatiu de la comanda */
-    @Column(length = 50, nullable = false)
+    @Column(length = 255, nullable = false)
     private String name;
 
     /** Estat de la comanda */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Builder.Default
     private OrderStatus status = OrderStatus.PENDING;
 
     /** Total de la comanda */
     @Column(name = "total_amount", precision = 10, scale = 2, nullable = false)
+    @Builder.Default
     private BigDecimal totalAmount = BigDecimal.ZERO;
 
     /** Notes/Observacions sobre la comanda */
@@ -70,14 +72,17 @@ public class Order {
 
     /** Data de creació de la comanda */
     @Column(name = "created_at", updatable = false)
+    @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
     /** data de modificació de la comanda */
     @Column(name = "updated_at")
+    @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
 
     /** Llistat dels productes afegits a la comanda */
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<OrderItem> items = new ArrayList<>();
 
     /**

@@ -59,6 +59,7 @@ public class OrderItem {
 
     /** Data de creació */
     @Column(name = "created_at", updatable = false)
+    @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
     /**
