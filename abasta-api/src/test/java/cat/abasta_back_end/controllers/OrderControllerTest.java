@@ -88,6 +88,7 @@ class OrderControllerTest {
      * Test que comprova la crida a createOrder i la resposta HTTP 201.
      */
     @Test
+    @DisplayName("POST /api/orders/create : crear comanda")
     void createOrder_success() {
         // Configurar mock del servei
         when(orderService.createOrder(orderRequest)).thenReturn(orderResponse);
@@ -110,6 +111,7 @@ class OrderControllerTest {
      * Test que comprova l'enviament d'una comanda existent amb èxit.
      */
     @Test
+    @DisplayName("POST /api/orders/uuid/send : enviar comanda")
     void sendOrder_success() {
         // Configurar mock del servei
         when(orderService.sendOrder("order-uuid")).thenReturn(orderResponse);
@@ -132,6 +134,7 @@ class OrderControllerTest {
      * en l'enviament de la comanda.
      */
     @Test
+    @DisplayName("Comprova excepció en enviament de comanda")
     void sendOrder_serviceThrowsException() {
         // Configurar el mock perquè llenci RuntimeException
         when(orderService.sendOrder("order-uuid"))
