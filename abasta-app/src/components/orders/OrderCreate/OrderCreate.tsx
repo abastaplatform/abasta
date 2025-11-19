@@ -425,7 +425,7 @@ const OrderCreate = () => {
   const handleSendOrder = async (method: 'email' | 'whatsapp') => {
     setSuccessMessage('');
 
-    if (!supplierUuidFromUrl) return;
+    if (!selectedSupplierUuid) return;
 
     if (method === 'whatsapp') {
       const text = encodeURIComponent(
@@ -448,9 +448,13 @@ const OrderCreate = () => {
 
     const result = await sendOrder(orderUuid);
 
-    if (result) {
-      navigate('/orders/new', {
+    setIsSending(false);
+    setShowSendModal(false);
+
+    if (result?.status === 'SENT') {
+      navigate('/suppliers', {
         state: { successMessage: 'Comanda enviada correctament!' },
+        replace: true,
       });
     }
   };
