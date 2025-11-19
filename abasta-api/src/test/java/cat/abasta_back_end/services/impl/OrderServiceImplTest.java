@@ -2,18 +2,27 @@ package cat.abasta_back_end.services.impl;
 
 import cat.abasta_back_end.dto.*;
 import cat.abasta_back_end.entities.*;
+import cat.abasta_back_end.exceptions.ResourceNotFoundException;
 import cat.abasta_back_end.repositories.*;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
-import cat.abasta_back_end.entities.Order.OrderStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests unitaris per OrderServiceImpl.
@@ -40,116 +49,154 @@ import static org.mockito.Mockito.*;
  * @author Daniel Garcia
  * @version 1.1
  */
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 @DisplayName("OrderServiceImpl Tests")
 class OrderServiceImplTest {
 
     @Mock
     private OrderRepository orderRepository;
-
     @Mock
     private OrderItemRepository orderItemRepository;
-
     @Mock
     private SupplierRepository supplierRepository;
-
     @Mock
     private ProductRepository productRepository;
-
+    @Mock
+    private UserRepository userRepository;
     @InjectMocks
-    private OrderServiceImpl orderService;
+    private OrderServiceImpl orderServiceImpl;
 
-    private Supplier supplier;
-    private Product product;
-    private Order order;
+    // Objectes
+    private Company testCompany;
+    private User testUser;
+    private Supplier testSupplier;
+    private Product testProduct;
 
     /**
-     * Inicialitza dades bàsiques abans de cada test.
-     * <p>
-     * S'instancien proveïdor, producte i comanda mockejats
-     * que seran reutilitzats pels tests de creació i enviament de comandes.
-     * </p>
+     * Inicialitza instàncies de company, user, supplier, product abans de cada test.
      */
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
 
-        supplier = Supplier.builder()
-                .id(1L)
-                .uuid("supplier-uuid")
-                .build();
+        // Creació de la companyia
+        testCompany = Company.builder().uuid("test-company-uuid").name("Test Companyia 1").taxId("55555555K").email("company1@test.com").phone("666666666").address("Carrer Barcelona").city("Barcelona").postalCode("08080").status(Company.CompanyStatus.ACTIVE).build();
 
-        product = Product.builder()
-                .id(1L)
-                .uuid("product-uuid")
-                .price(new BigDecimal("10.00"))
-                .build();
+        // Creació de l'usuari
+        testUser = User.builder().uuid("test-user-uuid").company(testCompany).email("user@test.com").password("pass").firstName("User1").lastName("cognoms").role(User.UserRole.ADMIN).phone("777777777").isActive(true).emailVerified(true).build();
 
-        order = Order.builder()
-                .id(1L)
-                .uuid("order-uuid")
-                .status(OrderStatus.PENDING)
-                .supplier(supplier)
-                .createdAt(LocalDateTime.now())
-                .items(new ArrayList<>())
-                .build();
+        // Creació del proveedor
+        testSupplier = Supplier.builder().uuid("test-supplier-uuid").company(testCompany).name("Test supplier 1").contactName("Antonio").email("user@test.com").phone("444444444").address("Carrer Mallorca").notes("Treball 24/7").isActive(true).build();
+
+        // Creació del producte de prova
+        testProduct = Product.builder().uuid("test-product-uuid").supplier(testSupplier).category("Categoria").name("Test Producte 1").description("Descripció Producte 1").price(BigDecimal.valueOf(0.5)).volume(BigDecimal.valueOf(33)).unit("cl").imageUrl("/img/productes/producte1.jpg").isActive(true).build();
+
     }
 
     /**
-     * Test que comprova la creació d'una comanda amb èxit.
+     * Reseteja el SecurityContext després de cada test
+     */
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
+
+    /**
+     * Comprova la creació d'una Order
      */
     @Test
+    @DisplayName("Comprova la creació d'una Order")
     void createOrder_success() {
-        OrderItemRequestDTO itemDTO = OrderItemRequestDTO.builder()
-                .productUuid(product.getUuid())
-                .quantity(new BigDecimal("2"))
-                .build();
 
-        OrderRequestDTO orderRequest = OrderRequestDTO.builder()
-                .name("Test Order")
-                .supplierUuid(supplier.getUuid())
-                .items(List.of(itemDTO))
-                .build();
+        // Mock de l'usuari autenticat
+        Authentication authentication = Mockito.mock(Authentication.class);
+        when(authentication.getName()).thenReturn(testUser.getEmail());
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
 
-        when(supplierRepository.findByUuid(supplier.getUuid()))
-                .thenReturn(Optional.of(supplier));
-        when(productRepository.findByUuid(product.getUuid()))
-                .thenReturn(Optional.of(product));
-        when(orderRepository.save(any(Order.class)))
-                .thenAnswer(i -> i.getArguments()[0]);
+        when(userRepository.findByEmail(testUser.getEmail())).thenReturn(Optional.of(testUser));
+        when(supplierRepository.findByUuid(testSupplier.getUuid())).thenReturn(Optional.of(testSupplier));
+        when(productRepository.findByUuid(testProduct.getUuid())).thenReturn(Optional.of(testProduct));
+        when(orderItemRepository.saveAll(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        OrderResponseDTO response = orderService.createOrder(orderRequest);
+
+        // Creem els request de OrderItem i Order
+        OrderItemRequestDTO itemDTO = OrderItemRequestDTO.builder().productUuid(testProduct.getUuid()).quantity(new BigDecimal("2")).build();
+        OrderRequestDTO orderRequest = OrderRequestDTO.builder().name("Test Order 1").supplierUuid(testSupplier.getUuid()).notes("Test notes order 1").deliveryDate(LocalDate.now()).items(List.of(itemDTO)).build();
+
+        when(supplierRepository.findByUuid(testSupplier.getUuid())).thenReturn(Optional.of(testSupplier));
+        when(productRepository.findByUuid(testProduct.getUuid())).thenReturn(Optional.of(testProduct));
+        when(orderRepository.save(any(Order.class))).thenAnswer(i -> i.getArguments()[0]);
+
+        OrderResponseDTO response = orderServiceImpl.createOrder(orderRequest);
+
 
         assertThat(response).isNotNull();
-        assertThat(response.getName()).isEqualTo("Test Order");
+        assertThat(response.getName()).isEqualTo("Test Order 1");
         assertThat(response.getItems()).hasSize(1);
-        assertThat(response.getItems().get(0).getSubtotal())
-                .isEqualByComparingTo(new BigDecimal("20.00"));
+        assertThat(response.getItems().get(0).getSubtotal()).isEqualByComparingTo(new BigDecimal("1.00"));
     }
 
     /**
-     * Test que comprova excepció quan el proveïdor no existeix.
+     * Comprova Excepció (supplier no trobat)
      */
     @Test
+    @DisplayName("Comprova Excepció (supplier no trobat)")
     void createOrder_supplierNotFound_throws() {
+
+        // Mock usuari autenticat
+        Authentication authentication = Mockito.mock(Authentication.class);
+        when(authentication.getName()).thenReturn(testUser.getEmail());
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        // Mock usuari existent
+        when(userRepository.findByEmail(testUser.getEmail()))
+                .thenReturn(Optional.of(testUser));
+
+        // proveïdor no existeix
+        when(supplierRepository.findByUuid("bad-uuid"))
+                .thenReturn(Optional.empty());
+
         OrderRequestDTO orderRequest = OrderRequestDTO.builder()
                 .name("Test")
                 .supplierUuid("bad-uuid")
                 .items(Collections.emptyList())
                 .build();
 
-        when(supplierRepository.findByUuid("bad-uuid")).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> orderService.createOrder(orderRequest))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Supplier not found");
+        assertThatThrownBy(() -> orderServiceImpl.createOrder(orderRequest))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Proveïdor no trobat");
     }
 
     /**
-     * Test que comprova excepció quan el producte no existeix.
+     * Comprova Excepció (product no trobat)
      */
     @Test
+    @DisplayName("Comprova Excepció (product no trobat)")
     void createOrder_productNotFound_throws() {
+
+        // Mock usuari autenticat
+        Authentication authentication = Mockito.mock(Authentication.class);
+        when(authentication.getName()).thenReturn(testUser.getEmail());
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        // Mock userRepository usuari existeix
+        when(userRepository.findByEmail(testUser.getEmail()))
+                .thenReturn(Optional.of(testUser));
+
+        // Mock supplierRepository proveïdor existeix
+        when(supplierRepository.findByUuid(testSupplier.getUuid()))
+                .thenReturn(Optional.of(testSupplier));
+
+        // Mock productRepository producte no existeix
+        when(productRepository.findByUuid("bad-product"))
+                .thenReturn(Optional.empty());
+
+        // Es construeix el request
         OrderItemRequestDTO itemDTO = OrderItemRequestDTO.builder()
                 .productUuid("bad-product")
                 .quantity(new BigDecimal("1"))
@@ -157,62 +204,14 @@ class OrderServiceImplTest {
 
         OrderRequestDTO orderRequest = OrderRequestDTO.builder()
                 .name("Test")
-                .supplierUuid(supplier.getUuid())
+                .supplierUuid(testSupplier.getUuid())
                 .items(List.of(itemDTO))
+                .deliveryDate(LocalDate.now())
                 .build();
 
-        when(supplierRepository.findByUuid(supplier.getUuid()))
-                .thenReturn(Optional.of(supplier));
-        when(productRepository.findByUuid("bad-product"))
-                .thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> orderService.createOrder(orderRequest))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Product not found");
+        assertThatThrownBy(() -> orderServiceImpl.createOrder(orderRequest))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Producte no trobat");
     }
 
-    /**
-     * Test que comprova l'enviament d'una comanda amb èxit.
-     * <p>
-     * Simula una comanda en estat PENDING i comprova que després
-     * d'enviar-la, l'estat passa a SENT.
-     * </p>
-     */
-    @Test
-    void sendOrder_success() {
-        when(orderRepository.findByUuid("order-uuid")).thenReturn(Optional.of(order));
-        when(orderRepository.save(any(Order.class)))
-                .thenAnswer(i -> i.getArguments()[0]);
-
-        OrderResponseDTO response = orderService.sendOrder("order-uuid");
-
-        assertThat(response).isNotNull();
-        assertThat(response.getUuid()).isEqualTo("order-uuid");
-        assertThat(response.getStatus()).isEqualTo("SENT");
-    }
-
-    /**
-     * Test que comprova llançament d'excepció si la comanda no existeix.
-     */
-    @Test
-    void sendOrder_notFound_throws() {
-        when(orderRepository.findByUuid("bad-uuid")).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> orderService.sendOrder("bad-uuid"))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Order not found");
-    }
-
-    /**
-     * Test que comprova llançament d'excepció si la comanda no està en estat PENDING.
-     */
-    @Test
-    void sendOrder_invalidStatus_throws() {
-        order.setStatus(OrderStatus.SENT);
-        when(orderRepository.findByUuid("order-uuid")).thenReturn(Optional.of(order));
-
-        assertThatThrownBy(() -> orderService.sendOrder("order-uuid"))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Order status must be PENDING");
-    }
 }

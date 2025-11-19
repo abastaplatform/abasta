@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.*;
 class OrderResponseDTOTest {
 
     @Test
-    @DisplayName("Builder crea correctament el DTO")
+    @DisplayName("Comprova Builder crea correctament el DTO")
     void builder_createsDTO() {
 
         OrderItemResponseDTO item = OrderItemResponseDTO.builder()
@@ -54,7 +54,7 @@ class OrderResponseDTOTest {
     }
 
     @Test
-    @DisplayName("equals i hashCode són coherents")
+    @DisplayName("Comprova que equals i hashCode són coherents")
     void equalsHashCode() {
         OrderResponseDTO a = OrderResponseDTO.builder()
                 .uuid("x")
@@ -68,7 +68,7 @@ class OrderResponseDTOTest {
     }
 
     @Test
-    @DisplayName("toString conté informació rellevant")
+    @DisplayName("Comprova que toString conté informació rellevant")
     void toString_notEmpty() {
         OrderResponseDTO dto = OrderResponseDTO.builder()
                 .uuid("x")

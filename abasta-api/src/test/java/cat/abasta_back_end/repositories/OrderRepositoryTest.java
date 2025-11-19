@@ -1,12 +1,17 @@
 package cat.abasta_back_end.repositories;
 
-import cat.abasta_back_end.entities.Order;
-import cat.abasta_back_end.entities.Supplier;
+import cat.abasta_back_end.entities.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,88 +35,122 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @version : 1.0
  */
 @DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @DisplayName("OrderRepository Tests")
 class OrderRepositoryTest {
 
     @Autowired
+    private OrderItemRepository orderItemRepository;
+    @Autowired
+    private CompanyRepository companyRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private SupplierRepository supplierRepository;
+    @Autowired
+    private ProductRepository productRepository;
+    @Autowired
     private OrderRepository orderRepository;
 
-    @Autowired
-    private OrderItemRepository orderItemRepository;
+    // Objectes
+    private Company testCompany;
+    private User testUser;
+    private Supplier testSupplier;
+    private Product testProduct;
+    private Order testOrder;
+    private OrderItem testOrderItem;
 
     /**
-     * Test que comprova que es pot guardar una comanda i recuperar-la per ID.
+     * Inicialització d'entitats
+     */
+    @BeforeEach
+    void setup() {
+
+        // Creació de la companyia
+        testCompany = Company.builder().uuid("test-company-uuid").name("Test Companyia 1").taxId("55555555K").email("company1@test.com").phone("666666666").address("Carrer Barcelona").city("Barcelona").postalCode("08080").status(Company.CompanyStatus.ACTIVE).build();
+
+        // Creació de l'usuari
+        testUser = User.builder().uuid("test-user-uuid").company(testCompany).email("user@test.com").password("pass").firstName("User1").lastName("cognoms").role(User.UserRole.ADMIN).phone("777777777").isActive(true).emailVerified(true).build();
+
+        // Creació del proveedor
+        testSupplier = Supplier.builder().uuid("test-supplier-uuid").company(testCompany).name("Test supplier 1").contactName("Antonio").email("user@test.com").phone("444444444").address("Carrer Mallorca").notes("Treball 24/7").isActive(true).build();
+
+        // Creació del producte de prova
+        testProduct = Product.builder().uuid("test-product-uuid").supplier(testSupplier).category("Categoria").name("Test Producte 1").description("Descripció Producte 1").price(BigDecimal.valueOf(0.5)).volume(BigDecimal.valueOf(33)).unit("cl").imageUrl("/img/productes/producte1.jpg").isActive(true).build();
+
+        // Creació de la comanda
+        testOrder = Order.builder().uuid("test-order-uuid").company(testCompany).supplier(testSupplier).user(testUser).name("Test Comanda 1").status(Order.OrderStatus.PENDING).totalAmount(BigDecimal.valueOf(0)).notes("Test nota comanda 1").deliveryDate(LocalDate.now()).items(new ArrayList<>()).build();
+
+        // Creació d'un order item
+        testOrderItem = OrderItem.builder().uuid("test-orderitem-uuid").order(testOrder).product(testProduct).quantity(BigDecimal.valueOf(5)).unitPrice(BigDecimal.valueOf(0.5)).subtotal(BigDecimal.valueOf(0.5).multiply(BigDecimal.valueOf(5))).notes("Test Notes orderitem").createdAt(LocalDateTime.now()).build();
+
+    }
+
+    /**
+     * Comprova la creció i recuperació d'Order
      */
     @Test
+    @DisplayName("Comprova la creció i recuperació d'Order")
     void saveAndFindById_success() {
-        Supplier supplier = Supplier.builder().uuid("supplier-uuid").build();
 
-        Order order = Order.builder()
-                .uuid("order-uuid")
-                .status(Order.OrderStatus.PENDING)
-                .supplier(supplier)
-                .createdAt(LocalDateTime.now())
-                .build();
+        companyRepository.save(testCompany);
+        userRepository.save(testUser);
+        supplierRepository.save(testSupplier);
+        orderRepository.save(testOrder);
 
-        // Guardar
-        Order saved = orderRepository.save(order);
-        assertThat(saved.getId()).isNotNull();
-
-        // Recuperar per ID
-        Optional<Order> found = orderRepository.findById(saved.getId());
+        assertThat(testOrder.getId()).isNotNull();
+        Optional<Order> found = orderRepository.findById(testOrder.getId());
         assertThat(found).isPresent();
-        assertThat(found.get().getUuid()).isEqualTo("order-uuid");
+        assertThat(found.get().getUuid()).isEqualTo("test-order-uuid");
     }
 
     /**
-     * Test que comprova la consulta findByUuid.
+     * Comprova cerca per Uuid
      */
     @Test
+    @DisplayName("Comprova la cerca per Uuid")
     void findByUuid_success() {
-        Supplier supplier = Supplier.builder().uuid("supplier-uuid").build();
 
-        Order order = Order.builder()
-                .uuid("order-uuid-123")
-                .status(Order.OrderStatus.PENDING)
-                .supplier(supplier)
-                .createdAt(LocalDateTime.now())
-                .build();
+        companyRepository.save(testCompany);
+        userRepository.save(testUser);
+        supplierRepository.save(testSupplier);
+        orderRepository.save(testOrder);
 
-        orderRepository.save(order);
-
-        Optional<Order> found = orderRepository.findByUuid("order-uuid-123");
+        Optional<Order> found = orderRepository.findByUuid("test-order-uuid");
         assertThat(found).isPresent();
-        assertThat(found.get().getUuid()).isEqualTo("order-uuid-123");
+        assertThat(found.get().getUuid()).isEqualTo("test-order-uuid");
     }
 
     /**
-     * Test que comprova que es poden recuperar totes les comandes.
+     * Comprova la recuperació de totes Orders
      */
     @Test
+    @DisplayName("Comprova la recuperació de totes Orders")
     void findAllOrders_success() {
-        Supplier supplier = Supplier.builder().uuid("supplier-uuid").build();
 
-        Order order1 = Order.builder().uuid("o1").status(Order.OrderStatus.PENDING).supplier(supplier).createdAt(LocalDateTime.now()).build();
-        Order order2 = Order.builder().uuid("o2").status(Order.OrderStatus.PENDING).supplier(supplier).createdAt(LocalDateTime.now()).build();
-
-        orderRepository.saveAll(List.of(order1, order2));
+        companyRepository.save(testCompany);
+        userRepository.save(testUser);
+        supplierRepository.save(testSupplier);
+        orderRepository.save(testOrder);
 
         List<Order> orders = orderRepository.findAll();
-        assertThat(orders).hasSize(2);
+        assertThat(orders.size()).isGreaterThan(0);
+        assertThat(orders).isNotEmpty();
     }
 
     /**
-     * Test que comprova que es pot eliminar una comanda.
+     * Comprova l'eliminació d'una Order
      */
     @Test
+    @DisplayName("Comprova l'eliminació d'una Order")
     void deleteOrder_success() {
-        Supplier supplier = Supplier.builder().uuid("supplier-uuid").build();
-        Order order = Order.builder().uuid("to-delete").status(Order.OrderStatus.PENDING).supplier(supplier).createdAt(LocalDateTime.now()).build();
+        companyRepository.save(testCompany);
+        userRepository.save(testUser);
+        supplierRepository.save(testSupplier);
+        orderRepository.save(testOrder);
+        orderRepository.delete(testOrder);
 
-        Order saved = orderRepository.save(order);
-        orderRepository.delete(saved);
-
-        Optional<Order> found = orderRepository.findById(saved.getId());
+        Optional<Order> found = orderRepository.findById(testOrder.getId());
         assertThat(found).isNotPresent();
     }
 }

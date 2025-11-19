@@ -34,7 +34,7 @@ class OrderRequestDTOTest {
     }
 
     @Test
-    @DisplayName("Builder construeix correctament")
+    @DisplayName("Comprova que Builder construeix correctament")
     void builder_createsDTO() {
 
         OrderItemRequestDTO item = OrderItemRequestDTO.builder()
@@ -56,7 +56,7 @@ class OrderRequestDTOTest {
     }
 
     @Test
-    @DisplayName("Validació falla si el nom és buit")
+    @DisplayName("Comprova excepció si el nom és buit")
     void validation_fails_onBlankName() {
         OrderRequestDTO dto = OrderRequestDTO.builder()
                 .name("")
@@ -68,7 +68,7 @@ class OrderRequestDTOTest {
     }
 
     @Test
-    @DisplayName("Validació falla si el supplierUuid és buit")
+    @DisplayName("Comprova excepció si el supplierUuid és buit")
     void validation_fails_onBlankSupplier() {
         OrderRequestDTO dto = OrderRequestDTO.builder()
                 .name("ok")
@@ -80,7 +80,7 @@ class OrderRequestDTOTest {
     }
 
     @Test
-    @DisplayName("Validació falla si items és nul")
+    @DisplayName("Comprova excepció si items és nul")
     void validation_fails_onNullItems() {
         OrderRequestDTO dto = OrderRequestDTO.builder()
                 .name("ok")
@@ -92,7 +92,7 @@ class OrderRequestDTOTest {
     }
 
     @Test
-    @DisplayName("toString funciona")
+    @DisplayName("Comprova que toString funciona")
     void toString_notEmpty() {
         OrderRequestDTO dto = OrderRequestDTO.builder()
                 .name("x")
