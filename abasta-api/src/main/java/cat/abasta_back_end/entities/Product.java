@@ -80,6 +80,7 @@ public class Product {
 
     /** Indica si el producte està actiu o no. */
     @Column(name = "is_active", nullable = false)
+    @Builder.Default
     private Boolean isActive = true;
 
     /** Data i hora de creació del registre. */
