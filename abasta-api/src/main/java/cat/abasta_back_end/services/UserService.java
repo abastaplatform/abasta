@@ -1,9 +1,8 @@
 package cat.abasta_back_end.services;
 
-import cat.abasta_back_end.dto.LoginRequestDTO;
-import cat.abasta_back_end.dto.LoginResponseDTO;
-import cat.abasta_back_end.dto.PasswordResetDTO;
+import cat.abasta_back_end.dto.*;
 import cat.abasta_back_end.exceptions.BadRequestException;
+import cat.abasta_back_end.exceptions.DuplicateResourceException;
 import cat.abasta_back_end.exceptions.ResourceNotFoundException;
 
 /**
@@ -61,4 +60,29 @@ public interface UserService {
      * @throws BadRequestException si l'email ja està verificat
      */
     void resendVerificationEmail(String email);
+
+    /**
+     * Registra un nou usuari al sistema.
+     * <p>
+     * Aquest mètode crea un nou compte d'usuari associat a l'empresa de l'usuari
+     * autenticat. El procés inclou:
+     * </p>
+     * <ul>
+     *   <li>Validació que l'email no estigui duplicat</li>
+     *   <li>Verificació de l'existència de l'empresa</li>
+     *   <li>Generació d'un token de verificació vàlid per 24 hores</li>
+     *   <li>Encriptació de la contrasenya</li>
+     *   <li>Enviament d'un correu electrònic de verificació</li>
+     * </ul>
+     * <p>
+     * L'usuari creat romandrà inactiu fins que verifiqui el seu correu electrònic
+     * mitjançant el token generat.
+     * </p>
+     *
+     * @param registrationDTO les dades de registre de l'usuari. No pot ser null
+     * @return UserResponseDTO amb les dades de l'usuari creat
+     * @throws DuplicateResourceException si ja existeix un usuari amb l'email proporcionat
+     * @throws ResourceNotFoundException si l'empresa associada no existeix
+     */
+    UserResponseDTO registerUser(UserRegistrationDTO registrationDTO);
 }

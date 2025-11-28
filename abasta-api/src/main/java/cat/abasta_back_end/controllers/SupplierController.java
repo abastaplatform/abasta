@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 
-import java.util.List;
-
 /**
  * Controlador REST per a la gestió integral de proveïdors a través d'endpoints HTTP.
  * Proporciona una API completa per administrar proveïdors amb operacions CRUD i cerca avançada.
