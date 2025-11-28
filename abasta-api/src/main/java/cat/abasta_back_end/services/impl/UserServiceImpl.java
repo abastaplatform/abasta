@@ -1,12 +1,10 @@
 package cat.abasta_back_end.services.impl;
 
-import cat.abasta_back_end.dto.LoginRequestDTO;
-import cat.abasta_back_end.dto.LoginResponseDTO;
-import cat.abasta_back_end.dto.PasswordResetDTO;
-import cat.abasta_back_end.dto.UserResponseDTO;
+import cat.abasta_back_end.dto.*;
 import cat.abasta_back_end.entities.User;
 import cat.abasta_back_end.entities.Company;
 import cat.abasta_back_end.exceptions.BadRequestException;
+import cat.abasta_back_end.exceptions.DuplicateResourceException;
 import cat.abasta_back_end.exceptions.ResourceNotFoundException;
 import cat.abasta_back_end.repositories.CompanyRepository;
 import cat.abasta_back_end.repositories.UserRepository;
@@ -14,6 +12,7 @@ import cat.abasta_back_end.security.JwtUtil;
 import cat.abasta_back_end.services.EmailService;
 import cat.abasta_back_end.services.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -77,6 +76,51 @@ public class UserServiceImpl implements UserService {
      * Injectat automàticament per Spring gràcies a @RequiredArgsConstructor de Lombok.
      */
     private final PasswordEncoder passwordEncoder;
+
+    /**
+     * {@inheritDoc}
+     *
+     */
+    @Override
+    public UserResponseDTO registerUser(UserRegistrationDTO registrationDTO) {
+        if (userRepository.existsByEmail(registrationDTO.getEmail())) {
+            throw new DuplicateResourceException("Ja existeix un usuari amb l'email: " + registrationDTO.getEmail());
+        }
+
+        String companyUuid = getCompanyUuidFromAuthenticatedUser();
+        // Verificar que l'empresa existeix
+        Company company = companyRepository.findByUuid(companyUuid)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Empresa no trobada amb UUID: " + companyUuid));
+
+        // Generar token de verificació (vàlid per 24 hores)
+        String verificationToken = UUID.randomUUID().toString();
+
+        User user = User.builder()
+                .company(company)
+                .email(registrationDTO.getEmail())
+                .password(passwordEncoder.encode(registrationDTO.getPassword()))
+                .firstName(registrationDTO.getFirstName())
+                .lastName(registrationDTO.getLastName())
+                .role(registrationDTO.getRole() != null ? registrationDTO.getRole() : User.UserRole.USER)
+                .phone(registrationDTO.getPhone())
+                .isActive(true)
+                .emailVerified(false)
+                .emailVerificationToken(verificationToken)
+                .emailVerificationExpires(LocalDateTime.now().plusHours(24))
+                .build();
+
+        User savedUser = userRepository.save(user);
+
+        // Correu electrònic per a usuaris que s'uneixen a una empresa existent
+        emailService.sendEmailVerification(
+                savedUser.getEmail(),
+                verificationToken,
+                savedUser.getFirstName()
+        );
+
+        return mapToResponseDTO(savedUser);
+    }
 
     /**
      * Autentica un usuari mitjançant les seves credencials d'accés.
@@ -213,6 +257,29 @@ public class UserServiceImpl implements UserService {
 
         // Reenviar email
         emailService.sendEmailVerification(user.getEmail(), verificationToken, user.getFirstName());
+    }
+
+    /**
+     * Obté l'UUID de l'empresa de l'usuari autenticat des del context de Spring Security.
+     * Aquest mètode s'utilitza per garantir que l'usuari
+     * només pugui accedir als empleats de la seva pròpia empresa.
+     *
+     * @return UUID de l'empresa associada a l'usuari autenticat
+     * @throws ResourceNotFoundException si l'usuari no existeix o no té empresa assignada
+     */
+    private String getCompanyUuidFromAuthenticatedUser() {
+        String username = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat: " + username));
+
+        if (user.getCompany() == null || user.getCompany().getUuid() == null) {
+            throw new ResourceNotFoundException("L'usuari no té empresa assignada");
+        }
+
+        return user.getCompany().getUuid();
     }
 
     /**
