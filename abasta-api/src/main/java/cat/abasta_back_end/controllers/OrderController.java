@@ -123,13 +123,12 @@ public class OrderController {
     }
 
     /**
-     * Desactiva (elimina lògicament) una comanda pel seu UUID.
+     * Cerca una comanda pel seu UUID.
      * <p>
-     * Aquesta operació marca el producte com a status canceled, però no l'elimina
-     * físicament de la base de dades.
+     * Aquesta operació recupera la comanda i la mostra
      * </p>
      *
-     * Exemple: PATCH /api/orders/delete/{uuid}
+     * Exemple: GET /api/orders/{uuid}
      *
      * @param uuid Identificador únic de la comanda a desactivar.
      * @return {@link OrderResponseDTO} amb la comanda desactivada
