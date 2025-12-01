@@ -81,7 +81,7 @@ public class OrderController {
      * @param filterDTO paràmetres de filtratge (Spring els mapeja automàticament des dels query params)
      * @return resposta amb la pàgina de comandes filtrades
      */
-    @GetMapping("/filter")
+    @GetMapping({"/filter", "/list"})
     public ResponseEntity<ApiResponseDTO<PagedResponseDTO<OrderResponseDTO>>> filterOrders(@Valid OrderFilterDTO filterDTO){
 
         // Ordenació
@@ -120,6 +120,25 @@ public class OrderController {
         OrderResponseDTO sentOrder = orderService.sendOrder(uuid);
         return ResponseEntity
                 .ok(ApiResponseDTO.success(sentOrder, "Comanda enviada correctament"));
+    }
+
+    /**
+     * Cerca una comanda pel seu UUID.
+     * <p>
+     * Aquesta operació recupera la comanda i la mostra
+     * </p>
+     *
+     * Exemple: GET /api/orders/{uuid}
+     *
+     * @param uuid Identificador únic de la comanda a desactivar.
+     * @return {@link OrderResponseDTO} amb la comanda desactivada
+     */
+    @GetMapping("/{uuid}")
+    public ResponseEntity<ApiResponseDTO<OrderResponseDTO>> getOrder(
+            @PathVariable @NotBlank(message = "L'UUID no pot estar buit") String uuid) {
+        OrderResponseDTO order = orderService.getOrderByUuid(uuid);
+        return ResponseEntity.ok(
+                ApiResponseDTO.success(order, "Comanda trobada correctament"));
     }
 
     /**
