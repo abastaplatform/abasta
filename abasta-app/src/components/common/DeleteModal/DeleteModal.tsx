@@ -2,7 +2,7 @@ import { Modal } from 'react-bootstrap';
 import Button from '../Button/Button';
 import './DeleteModal.scss';
 
-export type DeleteEntityType = 'proveïdor' | 'producte' | 'comanda';
+export type DeleteEntityType = 'proveïdor' | 'producte' | 'comanda' | 'usuari';
 
 interface DeleteModalProps {
   show: boolean;
