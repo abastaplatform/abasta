@@ -133,7 +133,7 @@ public class Order {
      * </ul>
      */
     public enum OrderStatus {
-        PENDING, SENT, CONFIRMED, REJECTED, COMPLETED, CANCELLED
+        PENDING, SENT, CONFIRMED, REJECTED, COMPLETED, CANCELLED, DELETED
     }
 
 }

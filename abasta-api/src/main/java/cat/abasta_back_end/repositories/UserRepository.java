@@ -30,6 +30,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
 
     /**
+     * Cerca un susuari pel seu uuid.
+     *
+     * @param uuid de l'usuari
+     * @return
+     */
+    Optional<User> findByUuid(String uuid);
+
+    /**
      * Cerca un usuari amb un token de verificació d'email vàlid que no hagi expirat.
      * Utilitza una consulta JPQL per verificar que el token coincideix i que la data d'expiració
      * és posterior a la data actual proporcionada.

@@ -1,7 +1,8 @@
 package cat.abasta_back_end.services;
 
-import cat.abasta_back_end.dto.OrderRequestDTO;
-import cat.abasta_back_end.dto.OrderResponseDTO;
+import cat.abasta_back_end.dto.*;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 
 /**
  * Servei responsable de la gestió de comandes (orders).
@@ -16,7 +17,7 @@ import cat.abasta_back_end.dto.OrderResponseDTO;
  * </p>
  *
  * @author Daniel Garcia
- * @version 1.0
+ * @version 2.0
  */
 public interface OrderService {
 
@@ -32,6 +33,39 @@ public interface OrderService {
      * @return {@link OrderResponseDTO} amb la informació de la comanda creada.
      */
     OrderResponseDTO createOrder(OrderRequestDTO orderRequestDTO);
+
+    /**
+     * Realitza una cerca avançada de comandes amb múltiples filtres.
+     * <p>
+     * Aquesta operació permet aplicar filtres combinats sobre diversos camps
+     * de la comanda (com nom, notes, estat, dates de creació/modificació, etc.),
+     * així com paràmetres de paginació i ordenació.
+     * </p>
+     *
+     * @param dto Objecte {@link OrderFilterDTO} amb tots els paràmetres de filtratge.
+     * @param pageable Objecte {@link Pageable} per definir la paginació i ordenació dels resultats.
+     * @return Una pàgina de {@link OrderResponseDTO} amb les comandes que compleixen els filtres especificats.
+     */
+    Page<OrderResponseDTO> filterOrders(OrderFilterDTO dto, Pageable pageable);
+
+    /**
+     * Elimina una comanda (de manera lògica).
+     * Posa la comanda en estat DELETED i l'elimina lògicament.
+     *
+     * @param uuid de la comanda
+     * @return OrderResponse amb la comanda eliminada.
+     */
+    OrderResponseDTO deleteOrder(String uuid);
+
+    /**
+     * Modifica una comanda
+     * Les noves dades venen el un OrderRequestDTO.
+     *
+     * @param uuid de la comanda
+     * @param dto dades de la comanda
+     * @return OrderResponse amb la comanda actualitzada.
+     */
+    OrderResponseDTO updateOrder(String uuid, OrderRequestDTO dto);
 
     /**
      * Envia una comanda existent al proveïdor.

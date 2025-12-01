@@ -34,6 +34,11 @@ import lombok.NoArgsConstructor;
 public class OrderItemRequestDTO {
 
     /**
+     * Uuid del item (opcional, només per modificació)
+     */
+    private String orderItemUuid;
+
+    /**
      * Identificador únic del producte
      */
     @NotBlank
