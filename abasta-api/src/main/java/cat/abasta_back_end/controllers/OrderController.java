@@ -3,7 +3,12 @@ package cat.abasta_back_end.controllers;
 import cat.abasta_back_end.dto.*;
 import cat.abasta_back_end.services.OrderService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
  *
  * @author Daniel Garcia
  * @author Enrique Pérez
- * @version 1.1
+ * @version 2.0
  */
 @RestController
 @RequestMapping("/api/orders")
@@ -48,6 +53,53 @@ public class OrderController {
     }
 
     /**
+     * Cerca avançada de comandes amb múltiples filtres.
+     *
+     * <p>Aquest endpoint permet filtrar comandes del proveïdor utilitzant
+     * tots els camps disponibles, incloent-hi filtres de text, estat d'activitat i rangs de dates.</p>
+     *
+     * <p>Filtres disponibles:
+     * <ul>
+     *   <li><strong>Text:</strong> name, notes, searchText</li>
+     *   <li><strong>Estat:</strong></li>
+     *   <li><strong>Dates:</strong> createdAfter, createdBefore, updatedAfter, updatedBefore</li>
+     * </ul>
+     * </p>
+     *
+     * <p>Exemple d'ús complet:
+     * <pre>
+     * GET /api/orders/filter?supplierUuid=56632252-12551246&name=Nadal
+     * </pre>
+     * </p>
+     *
+     * <p>Exemple d'ús mínim:
+     * <pre>
+     * GET /filter?name=Nadal
+     * </pre>
+     * </p>
+     *
+     * @param filterDTO paràmetres de filtratge (Spring els mapeja automàticament des dels query params)
+     * @return resposta amb la pàgina de comandes filtrades
+     */
+    @GetMapping("/filter")
+    public ResponseEntity<ApiResponseDTO<PagedResponseDTO<OrderResponseDTO>>> filterOrders(@Valid OrderFilterDTO filterDTO){
+
+        // Ordenació
+        Sort sort = filterDTO.getSortDir().equalsIgnoreCase("desc") ?
+                Sort.by(filterDTO.getSortBy()).descending() :
+                Sort.by(filterDTO.getSortBy()).ascending();
+
+        // Paginació
+        Pageable pageable = PageRequest.of(filterDTO.getPage(), filterDTO.getSize(), sort);
+        Page<OrderResponseDTO> orders = orderService.filterOrders(filterDTO, pageable);
+        PagedResponseDTO<OrderResponseDTO> pagedResponse = PagedResponseDTO.of(orders);
+
+        // Retorn
+        String message = String.format("Cerca avançada de comandes completada. Filtres aplicats: text=%s", filterDTO.hasTextFilters());
+        return ResponseEntity.ok(ApiResponseDTO.success(pagedResponse, message));
+    }
+
+    /**
      * Envia una comanda existent al proveïdor.
      *
      * <p>Busca la comanda per UUID, valida que estigui en estat PENDING,
@@ -69,5 +121,45 @@ public class OrderController {
         return ResponseEntity
                 .ok(ApiResponseDTO.success(sentOrder, "Comanda enviada correctament"));
     }
+
+    /**
+     * Desactiva (elimina lògicament) una comanda pel seu UUID.
+     * <p>
+     * Aquesta operació marca el producte com a status canceled, però no l'elimina
+     * físicament de la base de dades.
+     * </p>
+     *
+     * Exemple: PATCH /api/orders/delete/{uuid}
+     *
+     * @param uuid Identificador únic de la comanda a desactivar.
+     * @return {@link OrderResponseDTO} amb la comanda desactivada
+     */
+    @PatchMapping("/delete/{uuid}")
+    public ResponseEntity<ApiResponseDTO<OrderResponseDTO>> deleteOrder(
+            @PathVariable @NotBlank(message = "L'UUID no pot estar buit") String uuid) {
+        OrderResponseDTO deletedOrder = orderService.deleteOrder(uuid);
+        return ResponseEntity.ok(
+                ApiResponseDTO.success(deletedOrder, "Comanda eliminada correctament"));
+    }
+
+    /**
+     * Actualitza una comanda existent pel seu UUID.
+     * Exemple: PUT /api/orders/edit
+     *
+     * @param uuid identificador de la comanda
+     * @param dto dades noves de la comanda
+     * @return {@link OrderResponseDTO} amb les dades actualitzades
+     */
+    @PutMapping("/update/{uuid}")
+    public ResponseEntity<ApiResponseDTO<OrderResponseDTO>> updateOrder(
+            @PathVariable @NotBlank String uuid,
+            @Valid @RequestBody OrderRequestDTO dto) {
+
+        OrderResponseDTO updatedOrder = orderService.updateOrder(uuid, dto);
+        return ResponseEntity.ok(
+                ApiResponseDTO.success(updatedOrder, "Comanda actualitzada correctament")
+        );
+    }
+
 
 }
