@@ -232,6 +232,20 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * {@inheritDoc}
+     * */
+    @Override
+    @Transactional
+    public OrderResponseDTO getOrderByUuid(String uuid){
+
+        // Buscar la comanda
+        Order order = orderRepository.findByUuid(uuid).orElseThrow(() -> new ResourceNotFoundException("No s'ha trobat cap comanda amb el UUID: " + uuid));
+
+        // Retornar DTO
+        return buildOrderResponseDTO(order);
+    }
+
+    /**
+     * {@inheritDoc}
      */
     @Override
     @Transactional
@@ -344,8 +358,6 @@ public class OrderServiceImpl implements OrderService {
 
         return buildOrderResponseDTO(order);
     }
-
-
 
     /**
      * Construeix el DTO de resposta a partir d'una entitat Order.

@@ -81,7 +81,7 @@ public class OrderController {
      * @param filterDTO paràmetres de filtratge (Spring els mapeja automàticament des dels query params)
      * @return resposta amb la pàgina de comandes filtrades
      */
-    @GetMapping("/filter")
+    @GetMapping({"/filter", "/list"})
     public ResponseEntity<ApiResponseDTO<PagedResponseDTO<OrderResponseDTO>>> filterOrders(@Valid OrderFilterDTO filterDTO){
 
         // Ordenació
@@ -120,6 +120,26 @@ public class OrderController {
         OrderResponseDTO sentOrder = orderService.sendOrder(uuid);
         return ResponseEntity
                 .ok(ApiResponseDTO.success(sentOrder, "Comanda enviada correctament"));
+    }
+
+    /**
+     * Desactiva (elimina lògicament) una comanda pel seu UUID.
+     * <p>
+     * Aquesta operació marca el producte com a status canceled, però no l'elimina
+     * físicament de la base de dades.
+     * </p>
+     *
+     * Exemple: PATCH /api/orders/delete/{uuid}
+     *
+     * @param uuid Identificador únic de la comanda a desactivar.
+     * @return {@link OrderResponseDTO} amb la comanda desactivada
+     */
+    @GetMapping("/{uuid}")
+    public ResponseEntity<ApiResponseDTO<OrderResponseDTO>> getOrder(
+            @PathVariable @NotBlank(message = "L'UUID no pot estar buit") String uuid) {
+        OrderResponseDTO order = orderService.getOrderByUuid(uuid);
+        return ResponseEntity.ok(
+                ApiResponseDTO.success(order, "Comanda trobada correctament"));
     }
 
     /**
