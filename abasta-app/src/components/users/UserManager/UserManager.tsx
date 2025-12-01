@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import type { User, UserFormData } from '../../types/user.types';
-import { userService } from '../../services/userService';
-import { useUserForm } from '../../hooks/useUserForm';
-import PageHeader from '../common/PageHeader/PageHeader';
-import Button from '../common/Button/Button';
-import Alert from '../common/Alert/Alert';
+import type { User, UserFormData } from '../../../types/user.types';
+import { userService } from '../../../services/userService';
+import { useUserForm } from '../../../hooks/useUserForm';
+import PageHeader from '../../common/PageHeader/PageHeader';
+import Button from '../../common/Button/Button';
+import Alert from '../../common/Alert/Alert';
 import { Form } from 'react-bootstrap';
-import FormCard from '../common/FormCard/FormCard';
-import DeleteModal from '../common/DeleteModal/DeleteModal';
+import FormCard from '../../common/FormCard/FormCard';
+import DeleteModal from '../../common/DeleteModal/DeleteModal';
 
 type FormMode = 'create' | 'edit' | 'detail';
 

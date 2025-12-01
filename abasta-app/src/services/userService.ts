@@ -1,6 +1,8 @@
 import type {
   ApiResponse,
   CreateUserResponse,
+  PaginatedResponse,
+  PaginationParams,
   User,
   UserFormData,
 } from '../types/user.types';
@@ -19,5 +21,18 @@ export const userService = {
   },
   getUserByUuid: async (uuid: string): Promise<ApiResponse<User>> => {
     return await api.get<ApiResponse<User>>(`/users/${uuid}`);
+  },
+  getUsers: async (
+    params: PaginationParams
+  ): Promise<ApiResponse<PaginatedResponse<User>>> => {
+    const queryString = new URLSearchParams({
+      page: params.page.toString(),
+      size: params.size.toString(),
+      sortBy: params.sortBy || 'name',
+      sortDir: params.sortDir || 'asc',
+    }).toString();
+    return await api.get<ApiResponse<PaginatedResponse<User>>>(
+      `/users?${queryString}`
+    );
   },
 };

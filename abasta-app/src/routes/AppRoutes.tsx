@@ -19,7 +19,8 @@ import SupplierManager from '../components/suppliers/SupplierManager/SupplierMan
 import ProductList from '../components/products/ProductList/ProductList';
 import ProductManager from '../components/products/ProductManager/ProductManager';
 import OrderCreate from '../components/orders/OrderCreate/OrderCreate';
-import UserManager from '../components/users/UserManager';
+import UserManager from '../components/users/UserManager/UserManager';
+import UserList from '../components/users/UserList/UserList';
 
 const AppRoutes = () => {
   return (
@@ -69,7 +70,7 @@ const AppRoutes = () => {
         />
         <Route path="/reports" element={<div>Reports page</div>} />
         <Route path="/company" element={<CompanyConfigForm />} />
-        <Route path="/users" element={<div>Users page</div>} />
+        <Route path="/users" element={<UserList />} />
         <Route path="/users/new" element={<UserManager mode="create" />} />
         <Route path="/users/edit/:uuid" element={<UserManager mode="edit" />} />
       </Route>
