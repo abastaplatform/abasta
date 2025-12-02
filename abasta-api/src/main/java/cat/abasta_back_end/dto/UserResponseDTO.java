@@ -175,6 +175,21 @@ public class UserResponseDTO {
     private Boolean isActive;
 
     /**
+     * Indica si el compte de l'usuari s'ha esborrat.
+     *
+     * <p>Un usuari esborrat no pot iniciar sessió a l'aplicació. Els administradors
+     * poden eliminar comptes.</p>
+     *
+     * <p>Valors:
+     * <ul>
+     *   <li>false: L'usuari pot accedir al sistema</li>
+     *   <li>true: L'usuari està esborrat i no pot iniciar sessió</li>
+     * </ul>
+     * </p>
+     */
+    private Boolean isDeleted;
+
+    /**
      * Indica si l'usuari ha verificat la seva adreça de correu electrònic.
      *
      * <p>La verificació d'email és un pas important per assegurar que l'usuari

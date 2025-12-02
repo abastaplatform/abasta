@@ -46,14 +46,14 @@ public class UserRegistrationDTO {
      *   <li>Almenys una lletra majúscula</li>
      *   <li>Almenys una lletra minúscula</li>
      *   <li>Almenys un número</li>
-     *   <li>Almenys un caràcter especial (@#$%^&+=)</li>
+     *   <li>Almenys un caràcter especial</li>
      * </ul>
      * Camp obligatori.
      */
     @NotBlank(message = "La contrasenya és obligatòria")
     @Size(min = 8, message = "La contrasenya ha de tenir almenys 8 caràcters")
-    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=]).*$",
-            message = "La contrasenya ha de contenir almenys una majúscula, una minúscula, un número i un caràcter especial")
+    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9\\s]).*$",
+            message = "La contrasenya ha de contenir un mínim d'una majúscula, una minúscula, un número i un caràcter especial")
     private String password;
 
     /**
