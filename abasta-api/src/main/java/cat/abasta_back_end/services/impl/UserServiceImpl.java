@@ -105,6 +105,7 @@ public class UserServiceImpl implements UserService {
                 .role(registrationDTO.getRole() != null ? registrationDTO.getRole() : User.UserRole.USER)
                 .phone(registrationDTO.getPhone())
                 .isActive(true)
+                .isDeleted(false)
                 .emailVerified(false)
                 .emailVerificationToken(verificationToken)
                 .emailVerificationExpires(LocalDateTime.now().plusHours(24))
@@ -129,6 +130,7 @@ public class UserServiceImpl implements UserService {
      * <ul>
      *   <li>Comprova que l'usuari existeixi segons l'email proporcionat.</li>
      *   <li>Verifica que el compte estigui actiu.</li>
+     *   <li>Verifica que el compte no s'ha esborrat.</li>
      *   <li>Comprova que l'email hagi estat verificat.</li>
      *   <li>Valida que la contrasenya introduïda coincideixi amb la guardada a la base de dades.</li>
      * </ul>
@@ -146,6 +148,10 @@ public class UserServiceImpl implements UserService {
 
         if (!user.getIsActive()) {
             throw new BadRequestException("L'usuari està inactiu");
+        }
+
+        if (user.getIsDeleted()) {
+            throw new BadRequestException("L'usuari està eliminat");
         }
 
         if (!user.getEmailVerified()) {
@@ -317,6 +323,7 @@ public class UserServiceImpl implements UserService {
                 .role(user.getRole())
                 .phone(user.getPhone())
                 .isActive(user.getIsActive())
+                .isDeleted(user.getIsDeleted())
                 .emailVerified(user.getEmailVerified())
                 .lastLogin(user.getLastLogin())
                 .createdAt(user.getCreatedAt())

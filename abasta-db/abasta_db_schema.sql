@@ -43,6 +43,7 @@ CREATE TABLE users (
     role ENUM('ADMIN', 'USER') DEFAULT 'USER',
     phone VARCHAR(50),
     is_active BOOLEAN DEFAULT TRUE,
+    is_deleted BOOLEAN DEFAULT FALSE,
     email_verified BOOLEAN DEFAULT FALSE,
     email_verification_token VARCHAR(255),
     email_verification_expires TIMESTAMP NULL,
@@ -108,7 +109,8 @@ CREATE TABLE products (
 
    FOREIGN KEY (supplier_id) REFERENCES suppliers(id),
    INDEX idx_supplier_id (supplier_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Catàleg de productes per proveïdor';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Catàleg de productes per proveïdor';
 
 -- ============================================================================
 -- TAULA: ORDERS
@@ -120,7 +122,7 @@ CREATE TABLE orders (
     supplier_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
     name VARCHAR(255) NOT NULL,
-    status ENUM('PENDING', 'SENT', 'CONFIRMED', 'REJECTED', 'COMPLETED', 'CANCELLED')
+    status ENUM('PENDING', 'SENT', 'CONFIRMED', 'REJECTED', 'COMPLETED', 'CANCELLED','DELETED')
         DEFAULT 'PENDING',
     total_amount DECIMAL(10, 2) NOT NULL DEFAULT 0,
     notes TEXT,
