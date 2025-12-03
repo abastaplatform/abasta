@@ -12,6 +12,8 @@ import cat.abasta_back_end.security.JwtUtil;
 import cat.abasta_back_end.services.EmailService;
 import cat.abasta_back_end.services.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -278,6 +280,25 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     @Transactional(readOnly = true)
+    public Page<UserResponseDTO> getAllUsersPaginated(Pageable pageable) {
+        //Validar que el rol sigui administrador
+        if (!isAdminUser()) {
+            throw new BadRequestException("L'usuari ha de ser Administrador");
+        }
+        String companyUuid = getCompanyUuidFromAuthenticatedUser();
+
+        // Mètode automàtic de Spring Data
+        Page<User> usersPage = userRepository.findByCompanyUuidAndIsDeletedFalse(companyUuid, pageable);
+
+        return usersPage.map(this::mapToResponseDTO);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     */
+    @Override
+    @Transactional(readOnly = true)
     public UserResponseDTO getUserByUuid(String uuid) {
         //Validar que el rol sigui administrador
         if (!isAdminUser()) {
@@ -286,6 +307,52 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByUuid(uuid)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat amb UUID: " + uuid));
         return mapToResponseDTO(user);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<UserResponseDTO> searchUsersByText(String searchText, Pageable pageable) {
+        String companyUuid = getCompanyUuidFromAuthenticatedUser();
+
+        // Verificar que l'empresa existeix
+        Company company = companyRepository.findByUuid(companyUuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb UUID: " + companyUuid));
+
+        // Mètode de cerca en múltiples camps
+        Page<User> users = userRepository.findByCompanyIdAndMultipleFieldsContainingNoDeleted(
+                company.getId(), searchText, pageable);
+
+        return users.map(this::mapToResponseDTO);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<UserResponseDTO> searchUsersWithFilters(UserFilterDTO filterDTO, Pageable pageable) {
+        String companyUuid = getCompanyUuidFromAuthenticatedUser();
+
+        // Verificar que l'empresa existeix
+        Company company = companyRepository.findByUuid(companyUuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb UUID: " + companyUuid));
+
+        // Usar el mètode del repositori amb tots els filtres expandits
+        Page<User> users = userRepository.findByCompanyIdAndCriteriaActive(
+                company.getId(),
+                filterDTO.getEmail(),
+                filterDTO.getFirstName(),
+                filterDTO.getLastName(),
+                filterDTO.getPhone(),
+                pageable
+        );
+
+        return users.map(this::mapToResponseDTO);
     }
 
     /**
