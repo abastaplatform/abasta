@@ -1,0 +1,152 @@
+package cat.abasta_back_end.dto;
+
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+/**
+ * DTO per gestionar les peticions de cerca avançada d'usuaris amb múltiples filtres.
+ * Conté tots els paràmetres disponibles per realitzar cerques complexes amb paginació i ordenació.
+ *
+ * <p>Aquest DTO s'utilitza en l'endpoint de cerca avançada quan es vol filtrar usuaris
+ * de l'empresa de l'usuari autenticat per múltiples criteris simultàniament, proporcionant
+ * màxima flexibilitat en les cerques. Permet filtrar pels camps disponibles de la
+ * taula users incloent-hi filtres de text</p>
+ *
+ * <p>Els filtres disponibles inclouen:
+ * <ul>
+ *   <li><strong>Empresa automàtica</strong> - El companyUuid s'extreu de l'usuari autenticat</li>
+ *   <li><strong>Filtres de text amb cerca parcial (opcionals):</strong>
+ *     <ul>
+ *       <li>Email de l'usuari</li>
+ *       <li>Nom de l'usuari</li>
+ *       <li>Cognoms de l'usuari</li>
+ *       <li>Telèfon de contacte</li>
+ *     </ul>
+ *   </li>
+ *   <li><strong>Paràmetres de paginació i ordenació</strong></li>
+ * </ul>
+ * </p>
+ *
+ * <p>Les validacions implementades garanteixen que:
+ * <ul>
+ *   <li>La pàgina ha de ser un valor no negatiu (0 o superior)</li>
+ *   <li>La mida de pàgina ha de ser com a mínim 1</li>
+ *   <li>La direcció d'ordenació només pot ser 'asc' o 'desc'</li>
+ * </ul>
+ * </p>
+ *
+ * <p>Camps d'ordenació disponibles:
+ * <ul>
+ *   <li><code>email</code> - Email de l'usuari (per defecte)</li>
+ *   <li><code>firstName</code> - Nom de l'usuari</li>
+ *   <li><code>lastName</code> - Cognoms de l'usuari</li>
+ *   <li><code>phone</code> - Telèfon</li>
+ *   <li><code>createdAt</code> - Data de creació</li>
+ *   <li><code>updatedAt</code> - Data d'actualització</li>
+ * </ul>
+ * </p>
+ *
+ * <p>Exemple d'ús amb Builder (cerca completa):
+ * <pre>
+ * UserFilterDTO filterDto = UserFilterDTO.builder()
+ *     .email("john")
+ *     .firstName("John")
+ *     .lastName("Doe")
+ *     .phone("555")
+ *     .page(0)
+ *     .size(20)
+ *     .sortBy("email")
+ *     .sortDir("asc")
+ *     .build();
+ * </pre>
+ * </p>
+ *
+ * <p>Exemple d'ús amb Builder (cerca simple):
+ * <pre>
+ * UserFilterDTO filterDto = UserFilterDTO.builder()
+ *     .email("john")
+ *     .build(); // Usa valors per defecte per paginació.
+ * </pre>
+ * </p>
+ *
+ * <p>Estructura JSON de la petició completa:
+ * <pre>
+ * {
+ *   "email": "john",
+ *   "firstName": "John",
+ *   "lastName": "Doe",
+ *   "phone": "555",
+ *   "page": 0,
+ *   "size": 20,
+ *   "sortBy": "email",
+ *   "sortDir": "asc"
+ * }
+ * </pre>
+ * </p>
+ *
+ * <p><strong>Notes d'implementació:</strong>
+ * <ul>
+ *   <li>Tots els filtres de text utilitzen cerca parcial insensible a majúscules</li>
+ *   <li>El companyUuid s'extreu automàticament de l'usuari per garantir seguretat</li>
+ *   <li>La classe inclou mètode utilitari hasTextFilters()</li>
+ *   <li>Només retorna usuaris actius i no eliminats</li>
+ * </ul>
+ * </p>
+ *
+ * <p><strong>Seguretat:</strong>
+ * El companyUuid s'extreu automàticament de l'usuari autenticat, garantint que
+ * cada usuari només pugui filtrar usuaris de la seva pròpia empresa. Només usuaris
+ * amb rol ADMIN poden accedir a aquest endpoint.
+ * </p>
+ *
+ * @author Enrique Pérez
+ * @version 2.0
+ * @since 1.0
+ * @see UserResponseDTO
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserFilterDTO {
+
+    // Filtres de text (cerca parcial, insensible a majúscules)
+    private String email;       // Email
+    private String firstName;   // Nom
+    private String lastName;    // Cognom
+    private String phone;       // Telèfon
+
+    // Paginació
+    @Min(value = 0, message = "El número de pàgina ha de ser 0 o superior")
+    @Builder.Default
+    private int page = 0;
+
+    @Min(value = 1, message = "La mida de pàgina ha de ser 1 o superior")
+    @Builder.Default
+    private int size = 10;
+
+    // Ordenació (camps disponibles: email, firstName, lastName, phone, createdAt, updatedAt)
+    @Builder.Default
+    private String sortBy = "email";
+
+    @Pattern(regexp = "asc|desc", message = "La direcció d'ordenació ha de ser 'asc' o 'desc'")
+    @Builder.Default
+    private String sortDir = "asc";
+
+    /**
+     * Verifica si algun filtre de text està aplicat.
+     *
+     * @return true si hi ha algun filtre de text actiu
+     */
+    public boolean hasTextFilters() {
+        return (email != null && !email.trim().isEmpty()) ||
+                (firstName != null && !firstName.trim().isEmpty()) ||
+                (lastName != null && !lastName.trim().isEmpty()) ||
+                (phone != null && !phone.trim().isEmpty());
+    }
+
+}
