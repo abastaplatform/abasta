@@ -27,7 +27,7 @@ import lombok.NoArgsConstructor;
  *
  * <p><strong>Comportament del filtratge per text:</strong>
  * <ul>
- *   <li>Si <code>searchText</code> és null o buit → retorna tots els usuaris actius de l'empresa</li>
+ *   <li>Si <code>searchText</code> és null o buit → retorna tots els usuaris de l'empresa (actius i inactius)</li>
  *   <li>Si <code>searchText</code> té valor → filtra usuaris que continguin aquest text en:</li>
  *   <li>  - <strong>Email</strong> (email)</li>
  *   <li>  - <strong>Nom</strong> (firstName)</li>
@@ -35,13 +35,13 @@ import lombok.NoArgsConstructor;
  *   <li>  - <strong>Telèfon</strong> (phone)</li>
  *   <li>La cerca utilitza LIKE amb comodins (%text%) i és insensible a majúscules</li>
  *   <li>Busca amb operador OR entre tots els camps (si el text apareix en qualsevol camp)</li>
- *   <li>Només retorna usuaris actius i no eliminats</li>
+ *   <li>Inclou usuaris actius i inactius, però exclou els eliminats</li>
  * </ul>
  * </p>
  *
  * <p>Les validacions implementades garanteixen que:
  * <ul>
- *   <li>El text de cerca és opcional (pot ser null per mostrar tots els usuaris actius)</li>
+ *   <li>El text de cerca és opcional (pot ser null per mostrar tots els usuaris)</li>
  *   <li>La pàgina ha de ser un valor no negatiu (0 o superior)</li>
  *   <li>La mida de pàgina ha de ser com a mínim 1</li>
  *   <li>La direcció d'ordenació només pot ser 'asc' o 'desc'</li>
@@ -49,7 +49,7 @@ import lombok.NoArgsConstructor;
  * </p>
  *
  * <p>Exemples pràctics:
- * <strong>1. Llistar tots els usuaris actius de l'empresa de l'usuari:</strong>
+ * <strong>1. Llistar tots els usuaris de l'empresa de l'usuari (actius i inactius):</strong>
  * <pre>
  * GET /api/users/search
  * </pre>

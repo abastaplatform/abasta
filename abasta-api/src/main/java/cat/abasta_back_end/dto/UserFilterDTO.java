@@ -27,6 +27,11 @@ import lombok.NoArgsConstructor;
  *       <li>Telèfon de contacte</li>
  *     </ul>
  *   </li>
+ *   <li><strong>Filtre d'estat (opcional):</strong>
+ *     <ul>
+ *       <li>isActive: null = tots els usuaris, true = només actius, false = només inactius</li>
+ *     </ul>
+ *   </li>
  *   <li><strong>Paràmetres de paginació i ordenació</strong></li>
  * </ul>
  * </p>
@@ -57,6 +62,7 @@ import lombok.NoArgsConstructor;
  *     .firstName("John")
  *     .lastName("Doe")
  *     .phone("555")
+ *     .isActive(true)  // Només usuaris actius
  *     .page(0)
  *     .size(20)
  *     .sortBy("email")
@@ -73,6 +79,14 @@ import lombok.NoArgsConstructor;
  * </pre>
  * </p>
  *
+ * <p>Exemple d'ús amb Builder (només usuaris inactius):
+ * <pre>
+ * UserFilterDTO filterDto = UserFilterDTO.builder()
+ *     .isActive(false)
+ *     .build(); // Mostra només usuaris inactius.
+ * </pre>
+ * </p>
+ *
  * <p>Estructura JSON de la petició completa:
  * <pre>
  * {
@@ -80,6 +94,7 @@ import lombok.NoArgsConstructor;
  *   "firstName": "John",
  *   "lastName": "Doe",
  *   "phone": "555",
+ *   "isActive": true,
  *   "page": 0,
  *   "size": 20,
  *   "sortBy": "email",
@@ -93,7 +108,7 @@ import lombok.NoArgsConstructor;
  *   <li>Tots els filtres de text utilitzen cerca parcial insensible a majúscules</li>
  *   <li>El companyUuid s'extreu automàticament de l'usuari per garantir seguretat</li>
  *   <li>La classe inclou mètode utilitari hasTextFilters()</li>
- *   <li>Només retorna usuaris actius i no eliminats</li>
+ *   <li>Inclou usuaris actius i inactius, però exclou els eliminats</li>
  * </ul>
  * </p>
  *
@@ -119,6 +134,9 @@ public class UserFilterDTO {
     private String firstName;   // Nom
     private String lastName;    // Cognom
     private String phone;       // Telèfon
+
+    // Filtre d'estat
+    private Boolean isActive;   // Estat actiu (null = tots, true = actius, false = inactius)
 
     // Paginació
     @Min(value = 0, message = "El número de pàgina ha de ser 0 o superior")
