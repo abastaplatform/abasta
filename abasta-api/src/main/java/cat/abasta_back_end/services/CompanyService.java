@@ -28,12 +28,15 @@ public interface CompanyService {
     CompanyResponseDTO registerCompanyWithAdmin(CompanyRegistrationDTO registrationDTO);
 
     /**
-     * Obté la informació d'una empresa pel seu identificador UUID.
-     * Operació de només lectura que recupera una empresa de la base de dades
-     * i la converteix al DTO de resposta.
+     * Obté les dades de l'empresa associada a l'usuari autenticat.
+     * <p>
+     * Només els usuaris amb rol d'administrador poden accedir a aquesta informació.
+     * L'empresa es recupera a partir de l'UUID associat a l'usuari autenticat.
+     * </p>
      *
-     * @return CompanyResponseDTO amb la informació completa de l'empresa
-     * @throws cat.abasta_back_end.exceptions.ResourceNotFoundException si no existeix cap empresa amb l'UUID extret del token
+     * @return DTO amb les dades de l'empresa
+     * @throws cat.abasta_back_end.exceptions.BadRequestException si l'usuari autenticat no té rol d'administrador
+     * @throws cat.abasta_back_end.exceptions.ResourceNotFoundException si l'empresa associada a l'usuari no existeix
      */
     CompanyResponseDTO getCompanyByUuid();
 
@@ -42,9 +45,11 @@ public interface CompanyService {
      * Modifica les dades d'una empresa identificada pel seu UUID, validant que no es
      * produeixi duplicació del NIF/CIF si aquest canvia. Tots els camps proporcionats
      * al DTO s'actualitzen, excepte l'estat que només es modifica si es proporciona explícitament.
+     * Només els usuaris amb rol d'administrador poden actualitzar les dades de l'empresa.
      *
      * <p>Validacions realitzades:
      * <ul>
+     *   <li>Valida que el rol sigui administrador</li>
      *   <li>Verifica que l'empresa existeixi</li>
      *   <li>Comprova que el nou NIF/CIF no estigui ja assignat a una altra empresa</li>
      *   <li>Actualitza l'estat només si es proporciona al DTO</li>
@@ -53,6 +58,7 @@ public interface CompanyService {
      *
      * @param companyRequestDTO objecte amb les noves dades de l'empresa
      * @return CompanyResponseDTO amb la informació actualitzada de l'empresa
+     * @throws cat.abasta_back_end.exceptions.BadRequestException si l'usuari autenticat no té rol d'administrador
      * @throws cat.abasta_back_end.exceptions.ResourceNotFoundException si no existeix cap empresa amb l'UUID extret del token
      * @throws cat.abasta_back_end.exceptions.DuplicateResourceException si el nou NIF/CIF ja està assignat a una altra empresa
      */

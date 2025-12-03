@@ -20,6 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import static cat.abasta_back_end.entities.User.UserRole.ADMIN;
+
 /**
  * Implementació del servei UserService.
  * Proporciona la lògica de negoci per a la gestió d'usuaris, incloent-hi
@@ -83,6 +85,11 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserResponseDTO registerUser(UserRegistrationDTO registrationDTO) {
+        //Validar que el rol sigui administrador
+        if (!isAdminUser()) {
+            throw new BadRequestException("L'usuari ha de ser Administrador");
+        }
+
         if (userRepository.existsByEmail(registrationDTO.getEmail())) {
             throw new DuplicateResourceException("Ja existeix un usuari amb l'email: " + registrationDTO.getEmail());
         }
@@ -228,7 +235,7 @@ public class UserServiceImpl implements UserService {
         user.setEmailVerificationExpires(null);
 
         // Activar l'empresa si l'usuari és administrador
-        if (user.getRole() == User.UserRole.ADMIN) {
+        if (user.getRole() == ADMIN) {
             Company company = user.getCompany();
             if (company != null && company.getStatus() == Company.CompanyStatus.PENDING) {
                 company.setStatus(Company.CompanyStatus.ACTIVE);
@@ -266,6 +273,106 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
+     * {@inheritDoc}
+     *
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public UserResponseDTO getUserByUuid(String uuid) {
+        //Validar que el rol sigui administrador
+        if (!isAdminUser()) {
+            throw new BadRequestException("L'usuari ha de ser Administrador");
+        }
+        User user = userRepository.findByUuid(uuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat amb UUID: " + uuid));
+        return mapToResponseDTO(user);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     */
+    @Override
+    public UserResponseDTO updateUser(String uuid, UserRequestDTO userRequestDTO) {
+        //Validar que el rol sigui administrador
+        if (!isAdminUser()) {
+            throw new BadRequestException("L'usuari ha de ser Administrador");
+        }
+        User user = userRepository.findByUuid(uuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat amb UUID: " + uuid));
+
+        if (!user.getEmail().equals(userRequestDTO.getEmail()) && userRepository.existsByEmail(userRequestDTO.getEmail())) {
+            throw new DuplicateResourceException("Ja existeix un usuari amb l'email: " + userRequestDTO.getEmail());
+        }
+
+        user.setEmail(userRequestDTO.getEmail());
+        user.setFirstName(userRequestDTO.getFirstName());
+        user.setLastName(userRequestDTO.getLastName());
+        user.setPhone(userRequestDTO.getPhone());
+
+        if (userRequestDTO.getRole() != null) {
+            user.setRole(userRequestDTO.getRole());
+        }
+
+        if (userRequestDTO.getIsActive() != null) {
+            user.setIsActive(userRequestDTO.getIsActive());
+        }
+
+        User updatedUser = userRepository.save(user);
+        return mapToResponseDTO(updatedUser);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     */
+    @Override
+    public UserResponseDTO changeUserStatus(String uuid, Boolean isActive) {
+        //Validar que el rol sigui administrador
+        if (!isAdminUser()) {
+            throw new BadRequestException("L'usuari ha de ser Administrador");
+        }
+        User user = userRepository.findByUuid(uuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat amb UUID: " + uuid));
+        user.setIsActive(isActive);
+        User updatedUser = userRepository.save(user);
+        return mapToResponseDTO(updatedUser);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     */
+    @Override
+    public void changePassword(String uuid, PasswordChangeDTO passwordChangeDTO) {
+        User user = userRepository.findByUuid(uuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat amb UUID: " + uuid));
+
+        if (!passwordEncoder.matches(passwordChangeDTO.getCurrentPassword(), user.getPassword())) {
+            throw new BadRequestException("La contrasenya actual és incorrecta");
+        }
+
+        user.setPassword(passwordEncoder.encode(passwordChangeDTO.getNewPassword()));
+        userRepository.save(user);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     */
+    @Override
+    public void deleteUser(String uuid) {
+        //Validar que el rol sigui administrador
+        if (!isAdminUser()) {
+            throw new BadRequestException("L'usuari ha de ser Administrador");
+        }
+        User user = userRepository.findByUuid(uuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat amb UUID: " + uuid));
+        user.setIsDeleted(true);
+        userRepository.save(user);
+    }
+
+    /**
      * Obté l'UUID de l'empresa de l'usuari autenticat des del context de Spring Security.
      * Aquest mètode s'utilitza per garantir que l'usuari
      * només pugui accedir als empleats de la seva pròpia empresa.
@@ -286,6 +393,29 @@ public class UserServiceImpl implements UserService {
         }
 
         return user.getCompany().getUuid();
+    }
+
+
+    /**
+     * Verifica si l'usuari autenticat actual té rol d'administrador.
+     * <p>
+     * Obté l'usuari actual del context de seguretat de Spring Security
+     * i comprova si el seu rol és {@link User.UserRole#ADMIN}.
+     * </p>
+     *
+     * @return {@code true} si l'usuari autenticat és administrador,
+     * {@code false} en cas contrari
+     * @throws ResourceNotFoundException si l'usuari autenticat no existeix a la base de dades
+     */
+    private Boolean isAdminUser() {
+        String username = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat: " + username));
+
+        return user.getRole() == ADMIN;
     }
 
     /**

@@ -5,6 +5,7 @@ import cat.abasta_back_end.dto.CompanyRequestDTO;
 import cat.abasta_back_end.dto.CompanyResponseDTO;
 import cat.abasta_back_end.entities.Company;
 import cat.abasta_back_end.entities.User;
+import cat.abasta_back_end.exceptions.BadRequestException;
 import cat.abasta_back_end.exceptions.DuplicateResourceException;
 import cat.abasta_back_end.exceptions.ResourceNotFoundException;
 import cat.abasta_back_end.repositories.CompanyRepository;
@@ -19,6 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import static cat.abasta_back_end.entities.User.UserRole.ADMIN;
 
 /**
  * Implementació del servei de gestió d'empreses
@@ -106,6 +109,10 @@ public class CompanyServiceImpl implements CompanyService {
     @Override
     @Transactional(readOnly = true)
     public CompanyResponseDTO getCompanyByUuid() {
+        //Validar que el rol sigui administrador
+        if (!isAdminUser()) {
+            throw new BadRequestException("L'usuari ha de ser Administrador");
+        }
         String companyUuid = getCompanyUuidFromAuthenticatedUser();
 
         // Verificar que l'empresa existeix
@@ -120,6 +127,10 @@ public class CompanyServiceImpl implements CompanyService {
     @Override
     @Transactional
     public CompanyResponseDTO updateCompany(CompanyRequestDTO companyRequestDTO) {
+        //Validar que el rol sigui administrador
+        if (!isAdminUser()) {
+            throw new BadRequestException("L'usuari ha de ser Administrador");
+        }
         String companyUuid = getCompanyUuidFromAuthenticatedUser();
 
         // Verificar que l'empresa existeix
@@ -168,6 +179,28 @@ public class CompanyServiceImpl implements CompanyService {
         }
 
         return user.getCompany().getUuid();
+    }
+
+    /**
+     * Verifica si l'usuari autenticat actual té rol d'administrador.
+     * <p>
+     * Obté l'usuari actual del context de seguretat de Spring Security
+     * i comprova si el seu rol és {@link User.UserRole#ADMIN}.
+     * </p>
+     *
+     * @return {@code true} si l'usuari autenticat és administrador,
+     * {@code false} en cas contrari
+     * @throws ResourceNotFoundException si l'usuari autenticat no existeix a la base de dades
+     */
+    private Boolean isAdminUser() {
+        String username = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat: " + username));
+
+        return user.getRole() == ADMIN;
     }
 
     /**
