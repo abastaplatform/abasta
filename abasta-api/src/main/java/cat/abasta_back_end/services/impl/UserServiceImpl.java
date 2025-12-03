@@ -349,6 +349,7 @@ public class UserServiceImpl implements UserService {
                 filterDTO.getFirstName(),
                 filterDTO.getLastName(),
                 filterDTO.getPhone(),
+                filterDTO.getIsActive(),
                 pageable
         );
 

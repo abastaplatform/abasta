@@ -149,7 +149,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     /**
      * Cerca bàsica d'usuaris d'una empresa en múltiples camps de text amb paginació.
      * Cerca en: email, firstName, lastName i phone de forma simultània.
-     * Filtra només usuaris actius i no eliminats.
+     * Filtra només usuaris no eliminats (inclou tant actius com inactius).
      *
      * <p>Aquesta consulta implementa una cerca flexible que retorna usuaris si el text
      * de cerca coincideix parcialment amb qualsevol dels camps especificats. La cerca
@@ -158,17 +158,17 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * <p>Condicions de filtratge:
      * <ul>
      *   <li>{@code isDeleted = false}: només usuaris no eliminats</li>
-     *   <li>{@code isActive = true}: només usuaris actius</li>
+     *   <li>Inclou usuaris actius i inactius</li>
      *   <li>Cerca parcial i insensible a majúscules en email, firstName, lastName, phone</li>
      * </ul>
      * </p>
      *
      * @param companyId l'identificador de l'empresa
-     * @param searchText el text a cercar (pot ser null per obtenir tots els usuaris actius)
+     * @param searchText el text a cercar (pot ser null per obtenir tots els usuaris)
      * @param pageable informació de paginació
      * @return pàgina d'usuaris que compleixen els criteris
      */
-    @Query("SELECT u FROM User u WHERE u.company.id = :companyId AND u.isDeleted = false AND u.isActive = true AND " +
+    @Query("SELECT u FROM User u WHERE u.company.id = :companyId AND u.isDeleted = false AND " +
             "(:searchText IS NULL OR " +
             "LOWER(u.email) LIKE LOWER(CONCAT('%', :searchText, '%')) OR " +
             "LOWER(u.firstName) LIKE LOWER(CONCAT('%', :searchText, '%')) OR " +
@@ -182,7 +182,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     /**
      * Cerca avançada d'usuaris amb múltiples filtres.
      * Inclou tots els camps disponibles per a una cerca completa.
-     * Filtra només usuaris actius i no eliminats.
+     * Filtra només usuaris no eliminats i permet filtrar per estat actiu/inactiu.
      *
      * <p>Aquesta consulta permet filtrar usuaris per diversos criteris de forma simultània.
      * Tots els paràmetres són opcionals (poden ser {@code null}), permetent combinacions
@@ -191,9 +191,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * <p>Comportament dels filtres:
      * <ul>
      *   <li>Si un paràmetre és {@code null}, no s'aplica aquest filtre</li>
-     *   <li>Si un paràmetre té valor, s'aplica una cerca parcial insensible a majúscules</li>
+     *   <li>Si un paràmetre té valor, s'aplica una cerca parcial insensible a majúscules (text)</li>
      *   <li>Tots els filtres s'apliquen amb operador AND (han de complir-se tots)</li>
-     *   <li>Sempre filtra: {@code isDeleted = false} i {@code isActive = true}</li>
+     *   <li>Sempre filtra: {@code isDeleted = false}</li>
+     *   <li>isActive: null = tots, true = només actius, false = només inactius</li>
      * </ul>
      * </p>
      *
@@ -203,22 +204,23 @@ public interface UserRepository extends JpaRepository<User, Long> {
      *   <li><strong>firstName</strong>: cerca parcial en el nom de l'usuari</li>
      *   <li><strong>lastName</strong>: cerca parcial en els cognoms de l'usuari</li>
      *   <li><strong>phone</strong>: cerca parcial en el número de telèfon</li>
+     *   <li><strong>isActive</strong>: filtre d'estat actiu (null, true o false)</li>
      * </ul>
      * </p>
      *
      * <p>Exemples d'ús:
      * <pre>
-     * // Cercar usuaris amb email que contingui "john" i nom "Doe"
+     * // Cercar usuaris actius amb email que contingui "john"
      * Page&lt;User&gt; users = repository.findByCompanyIdAndCriteriaActive(
-     *     companyId, "john", "Doe", null, null, pageable);
+     *     companyId, "john", null, null, null, true, pageable);
      *
-     * // Cercar usuaris només per telèfon
+     * // Cercar usuaris inactius només per telèfon
      * Page&lt;User&gt; users = repository.findByCompanyIdAndCriteriaActive(
-     *     companyId, null, null, null, "555", pageable);
+     *     companyId, null, null, null, "555", false, pageable);
      *
-     * // Obtenir tots els usuaris actius (tots els filtres null)
+     * // Obtenir tots els usuaris (tots els filtres null)
      * Page&lt;User&gt; users = repository.findByCompanyIdAndCriteriaActive(
-     *     companyId, null, null, null, null, pageable);
+     *     companyId, null, null, null, null, null, pageable);
      * </pre>
      * </p>
      *
@@ -227,21 +229,24 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @param firstName el nom a cercar (opcional, cerca parcial)
      * @param lastName els cognoms a cercar (opcional, cerca parcial)
      * @param phone el telèfon a cercar (opcional, cerca parcial)
+     * @param isActive l'estat actiu a filtrar (null = tots, true = actius, false = inactius)
      * @param pageable informació de paginació i ordenació
      * @return pàgina d'usuaris que compleixen els criteris especificats
      * @see Pageable
      * @see Page
      */
-    @Query("SELECT u FROM User u WHERE u.company.id = :companyId AND u.isDeleted = false AND u.isActive = true AND " +
+    @Query("SELECT u FROM User u WHERE u.company.id = :companyId AND u.isDeleted = false AND " +
             "(:email IS NULL OR LOWER(u.email) LIKE LOWER(CONCAT('%', :email, '%'))) AND " +
             "(:firstName IS NULL OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :firstName, '%'))) AND " +
             "(:lastName IS NULL OR LOWER(u.lastName) LIKE LOWER(CONCAT('%', :lastName, '%'))) AND " +
-            "(:phone IS NULL OR LOWER(u.phone) LIKE LOWER(CONCAT('%', :phone, '%')))")
+            "(:phone IS NULL OR LOWER(u.phone) LIKE LOWER(CONCAT('%', :phone, '%'))) AND " +
+            "(:isActive IS NULL OR u.isActive = :isActive)")
     Page<User> findByCompanyIdAndCriteriaActive(
             @Param("companyId") Long companyId,
             @Param("email") String email,
             @Param("firstName") String firstName,
             @Param("lastName") String lastName,
             @Param("phone") String phone,
+            @Param("isActive") Boolean isActive,
             Pageable pageable);
 }

@@ -233,10 +233,17 @@ public class UserController {
     }
 
     /**
-     * Crea un nou usuari.
+     * Registra un nou usuari al sistema.
+     * <p>
+     * Aquest endpoint permet crear un nou compte d'usuari amb les dades
+     * proporcionades. Les dades són validades automàticament mitjançant
+     * les anotacions de validació de Jakarta Bean Validation.
+     * </p>
      *
-     * @param registrationDTO les dades de l'usuari a crear
-     * @return resposta amb l'usuari creat
+     * @param registrationDTO les dades de registre de l'usuari. No pot ser null
+     * i ha de complir les validacions definides.
+     * @return ResponseEntity amb codi d'estat 201 (CREATED) i un objecte
+     * ApiResponseDTO que conté les dades de l'usuari creat i un missatge de confirmació.
      */
     @PostMapping()
     public ResponseEntity<ApiResponseDTO<UserResponseDTO>> registerUser(
@@ -248,11 +255,16 @@ public class UserController {
     }
 
     /**
-     * Actualitza un usuari existent.
+     * Actualitza les dades d'un usuari existent.
+     * <p>
+     * Permet modificar l'email, nom, cognoms, telèfon, rol i estat actiu
+     * de l'usuari. Les dades són validades abans de l'actualització.
+     * </p>
      *
-     * @param uuid l'UUID de l'usuari a actualitzar
-     * @param userRequestDTO les noves dades de l'usuari
-     * @return resposta amb l'usuari actualitzat
+     * @param uuid identificador únic de l'usuari a actualitzar.
+     * @param userRequestDTO DTO amb les noves dades de l'usuari.
+     * @return ResponseEntity amb codi d'estat 200 (OK) i un objecte
+     * ApiResponseDTO que conté les dades de l'usuari actualitzat.
      */
     @PutMapping("/{uuid}")
     public ResponseEntity<ApiResponseDTO<UserResponseDTO>> updateUser(
@@ -263,11 +275,12 @@ public class UserController {
     }
 
     /**
-     * Activa o desactiva un usuari.
+     * Canvia l'estat actiu/inactiu d'un usuari.
      *
-     * @param uuid l'UUID de l'usuari
-     * @param isActive l'estat d'activitat a establir
-     * @return resposta amb l'usuari actualitzat
+     * @param uuid identificador únic de l'usuari.
+     * @param isActive nou estat d'activació ({@code true} per actiu, {@code false} per inactiu).
+     * @return ResponseEntity amb codi d'estat 200 (OK) i un objecte
+     * ApiResponseDTO que conté les dades de l'usuari amb l'estat actualitzat.
      */
     @PatchMapping("/{uuid}/status")
     public ResponseEntity<ApiResponseDTO<UserResponseDTO>> changeUserStatus(
@@ -279,10 +292,15 @@ public class UserController {
 
     /**
      * Canvia la contrasenya d'un usuari.
+     * <p>
+     * Requereix la contrasenya actual per verificar la identitat de l'usuari
+     * abans de permetre el canvi.
+     * </p>
      *
-     * @param uuid l'UUID de l'usuari
-     * @param passwordChangeDTO les dades per canviar la contrasenya
-     * @return resposta amb missatge de confirmació
+     * @param uuid identificador únic de l'usuari.
+     * @param passwordChangeDTO DTO amb la contrasenya actual i la nova contrasenya.
+     * @return ResponseEntity amb codi d'estat 200 (OK) i un objecte
+     * ApiResponseDTO amb missatge de confirmació.
      */
     @PatchMapping("/{uuid}/change-password")
     public ResponseEntity<ApiResponseDTO<Void>> changePassword(
@@ -293,10 +311,15 @@ public class UserController {
     }
 
     /**
-     * Elimina un usuari (soft delete).
+     * Elimina un usuari del sistema.
+     * <p>
+     * Realitza una eliminació lògica (soft delete) de l'usuari,
+     * mantenint les dades a la base de dades però marcant-lo com eliminat.
+     * </p>
      *
-     * @param uuid l'UUID de l'usuari a eliminar
-     * @return resposta amb missatge de confirmació
+     * @param uuid identificador únic de l'usuari a eliminar.
+     * @return ResponseEntity amb codi d'estat 200 (OK) i un objecte
+     * ApiResponseDTO amb missatge de confirmació.
      */
     @DeleteMapping("/{uuid}")
     public ResponseEntity<ApiResponseDTO<Void>> deleteUser(
