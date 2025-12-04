@@ -6,6 +6,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import java.math.BigDecimal;
@@ -149,4 +153,95 @@ class OrderControllerTest {
 
         verify(orderService, times(1)).sendOrder("order-uuid");
     }
+
+    /**
+     * Test que comprova l'obtenció de comanda per uuid
+     */
+    @Test
+    @DisplayName("GET /api/orders/{uuid} : obtenir comanda per UUID")
+    void getOrder_success() {
+        when(orderService.getOrderByUuid("order-uuid")).thenReturn(orderResponse);
+
+        ResponseEntity<ApiResponseDTO<OrderResponseDTO>> response =
+                orderController.getOrder("order-uuid");
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getData()).isEqualTo(orderResponse);
+        assertThat(response.getBody().getMessage()).isEqualTo("Comanda trobada correctament");
+
+        verify(orderService, times(1)).getOrderByUuid("order-uuid");
+    }
+
+    /**
+     * Test que elimina una comanda
+     */
+    @Test
+    @DisplayName("PATCH /api/orders/delete/{uuid} : eliminar comanda")
+    void deleteOrder_success() {
+        when(orderService.deleteOrder("order-uuid")).thenReturn(orderResponse);
+
+        ResponseEntity<ApiResponseDTO<OrderResponseDTO>> response =
+                orderController.deleteOrder("order-uuid");
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getData()).isEqualTo(orderResponse);
+        assertThat(response.getBody().getMessage()).isEqualTo("Comanda eliminada correctament");
+
+        verify(orderService, times(1)).deleteOrder("order-uuid");
+    }
+
+    /**
+     * Tes per actualitzar una comanda
+     */
+    @Test
+    @DisplayName("PUT /api/orders/update/{uuid} : actualitzar comanda")
+    void updateOrder_success() {
+        when(orderService.updateOrder("order-uuid", orderRequest)).thenReturn(orderResponse);
+
+        ResponseEntity<ApiResponseDTO<OrderResponseDTO>> response =
+                orderController.updateOrder("order-uuid", orderRequest);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getData()).isEqualTo(orderResponse);
+        assertThat(response.getBody().getMessage()).isEqualTo("Comanda actualitzada correctament");
+
+        verify(orderService, times(1)).updateOrder("order-uuid", orderRequest);
+    }
+
+    /**
+     * Test per filtrar comandes paginades
+     */
+    @Test
+    @DisplayName("GET /api/orders/filter : filtrar comandes paginades")
+    void filterOrders_success() {
+        // Mock de la pàgina retornada pel servei
+        Page<OrderResponseDTO> pageMock = new PageImpl<>(List.of(orderResponse), PageRequest.of(0, 10), 1);
+        OrderFilterDTO filterDTO = OrderFilterDTO.builder()
+                .page(0)
+                .size(10)
+                .sortBy("name")
+                .sortDir("asc")
+                .build();
+
+        when(orderService.filterOrders(filterDTO, PageRequest.of(0, 10, Sort.by("name").ascending())))
+                .thenReturn(pageMock);
+
+        ResponseEntity<ApiResponseDTO<PagedResponseDTO<OrderResponseDTO>>> response =
+                orderController.filterOrders(filterDTO);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getData().getContent()).hasSize(1);
+        assertThat(response.getBody().getData().getContent().get(0)).isEqualTo(orderResponse);
+        assertThat(response.getBody().getMessage())
+                .contains("Cerca avançada de comandes completada");
+
+        verify(orderService, times(1))
+                .filterOrders(filterDTO, PageRequest.of(0, 10, Sort.by("name").ascending()));
+    }
+
+
 }

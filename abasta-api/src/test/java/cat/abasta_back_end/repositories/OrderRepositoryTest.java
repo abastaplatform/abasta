@@ -7,7 +7,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -153,4 +157,82 @@ class OrderRepositoryTest {
         Optional<Order> found = orderRepository.findById(testOrder.getId());
         assertThat(found).isNotPresent();
     }
+
+
+    @Test
+    @DisplayName("Comprova findByUuid amb UUID inexistant")
+    void findByUuid_notFound() {
+        Optional<Order> found = orderRepository.findByUuid("nonexistent-uuid");
+        assertThat(found).isNotPresent();
+    }
+
+    @Test
+    @DisplayName("Comprova guardar Order amb OrderItems")
+    void saveOrderWithItems_success() {
+        companyRepository.save(testCompany);
+        userRepository.save(testUser);
+        supplierRepository.save(testSupplier);
+        productRepository.save(testProduct);
+
+        testOrder.getItems().add(testOrderItem);
+
+        orderRepository.save(testOrder);
+        orderItemRepository.save(testOrderItem);
+
+        Optional<Order> found = orderRepository.findByUuid(testOrder.getUuid());
+        assertThat(found).isPresent();
+        assertThat(found.get().getItems()).hasSize(1);
+        assertThat(found.get().getItems().get(0).getProduct().getUuid()).isEqualTo("test-product-uuid");
+    }
+
+    @Test
+    @DisplayName("Comprova findAll amb Pageable i Sort")
+    void findAllWithPageable_success() {
+        companyRepository.save(testCompany);
+        userRepository.save(testUser);
+        supplierRepository.save(testSupplier);
+        orderRepository.save(testOrder);
+
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("name").ascending());
+        Page<Order> page = orderRepository.findAll(pageable);
+
+        assertThat(page).isNotNull();
+        assertThat(page.getTotalElements()).isGreaterThan(0);
+        assertThat(page.getContent().getLast().getName()).isEqualTo("Test Comanda 1");
+    }
+
+    @Test
+    @DisplayName("Comprova findAll amb Specification")
+    void findAllWithSpecification_success() {
+        companyRepository.save(testCompany);
+        userRepository.save(testUser);
+        supplierRepository.save(testSupplier);
+        orderRepository.save(testOrder);
+
+        Specification<Order> spec = (root, query, cb) ->
+                cb.equal(root.get("uuid"), "test-order-uuid");
+
+        List<Order> result = orderRepository.findAll(spec);
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getUuid()).isEqualTo("test-order-uuid");
+    }
+
+    @Test
+    @DisplayName("Comprova actualització d'una Order")
+    void updateOrder_success() {
+        companyRepository.save(testCompany);
+        userRepository.save(testUser);
+        supplierRepository.save(testSupplier);
+        orderRepository.save(testOrder);
+
+        testOrder.setName("Nou Nom");
+        orderRepository.save(testOrder);
+
+        Optional<Order> found = orderRepository.findByUuid("test-order-uuid");
+        assertThat(found).isPresent();
+        assertThat(found.get().getName()).isEqualTo("Nou Nom");
+    }
+
+
+
 }
