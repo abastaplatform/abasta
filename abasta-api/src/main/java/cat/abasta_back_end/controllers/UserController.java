@@ -125,7 +125,7 @@ public class UserController {
      *
      * <p>Aquest endpoint permet cercar usuaris de l'empresa de l'usuari filtrant
      * simultàniament en múltiples camps: email, firstName, lastName i phone.
-     * Si no s'especifica text, retorna tots els usuaris actius.</p>
+     * Si no s'especifica text, retorna tots els usuaris.</p>
      *
      * <p>Camps de cerca inclosos:
      * <ul>

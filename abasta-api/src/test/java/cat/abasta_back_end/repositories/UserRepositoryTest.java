@@ -10,6 +10,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 
@@ -237,5 +240,435 @@ class UserRepositoryTest {
         assertThat(savedUser.getRole()).isEqualTo(UserRole.USER);
         assertThat(savedAdmin.getEmailVerified()).isTrue();
         assertThat(savedUser.getEmailVerified()).isFalse();
+    }
+
+    // ==================== Tests de findByUuid ====================
+
+    @Test
+    @DisplayName("Hauria de trobar un usuari per UUID quan existeix")
+    void findByUuid_ShouldReturnUser_WhenUserExists() {
+        // Given
+        User savedUser = entityManager.persistAndFlush(testUser);
+        String uuid = savedUser.getUuid();
+
+        // When
+        Optional<User> foundUser = userRepository.findByUuid(uuid);
+
+        // Then
+        assertThat(foundUser).isPresent();
+        assertThat(foundUser.get().getEmail()).isEqualTo("joan@test.com");
+        assertThat(foundUser.get().getFirstName()).isEqualTo("Joan");
+    }
+
+    @Test
+    @DisplayName("Hauria de retornar Optional buit quan l'UUID no existeix")
+    void findByUuid_ShouldReturnEmpty_WhenUuidDoesNotExist() {
+        // When
+        Optional<User> foundUser = userRepository.findByUuid("uuid-inexistent");
+
+        // Then
+        assertThat(foundUser).isEmpty();
+    }
+
+    // ==================== Tests de findByCompanyUuidAndIsDeletedFalse ====================
+
+    @Test
+    @DisplayName("Hauria de retornar usuaris no eliminats d'una empresa paginats")
+    void findByCompanyUuidAndIsDeletedFalse_ShouldReturnNonDeletedUsers() {
+        // Given
+        User user1 = createUser("user1@test.com", "Maria", "López", false, false);
+        User user2 = createUser("user2@test.com", "Pere", "Martínez", false, false);
+        User user3 = createUser("user3@test.com", "Anna", "Sánchez", true, false); // Eliminat
+
+        entityManager.persistAndFlush(user1);
+        entityManager.persistAndFlush(user2);
+        entityManager.persistAndFlush(user3);
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When
+        Page<User> result = userRepository.findByCompanyUuidAndIsDeletedFalse(
+                testCompany.getUuid(), pageable);
+
+        // Then
+        assertThat(result.getTotalElements()).isEqualTo(2);
+        assertThat(result.getContent())
+                .extracting(User::getEmail)
+                .containsExactlyInAnyOrder("user1@test.com", "user2@test.com");
+    }
+
+    @Test
+    @DisplayName("Hauria de retornar usuaris actius i inactius però no eliminats")
+    void findByCompanyUuidAndIsDeletedFalse_ShouldReturnActiveAndInactiveUsers() {
+        // Given
+        User activeUser = createUser("active@test.com", "Joan", "Actiu", false, true);
+        User inactiveUser = createUser("inactive@test.com", "Joan", "Inactiu", false, false);
+        User deletedUser = createUser("deleted@test.com", "Joan", "Eliminat", true, true);
+
+        entityManager.persistAndFlush(activeUser);
+        entityManager.persistAndFlush(inactiveUser);
+        entityManager.persistAndFlush(deletedUser);
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When
+        Page<User> result = userRepository.findByCompanyUuidAndIsDeletedFalse(
+                testCompany.getUuid(), pageable);
+
+        // Then
+        assertThat(result.getTotalElements()).isEqualTo(2);
+        assertThat(result.getContent())
+                .extracting(User::getEmail)
+                .containsExactlyInAnyOrder("active@test.com", "inactive@test.com");
+    }
+
+    @Test
+    @DisplayName("Hauria de respectar la paginació en la cerca d'usuaris")
+    void findByCompanyUuidAndIsDeletedFalse_ShouldRespectPagination() {
+        // Given
+        for (int i = 0; i < 5; i++) {
+            User user = createUser("user" + i + "@test.com", "User" + i, "Test", false, true);
+            entityManager.persistAndFlush(user);
+        }
+
+        Pageable pageable = PageRequest.of(0, 2);
+
+        // When
+        Page<User> result = userRepository.findByCompanyUuidAndIsDeletedFalse(
+                testCompany.getUuid(), pageable);
+
+        // Then
+        assertThat(result.getTotalElements()).isEqualTo(5);
+        assertThat(result.getNumberOfElements()).isEqualTo(2);
+        assertThat(result.getTotalPages()).isEqualTo(3);
+    }
+
+    // ==================== Tests de findByCompanyIdAndMultipleFieldsContainingNoDeleted ====================
+
+    @Test
+    @DisplayName("Hauria de cercar usuaris per email en múltiples camps")
+    void findByMultipleFields_ShouldFindByEmail() {
+        // Given
+        User user1 = createUser("john@test.com", "Maria", "López", false, true);
+        User user2 = createUser("maria@test.com", "Joan", "Garcia", false, true);
+
+        entityManager.persistAndFlush(user1);
+        entityManager.persistAndFlush(user2);
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When
+        Page<User> result = userRepository.findByCompanyIdAndMultipleFieldsContainingNoDeleted(
+                testCompany.getId(), "john", pageable);
+
+        // Then
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getContent().getFirst().getEmail()).isEqualTo("john@test.com");
+    }
+
+    @Test
+    @DisplayName("Hauria de cercar usuaris per firstName en múltiples camps")
+    void findByMultipleFields_ShouldFindByFirstName() {
+        // Given
+        User user1 = createUser("user1@test.com", "Joan", "López", false, true);
+        User user2 = createUser("user2@test.com", "Maria", "Garcia", false, true);
+
+        entityManager.persistAndFlush(user1);
+        entityManager.persistAndFlush(user2);
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When
+        Page<User> result = userRepository.findByCompanyIdAndMultipleFieldsContainingNoDeleted(
+                testCompany.getId(), "Joan", pageable);
+
+        // Then
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getContent().getFirst().getFirstName()).isEqualTo("Joan");
+    }
+
+    @Test
+    @DisplayName("Hauria de cercar usuaris per lastName en múltiples camps")
+    void findByMultipleFields_ShouldFindByLastName() {
+        // Given
+        User user1 = createUser("user1@test.com", "Joan", "García", false, true);
+        User user2 = createUser("user2@test.com", "Maria", "López", false, true);
+
+        entityManager.persistAndFlush(user1);
+        entityManager.persistAndFlush(user2);
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When
+        Page<User> result = userRepository.findByCompanyIdAndMultipleFieldsContainingNoDeleted(
+                testCompany.getId(), "García", pageable);
+
+        // Then
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getContent().getFirst().getLastName()).isEqualTo("García");
+    }
+
+    @Test
+    @DisplayName("Hauria de cercar usuaris per phone en múltiples camps")
+    void findByMultipleFields_ShouldFindByPhone() {
+        // Given
+        User user1 = createUserWithPhone("user1@test.com", "Joan", "García", "600111222");
+        User user2 = createUserWithPhone("user2@test.com", "Maria", "López", "600333444");
+
+        entityManager.persistAndFlush(user1);
+        entityManager.persistAndFlush(user2);
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When
+        Page<User> result = userRepository.findByCompanyIdAndMultipleFieldsContainingNoDeleted(
+                testCompany.getId(), "600111", pageable);
+
+        // Then
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getContent().getFirst().getPhone()).isEqualTo("600111222");
+    }
+
+    @Test
+    @DisplayName("Hauria de retornar tots els usuaris quan searchText és null")
+    void findByMultipleFields_ShouldReturnAllUsers_WhenSearchTextIsNull() {
+        // Given
+        User user1 = createUser("user1@test.com", "Joan", "García", false, true);
+        User user2 = createUser("user2@test.com", "Maria", "López", false, true);
+
+        entityManager.persistAndFlush(user1);
+        entityManager.persistAndFlush(user2);
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When
+        Page<User> result = userRepository.findByCompanyIdAndMultipleFieldsContainingNoDeleted(
+                testCompany.getId(), null, pageable);
+
+        // Then
+        assertThat(result.getTotalElements()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("Hauria d'excloure usuaris eliminats en cerca per múltiples camps")
+    void findByMultipleFields_ShouldExcludeDeletedUsers() {
+        // Given
+        User activeUser = createUser("active@test.com", "Joan", "Actiu", false, true);
+        User deletedUser = createUser("deleted@test.com", "Joan", "Eliminat", true, true);
+
+        entityManager.persistAndFlush(activeUser);
+        entityManager.persistAndFlush(deletedUser);
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When
+        Page<User> result = userRepository.findByCompanyIdAndMultipleFieldsContainingNoDeleted(
+                testCompany.getId(), "Joan", pageable);
+
+        // Then
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getContent().getFirst().getEmail()).isEqualTo("active@test.com");
+    }
+
+    // ==================== Tests de findByCompanyIdAndCriteriaActive ====================
+
+    @Test
+    @DisplayName("Hauria de filtrar usuaris per email amb filtres avançats")
+    void findByCriteria_ShouldFilterByEmail() {
+        // Given
+        User user1 = createUser("john@test.com", "Joan", "García", false, true);
+        User user2 = createUser("maria@test.com", "Maria", "López", false, true);
+
+        entityManager.persistAndFlush(user1);
+        entityManager.persistAndFlush(user2);
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When
+        Page<User> result = userRepository.findByCompanyIdAndCriteriaActive(
+                testCompany.getId(), "john", null, null, null, null, pageable);
+
+        // Then
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getContent().getFirst().getEmail()).isEqualTo("john@test.com");
+    }
+
+    @Test
+    @DisplayName("Hauria de filtrar usuaris per firstName amb filtres avançats")
+    void findByCriteria_ShouldFilterByFirstName() {
+        // Given
+        User user1 = createUser("user1@test.com", "Joan", "García", false, true);
+        User user2 = createUser("user2@test.com", "Maria", "López", false, true);
+
+        entityManager.persistAndFlush(user1);
+        entityManager.persistAndFlush(user2);
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When
+        Page<User> result = userRepository.findByCompanyIdAndCriteriaActive(
+                testCompany.getId(), null, "Joan", null, null, null, pageable);
+
+        // Then
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getContent().getFirst().getFirstName()).isEqualTo("Joan");
+    }
+
+    @Test
+    @DisplayName("Hauria de filtrar usuaris per lastName amb filtres avançats")
+    void findByCriteria_ShouldFilterByLastName() {
+        // Given
+        User user1 = createUser("user1@test.com", "Joan", "García", false, true);
+        User user2 = createUser("user2@test.com", "Maria", "López", false, true);
+
+        entityManager.persistAndFlush(user1);
+        entityManager.persistAndFlush(user2);
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When
+        Page<User> result = userRepository.findByCompanyIdAndCriteriaActive(
+                testCompany.getId(), null, null, "López", null, null, pageable);
+
+        // Then
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getContent().getFirst().getLastName()).isEqualTo("López");
+    }
+
+    @Test
+    @DisplayName("Hauria de filtrar usuaris per isActive = true")
+    void findByCriteria_ShouldFilterByActiveStatus() {
+        // Given
+        User activeUser = createUser("active@test.com", "Joan", "Actiu", false, true);
+        User inactiveUser = createUser("inactive@test.com", "Maria", "Inactiu", false, false);
+
+        entityManager.persistAndFlush(activeUser);
+        entityManager.persistAndFlush(inactiveUser);
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When
+        Page<User> result = userRepository.findByCompanyIdAndCriteriaActive(
+                testCompany.getId(), null, null, null, null, true, pageable);
+
+        // Then
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getContent().getFirst().getEmail()).isEqualTo("active@test.com");
+    }
+
+    @Test
+    @DisplayName("Hauria de filtrar usuaris per isActive = false")
+    void findByCriteria_ShouldFilterByInactiveStatus() {
+        // Given
+        User activeUser = createUser("active@test.com", "Joan", "Actiu", false, true);
+        User inactiveUser = createUser("inactive@test.com", "Maria", "Inactiu", false, false);
+
+        entityManager.persistAndFlush(activeUser);
+        entityManager.persistAndFlush(inactiveUser);
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When
+        Page<User> result = userRepository.findByCompanyIdAndCriteriaActive(
+                testCompany.getId(), null, null, null, null, false, pageable);
+
+        // Then
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getContent().getFirst().getEmail()).isEqualTo("inactive@test.com");
+    }
+
+    @Test
+    @DisplayName("Hauria de combinar múltiples filtres correctament")
+    void findByCriteria_ShouldCombineMultipleFilters() {
+        // Given
+        User user1 = createUser("john@test.com", "Joan", "García", false, true);
+        User user2 = createUser("john2@test.com", "Joan", "López", false, true);
+        User user3 = createUser("maria@test.com", "Maria", "García", false, true);
+
+        entityManager.persistAndFlush(user1);
+        entityManager.persistAndFlush(user2);
+        entityManager.persistAndFlush(user3);
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When
+        Page<User> result = userRepository.findByCompanyIdAndCriteriaActive(
+                testCompany.getId(), "john", "Joan", "García", null, true, pageable);
+
+        // Then
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getContent().getFirst().getEmail()).isEqualTo("john@test.com");
+    }
+
+    @Test
+    @DisplayName("Hauria de retornar tots els usuaris quan tots els filtres són null")
+    void findByCriteria_ShouldReturnAllUsers_WhenAllFiltersAreNull() {
+        // Given
+        User user1 = createUser("user1@test.com", "Joan", "García", false, true);
+        User user2 = createUser("user2@test.com", "Maria", "López", false, false);
+
+        entityManager.persistAndFlush(user1);
+        entityManager.persistAndFlush(user2);
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When
+        Page<User> result = userRepository.findByCompanyIdAndCriteriaActive(
+                testCompany.getId(), null, null, null, null, null, pageable);
+
+        // Then
+        assertThat(result.getTotalElements()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("Hauria d'excloure usuaris eliminats amb filtres avançats")
+    void findByCriteria_ShouldExcludeDeletedUsers() {
+        // Given
+        User activeUser = createUser("active@test.com", "Joan", "García", false, true);
+        User deletedUser = createUser("deleted@test.com", "Joan", "García", true, true);
+
+        entityManager.persistAndFlush(activeUser);
+        entityManager.persistAndFlush(deletedUser);
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When
+        Page<User> result = userRepository.findByCompanyIdAndCriteriaActive(
+                testCompany.getId(), null, "Joan", null, null, null, pageable);
+
+        // Then
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getContent().getFirst().getEmail()).isEqualTo("active@test.com");
+    }
+
+    // ==================== Mètodes auxiliars ====================
+
+    private User createUser(String email, String firstName, String lastName, boolean isDeleted, boolean isActive) {
+        return User.builder()
+                .email(email)
+                .firstName(firstName)
+                .lastName(lastName)
+                .password("password123")
+                .role(UserRole.USER)
+                .company(testCompany)
+                .isDeleted(isDeleted)
+                .isActive(isActive)
+                .emailVerified(true)
+                .build();
+    }
+
+    private User createUserWithPhone(String email, String firstName, String lastName, String phone) {
+        return User.builder()
+                .email(email)
+                .firstName(firstName)
+                .lastName(lastName)
+                .phone(phone)
+                .password("password123")
+                .role(UserRole.USER)
+                .company(testCompany)
+                .isDeleted(false)
+                .isActive(true)
+                .emailVerified(true)
+                .build();
     }
 }
