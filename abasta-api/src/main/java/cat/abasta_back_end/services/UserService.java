@@ -252,7 +252,7 @@ public interface UserService {
     /**
      * Cerca avançada amb filtres múltiples per l'empresa de l'usuari autenticat.
      * Utilitza el context de Spring Security per identificar l'usuari.
-     * Retorna només usuaris actius i no eliminats.
+     * Retorna només usuaris no eliminats.
      *
      * <p>Aquest mètode permet realitzar cerques molt específiques combinant diversos
      * criteris simultàniament. A diferència de la cerca per text, aquí cada filtre
@@ -264,6 +264,7 @@ public interface UserService {
      *   <li><strong>firstName</strong>: cerca parcial específica en el nom</li>
      *   <li><strong>lastName</strong>: cerca parcial específica en els cognoms</li>
      *   <li><strong>phone</strong>: cerca parcial específica en el telèfon</li>
+     *   <li><strong>isActive</strong>: filtre usuaris actius o inactius</li>
      * </ul>
      * </p>
      *
@@ -272,7 +273,7 @@ public interface UserService {
      *   <li>Tots els filtres són opcionals (poden ser {@code null})</li>
      *   <li>Els filtres s'apliquen amb operador AND (tots han de complir-se)</li>
      *   <li>La cerca és insensible a majúscules i minúscules</li>
-     *   <li>Sempre filtra per: {@code isDeleted = false} i {@code isActive = true}</li>
+     *   <li>Sempre filtra per: {@code isDeleted = false}</li>
      * </ul>
      * </p>
      *
