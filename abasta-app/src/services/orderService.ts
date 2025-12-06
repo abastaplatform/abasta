@@ -1,8 +1,11 @@
 import api from './api';
 import type {
   Order,
+  OrderResponseData,
   ApiResponse,
   CreateOrderRequest,
+  OrderFilterParams,
+  PaginatedResponse,
 } from '../types/order.types';
 
 export const orderService = {
@@ -11,78 +14,70 @@ export const orderService = {
   ): Promise<ApiResponse<Order>> => {
     return await api.post('/orders/create', orderData);
   },
+
   sendOrder: async (uuid: string): Promise<ApiResponse<Order>> => {
     return await api.post(`/orders/${uuid}/send`, {});
   },
 
-  async getOrder(uuid: string): Promise<ApiResponse<Order>> {
-    // Simulació
-    const simulacio: Order = {
-      uuid,
-      name: 'Comanda Demo 001',
-      status: 'PENDING',
-      totalAmount: 260.0,
-      notes: 'Deixar al magatzem del darrere',
-      deliveryDate: '2025-02-14',
-      createdAt: '2025-01-20T10:24:00',
-      updatedAt: '2025-01-20T10:24:00',
-      supplierUuid: 'b3a1a2c4-1f92-4e8a-8e91-1d2fa00101',
+  updateOrder: async (
+    uuid: string,
+    orderData: CreateOrderRequest
+  ): Promise<ApiResponse<OrderResponseData>> => {
+    return await api.put(`/orders/update/${uuid}`, orderData);
+  },
 
-      items: [
-        {
-          uuid: 'item-1',
-          productUuid: 'prod-123',
-          productName: 'Aigua de litre',
-          quantity: 10,
-          price: 1.2,
-          total: 12.0,
-          notes: 'provaaaaa',
-        },
-        {
-          uuid: 'item-2',
-          productUuid: 'prod-456',
-          productName: 'Llet sencera',
-          quantity: 6,
-          price: 0.95,
-          total: 5.7,
-          notes: 'provaaaaa2',
-        },
-        {
-          uuid: 'item-4',
-          productUuid: 'prod-456222',
-          productName: 'Llet sencera',
-          quantity: 6,
-          price: 0.95,
-          total: 8.0,
-        },
-        {
-          uuid: 'item-3',
-          productUuid: 'prod-789',
-          productName: 'Cacaolat 1L',
-          quantity: 8,
-          price: 1.5,
-          total: 12.0,
-        },
-        {
-          uuid: 'item-4',
-          productUuid: 'prod-987',
-          productName: 'Nescafé Classic',
-          quantity: 2,
-          price: 4.5,
-          total: 9.0,
-          notes: 'provaaaaa3',
-        },
-      ],
-    };
+  filterOrders: async (
+    params: OrderFilterParams
+  ): Promise<ApiResponse<PaginatedResponse<OrderResponseData>>> => {
+    const queryParams = new URLSearchParams();
 
-    return new Promise(resolve => {
-      setTimeout(() => {
-        resolve({
-          success: true,
-          message: 'Dades de simulacio carregades correctament',
-          data: simulacio,
-        });
-      }, 500);
-    });
+    if (params.orderUuid) queryParams.append('orderUuid', params.orderUuid);
+    if (params.supplierUuid)
+      queryParams.append('supplierUuid', params.supplierUuid);
+    if (params.userUuid) queryParams.append('userUuid', params.userUuid);
+
+    if (params.searchText) queryParams.append('searchText', params.searchText);
+    if (params.name) queryParams.append('name', params.name);
+    if (params.notes) queryParams.append('notes', params.notes);
+    if (params.status) queryParams.append('status', params.status);
+
+    if (params.minAmount != null)
+      queryParams.append('minAmount', params.minAmount.toString());
+    if (params.maxAmount != null)
+      queryParams.append('maxAmount', params.maxAmount.toString());
+
+    if (params.deliveryDateFrom)
+      queryParams.append('deliveryDateFrom', params.deliveryDateFrom);
+    if (params.deliveryDateTo)
+      queryParams.append('deliveryDateTo', params.deliveryDateTo);
+
+    if (params.createdAtFrom)
+      queryParams.append('createdAtFrom', `${params.createdAtFrom} 00:00:00`);
+    if (params.createdAtTo)
+      queryParams.append('createdAtTo', `${params.createdAtTo} 23:59:59`);
+
+    if (params.updatedAtFrom)
+      queryParams.append('updatedAtFrom', `${params.updatedAtFrom} 00:00:00`);
+    if (params.updatedAtTo)
+      queryParams.append('updatedAtTo', `${params.updatedAtTo} 23:59:59`);
+
+    if (params.page !== undefined)
+      queryParams.append('page', params.page.toString());
+    if (params.size !== undefined)
+      queryParams.append('size', params.size.toString());
+    if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+    if (params.sortDir) queryParams.append('sortDir', params.sortDir);
+
+    return await api.get(`/orders/filter?${queryParams.toString()}`);
+  },
+
+  deleteOrder: async (
+    uuid: string
+  ): Promise<ApiResponse<OrderResponseData>> => {
+    return await api.patch(`/orders/delete/${uuid}`);
+  },
+
+  async getOrder(uuid: string): Promise<ApiResponse<OrderResponseData>> {
+    return await api.get(`/orders/${uuid}`);
   },
 };

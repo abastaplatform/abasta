@@ -19,6 +19,17 @@ export interface OrderItemResponse {
   notes?: string;
 }
 
+export type OrderStatus =
+  | 'PENDING'
+  | 'SENT'
+  | 'CONFIRMED'
+  | 'REJECTED'
+  | 'COMPLETED'
+  | 'CANCELLED'
+  | 'DELETED';
+
+export type NotificationMethod = 'EMAIL' | 'WHATSAPP' | 'BOTH';
+
 export interface Order {
   uuid: string;
   name: string;
@@ -67,12 +78,68 @@ export interface ApiResponse<T> {
   data?: T;
 }
 
-export type OrderStatus =
-  | 'PENDING'
-  | 'SENT'
-  | 'CONFIRMED'
-  | 'REJECTED'
-  | 'COMPLETED'
-  | 'CANCELLED';
+/** Filtros que maneja el FRONT en la barra de búsqueda */
+export interface OrderSearchFilters {
+  query: string; // searchText
+  name: string;
+  notes: string;
+  status: string;
+  supplierUuid: string;
+  minAmount: number | null;
+  maxAmount: number | null;
+  deliveryDateFrom: string | null;
+  deliveryDateTo: string | null;
+  createdAtFrom: string | null;
+  createdAtTo: string | null;
+  updatedAtFrom: string | null;
+  updatedAtTo: string | null;
+}
 
-export type NotificationMethod = 'EMAIL' | 'WHATSAPP' | 'BOTH';
+export interface OrderFilterParams {
+  orderUuid?: string;
+  supplierUuid?: string;
+  userUuid?: string;
+
+  searchText?: string;
+  name?: string;
+  notes?: string;
+  status?: string;
+
+  minAmount?: number;
+  maxAmount?: number;
+
+  deliveryDateFrom?: string; 
+  deliveryDateTo?: string; 
+
+  createdAtFrom?: string; 
+  createdAtTo?: string; 
+  updatedAtFrom?: string; 
+  updatedAtTo?: string;      
+
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  sortDir?: 'asc' | 'desc';
+}
+
+export interface PaginatedResponse<T> {
+  content: T[];
+  pageable: {
+    page: number;
+    size: number;
+    sort: string;
+    totalPages: number;
+    totalElements: number;
+    numberOfElements: number;
+    first: boolean;
+    last: boolean;
+    empty: boolean;
+  };
+}
+
+export interface PaginationParams {
+  page: number;
+  size: number;
+  sortBy?: string;
+  sortDir?: 'asc' | 'desc';
+}
