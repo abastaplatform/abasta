@@ -1,0 +1,57 @@
+@import '../../../assets/styles/variables';
+
+.order-create-container {
+  .card {
+    background: white;
+    border-radius: $border-radius-lg;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: none;
+    margin-bottom: 1.5rem;
+
+    .card-body {
+      padding: 1.5rem;
+    }
+  }
+
+  .form-label {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+    color: #495057;
+  }
+
+  .form-control {
+    font-size: 0.95rem;
+    padding: 0.75rem;
+    border: 1px solid #dee2e6;
+    border-radius: $border-radius;
+
+    &:focus {
+      border-color: #80bdff;
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    &.supplier-input {
+      background-color: #f8f9fa;
+      cursor: not-allowed;
+    }
+  }
+
+  .row {
+    margin-bottom: 0;
+
+    &.mb-3 {
+      margin-bottom: 1rem !important;
+    }
+  }
+}
+
+@media (max-width: 991px) {
+  .order-create-container {
+    .card {
+      .card-body {
+        padding: 1rem;
+      }
+    }
+  }
+}

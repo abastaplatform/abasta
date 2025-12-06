@@ -1,0 +1,58 @@
+@import '../../../assets/styles/variables';
+
+.order-list-container {
+  min-height: 100vh;
+  background-color: $light;
+
+  .spinner-border {
+    width: 3rem;
+    height: 3rem;
+  }
+}
+
+.product-table-container,
+.order-card-container {
+  animation: fadeIn 0.3s ease;
+}
+
+.product-table-container {
+  display: none !important;
+}
+
+.order-card-container {
+  display: block !important;
+}
+
+@media (min-width: 768px) {
+  .product-table-container {
+    display: block !important;
+  }
+
+  .order-card-container {
+    display: none !important;
+  }
+}
+
+.order-add-icon-btn {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1.5px solid #e5e7eb; 
+  background-color: #f9fafb;   
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.08);
+  cursor: pointer;
+
+  i {
+    font-size: 1.1rem;
+    color: #111827;   
+    line-height: 1;
+  }
+
+  &:hover {
+    background-color: #eef2ff;   
+  }
+}

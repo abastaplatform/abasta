@@ -12,8 +12,9 @@ interface OrderSummaryProps {
   onRemoveItem: (productUuid: string) => void;
   onSubmit: () => void;
   onCancel: () => void;
-  onSave: () => void;
   isSubmitting?: boolean;
+  canSend?: boolean;
+  onSave?: () => void;
 }
 
 const OrderSummary: React.FC<OrderSummaryProps> = ({
@@ -24,9 +25,10 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   onUpdateItem,
   onRemoveItem,
   onSubmit,
-  onSave,
   onCancel,
   isSubmitting = false,
+  canSend = true,
+  onSave,
 }) => {
   const total = items.reduce((sum, item) => sum + item.total, 0);
 
@@ -39,6 +41,12 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
       onUpdateItem(productUuid, { quantity: currentQuantity - 1 });
     }
   };
+
+  const sendButtonTitle = !canSend
+    ? 'Enviar'
+    : isSubmitting
+    ? 'Enviant...'
+    : 'Enviar';
 
   return (
     <div className="order-summary card">
@@ -137,16 +145,18 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
 
         <div className="d-grid gap-2">
           <Button
-            title={isSubmitting ? 'Enviant...' : 'Enviar'}
+            title={sendButtonTitle}
             onClick={onSubmit}
-            disabled={items.length === 0 || isSubmitting}
+            disabled={items.length === 0 || isSubmitting || !canSend}
           />
-          <Button
-            title="Guardar"
-            onClick={onSave}
-            variant="outline"
-            disabled={items.length === 0 || isSubmitting}
-          />
+          {onSave && (
+            <Button
+              title="Guardar"
+              onClick={onSave}
+              variant="outline"
+              disabled={items.length === 0 || isSubmitting || !canSend}
+            />
+          )}
           <Button
             title="Cancel·lar"
             onClick={onCancel}

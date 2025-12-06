@@ -77,6 +77,7 @@ const Pagination = ({
             className="form-select form-select-sm pagination-select"
             value={itemsPerPage}
             onChange={e => onItemsPerPageChange(Number(e.target.value))}
+            aria-label="Elements per pàgina"
           >
             <option value={10}>10</option>
             <option value={20}>20</option>
