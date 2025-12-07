@@ -81,7 +81,14 @@ const OrdersTable: React.FC<OrdersTableProps> = ({
   sortDir = 'asc',
   onSortChange,
 }) => {
-  const visibleColumns = columns.filter(col => col.show !== false);
+  const filteredColumns = columns.filter(col => {
+    if (col.key === 'actions') {
+      return showActions;
+    }
+    return col.show !== false;
+  });
+
+  const visibleColumns = filteredColumns;
 
   const handleRowClick = (order: OrderResponseData) => {
     if (selectable && onOrderClick) {
@@ -173,11 +180,13 @@ const OrdersTable: React.FC<OrdersTableProps> = ({
                     <td key={col.key} className={col.className}>
                       {col.render
                         ? col.render(order)
-                        : (order[col.key as keyof OrderResponseData] as
-                            | string
-                            | number
-                            | null
-                            | undefined)?.toString() || '-'}
+                        : (
+                            order[col.key as keyof OrderResponseData] as
+                              | string
+                              | number
+                              | null
+                              | undefined
+                          )?.toString() || '-'}
                     </td>
                   );
                 })}
