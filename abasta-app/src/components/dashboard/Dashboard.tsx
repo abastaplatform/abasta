@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/useAuth';
 import { Card, Col, Row } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import type { OrderResponseData } from '../../types/order.types';
 import type { DashboardData } from '../../types/dashboard.types';
@@ -13,8 +13,10 @@ import Alert from '../common/Alert/Alert';
 import PageHeader from '../common/PageHeader/PageHeader';
 import OrdersTable from '../orders/OrderList/OrdersTable/OrdersTable';
 import OrderCard from '../orders/OrderList/OrderCard/OrderCard';
+import Button from '../common/Button/Button';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const {
     isLoading: isLoadingOrders,
@@ -139,7 +141,15 @@ const Dashboard = () => {
 
         {!isLoading && (
           <div>
-            <h4 className="mb-3 mt-4 text-primary">Comandes del mes actual</h4>
+            <div className="d-flex justify-content-between w-100 mb-4">
+              <h4 className="mb-3 mt-4 text-primary">
+                Comandes del mes actual
+              </h4>
+              <Button
+                title="Nova comanda"
+                onClick={() => navigate('/orders/new')}
+              />
+            </div>
             <div className="d-none d-md-block">
               <OrdersTable
                 orders={orders}
