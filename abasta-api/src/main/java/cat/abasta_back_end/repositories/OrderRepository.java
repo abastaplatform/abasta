@@ -9,8 +9,8 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -19,6 +19,7 @@ import java.util.Optional;
  * Els mètodes per defecte de JPA són save, findById, findAll, deleteById, existsById i count.
  *
  * @author Daniel Garcia
+ * @author Enrique Pérez
  * @version 3.0
  */
 @Repository
@@ -31,5 +32,44 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
      * @return Comanda
      */
     Optional<Order> findByUuid(String uuid);
+
+    /**
+     * Cerca de comandes per període de creació amb llistat d'items (productes de la comanda)
+     * @param companyId id de la companyia
+     * @param startDate data d'inici del periode
+     * @param endDate data de fi del periode
+     * @return
+     */
+    @Query("""
+        SELECT DISTINCT o 
+        FROM Order o 
+        LEFT JOIN FETCH o.items
+        WHERE o.company.id = :companyId
+          AND o.createdAt BETWEEN :startDate AND :endDate
+    """)
+    List<Order> getOrdersByCompanyIdAndPeriodWithOrderItems(
+            @Param("companyId") Long companyId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate
+    );
+
+    /**
+     * Cerca de comandes per període de creació sense llistat d'items (productes de la comanda)
+     * @param companyId id de la companyia
+     * @param startDate data d'inici del periode
+     * @param endDate data de fi del periode
+     * @return
+     */
+    @Query("""
+        SELECT DISTINCT o 
+        FROM Order o 
+        WHERE o.company.id = :companyId
+          AND o.createdAt BETWEEN :startDate AND :endDate
+    """)
+    List<Order> getOrdersByCompanyIdAndPeriodWithoutOrderItems(
+            @Param("companyId") Long companyId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate
+    );
 
 }
