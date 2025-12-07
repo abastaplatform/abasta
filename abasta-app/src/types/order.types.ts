@@ -80,19 +80,19 @@ export interface ApiResponse<T> {
 
 /** Filtros que maneja el FRONT en la barra de búsqueda */
 export interface OrderSearchFilters {
-  query: string; // searchText
-  name: string;
-  notes: string;
-  status: string;
-  supplierUuid: string;
-  minAmount: number | null;
-  maxAmount: number | null;
-  deliveryDateFrom: string | null;
-  deliveryDateTo: string | null;
-  createdAtFrom: string | null;
-  createdAtTo: string | null;
-  updatedAtFrom: string | null;
-  updatedAtTo: string | null;
+  query?: string; // searchText
+  name?: string;
+  notes?: string;
+  status?: string;
+  supplierUuid?: string;
+  minAmount?: number | null;
+  maxAmount?: number | null;
+  deliveryDateFrom?: string | null;
+  deliveryDateTo?: string | null;
+  createdAtFrom?: string | null;
+  createdAtTo?: string | null;
+  updatedAtFrom?: string | null;
+  updatedAtTo?: string | null;
 }
 
 export interface OrderFilterParams {
@@ -108,13 +108,13 @@ export interface OrderFilterParams {
   minAmount?: number;
   maxAmount?: number;
 
-  deliveryDateFrom?: string; 
-  deliveryDateTo?: string; 
+  deliveryDateFrom?: string;
+  deliveryDateTo?: string;
 
-  createdAtFrom?: string; 
-  createdAtTo?: string; 
-  updatedAtFrom?: string; 
-  updatedAtTo?: string;      
+  createdAtFrom?: string;
+  createdAtTo?: string;
+  updatedAtFrom?: string;
+  updatedAtTo?: string;
 
   page?: number;
   size?: number;

@@ -203,9 +203,9 @@ export const useOrder = (uuid: string | undefined, mode: FormMode) => {
 
   const [orderStatus, setOrderStatus] = useState<OrderStatus>('PENDING');
 
-  const [selectedSupplierUuid, setSelectedSupplierUuid] = useState<string | null>(
-    null
-  );
+  const [selectedSupplierUuid, setSelectedSupplierUuid] = useState<
+    string | null
+  >(null);
   const [supplierName, setSupplierName] = useState<string | null>(null);
   const [supplierEmail, setSupplierEmail] = useState<string | null>(null);
   const [supplierPhone, setSupplierPhone] = useState<string | null>(null);
@@ -273,6 +273,7 @@ export const useOrder = (uuid: string | undefined, mode: FormMode) => {
         setSelectedSupplierUuid(order.supplierUuid);
         setOrderStatus(order.status);
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const mappedItems: OrderItem[] = order.items.map((item: any) => ({
           productUuid: item.productUuid,
           productName: item.productName || '',
@@ -283,6 +284,7 @@ export const useOrder = (uuid: string | undefined, mode: FormMode) => {
         }));
 
         setOrderItems(mappedItems);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (err) {
         setLoadError('Error al carregar la comanda');
       }
@@ -507,6 +509,7 @@ export const useOrder = (uuid: string | undefined, mode: FormMode) => {
       }
 
       setSuccessMessage(res.message || 'Comanda actualitzada correctament');
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       setError('Error actualitzant la comanda');
     }
@@ -531,6 +534,7 @@ export const useOrder = (uuid: string | undefined, mode: FormMode) => {
           successMessage: `Comanda "${orderName}" eliminada correctament`,
         },
       });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       setLoadError('Error eliminant la comanda');
     } finally {
