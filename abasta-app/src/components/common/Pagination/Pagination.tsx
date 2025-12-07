@@ -1,7 +1,7 @@
 import './Pagination.scss';
 
 interface PaginationProps {
-  type: 'producte' | 'proveïdor' | 'comanda';
+  type: 'producte' | 'proveïdor' | 'comanda' | 'usuari';
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
@@ -62,6 +62,7 @@ const Pagination = ({
     producte: ['producte', 'productes'],
     proveïdor: ['proveïdor', 'proveïdors'],
     comanda: ['comanda', 'comandes'],
+    usuari: ['usuari', 'usuaris'],
   };
 
   return (
