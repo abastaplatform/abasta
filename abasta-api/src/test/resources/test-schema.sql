@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS users (
     phone VARCHAR(50),
     role VARCHAR(20) DEFAULT 'USER',
     is_active BOOLEAN DEFAULT TRUE,
+    is_deleted BOOLEAN DEFAULT FALSE,
     email_verified BOOLEAN DEFAULT FALSE,
     email_verification_token VARCHAR(255),
     email_verification_expires TIMESTAMP,

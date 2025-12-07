@@ -18,9 +18,11 @@ import Accessibility from '../pages/Home/Accessibility/Accessibility';
 import SupplierManager from '../components/suppliers/SupplierManager/SupplierManager';
 import ProductList from '../components/products/ProductList/ProductList';
 import ProductManager from '../components/products/ProductManager/ProductManager';
+import OrderList from '../components/orders/OrderList/OrderList';
 import OrderCreate from '../components/orders/OrderCreate/OrderCreate';
 import UserManager from '../components/users/UserManager/UserManager';
 import UserList from '../components/users/UserList/UserList';
+import OrderManager from '../components/orders/OrderManager/OrderManager';
 
 const AppRoutes = () => {
   return (
@@ -53,7 +55,13 @@ const AppRoutes = () => {
           path="/suppliers/edit/:uuid"
           element={<SupplierManager mode="edit" />}
         />
+        <Route path="/orders" element={<OrderList />} />
         <Route path="/orders/new" element={<OrderCreate />} />
+        <Route path="/orders/:uuid" element={<OrderManager mode="detail" />} />
+        <Route
+          path="/orders/edit/:uuid"
+          element={<OrderManager mode="edit" />}
+        />
 
         <Route path="/products" element={<ProductList />} />
         <Route

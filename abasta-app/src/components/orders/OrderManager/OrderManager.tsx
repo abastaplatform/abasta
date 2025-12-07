@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
-import './OrderCreate.scss';
+import './OrderManager.scss';
 
 import type {
   AdvancedSearchParams,
@@ -16,6 +16,7 @@ import type { CachedSuppliersResult } from '../../../types/supplier.types';
 import PageHeader from '../../common/PageHeader/PageHeader';
 import Alert from '../../common/Alert/Alert';
 import SendOrderModal from '../SendOrderModal/SendOrderModal';
+import DeleteModal from '../../common/DeleteModal/DeleteModal';
 
 import { productService } from '../../../services/productService';
 import { supplierService } from '../../../services/supplierService';
@@ -25,47 +26,61 @@ import OrderSummary from './OrderSummary/OrderSummary';
 import Pagination from '../../common/Pagination/Pagination';
 import Form from 'react-bootstrap/esm/Form';
 import ProductCard from '../../products/ProductList/ProductCard/ProductCard';
-import OrderCreateScrollButton from './OrderCreateScrollButton/OrderCreateScrollButton';
-import SupplierAutocomplete from '../../common/SupplierAutocomplete/SupplierAutocomplete';
+import OrderCreateScrollButton from '../OrderCreate/OrderCreateScrollButton/OrderCreateScrollButton';
 import ConfirmModal from '../../common/ConfirmModal/ConfirmModal';
 
-import { useOrderCreate } from '../../../hooks/useOrderCreate';
+import { useOrder } from '../../../hooks/useOrderService';
+import type { FormMode } from '../../../hooks/useOrderService';
 
-const OrderCreate = () => {
+interface OrderManagerProps {
+  mode: FormMode;
+}
+
+const OrderManager: React.FC<OrderManagerProps> = ({ mode }) => {
+  const { uuid } = useParams<{ uuid: string }>();
   const navigate = useNavigate();
 
   const {
+    isReadMode,
+    canEdit,
+    canSend,
+    orderName,
+    setOrderName,
+    notes,
+    setNotes,
+    orderItems,
     selectedSupplierUuid,
     supplierName,
     supplierEmail,
     supplierPhone,
-    orderItems,
-    orderName,
-    notes,
     error,
-    successMessage,
-    isSending,
-    showSendModal,
-    showChangeSupplierModal,
-    isSupplierFromUrl,
-    totalAmount,
-    setOrderName,
-    setNotes,
-    setShowSendModal,
     setError,
-    handleSupplierChange,
+    successMessage,
+    loadError,
+    isSending,
+    isDeleting,
+    showSendModal,
+    setShowSendModal,
+    showChangeSupplierModal,
     handleConfirmSupplierChange,
     handleCancelSupplierChange,
+    showDeleteModal,
+    setShowDeleteModal,
     handleProductClick,
     handleUpdateItem,
     handleRemoveItem,
     handlePrepareToSend,
-    handleSave,
     handleSendOrder,
-  } = useOrderCreate();
+    handleSave,
+    handleCancel,
+    handleDeleteConfirm,
+    totalAmount,
+    breadcrumbItems,
+    pageTitle,
+  } = useOrder(uuid, mode);
 
   const [products, setProducts] = useState<Product[]>([]);
-  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -116,11 +131,15 @@ const OrderCreate = () => {
       }
     };
 
-    loadForPage();
-  }, [currentPage, itemsPerPage, selectedSupplierUuid]);
+    if (selectedSupplierUuid && canEdit) {
+      loadForPage();
+    }
+  }, [currentPage, itemsPerPage, selectedSupplierUuid, canEdit]);
 
   const loadProducts = async () => {
-    setIsLoadingProducts(true);
+    if (!selectedSupplierUuid) return;
+
+    setIsLoading(true);
     setError('');
 
     try {
@@ -131,15 +150,10 @@ const OrderCreate = () => {
         sortDir: 'asc',
       };
 
-      let response;
-      if (selectedSupplierUuid) {
-        response = await productService.getProductBySupplier(
-          selectedSupplierUuid,
-          paginationParams
-        );
-      } else {
-        response = await productService.getProducts(paginationParams);
-      }
+      const response = await productService.getProductBySupplier(
+        selectedSupplierUuid,
+        paginationParams
+      );
 
       setProducts(response.data?.content || []);
       setTotalElements(response.data?.pageable.totalElements || 0);
@@ -149,7 +163,7 @@ const OrderCreate = () => {
         err instanceof Error ? err.message : 'Error al carregar els productes.';
       setError(message);
     } finally {
-      setIsLoadingProducts(false);
+      setIsLoading(false);
     }
   };
 
@@ -157,7 +171,9 @@ const OrderCreate = () => {
     filtersParam: SearchFilters,
     isAdvanced: boolean
   ) => {
-    setIsLoadingProducts(true);
+    if (!selectedSupplierUuid || !canEdit) return;
+
+    setIsLoading(true);
     setError('');
 
     try {
@@ -210,7 +226,7 @@ const OrderCreate = () => {
       setError(errorMessage);
       console.error('performSearch error:', err);
     } finally {
-      setIsLoadingProducts(false);
+      setIsLoading(false);
     }
   };
 
@@ -218,6 +234,8 @@ const OrderCreate = () => {
     filters: SearchFilters,
     isAdvanced: boolean = false
   ) => {
+    if (!canEdit) return;
+
     setCurrentFilters(filters);
     setIsAdvancedSearch(isAdvanced);
     setManualSearchActive(true);
@@ -226,6 +244,8 @@ const OrderCreate = () => {
   };
 
   const handleClearSearch = () => {
+    if (!canEdit) return;
+
     const emptyFilters: SearchFilters = {
       query: '',
       name: '',
@@ -273,15 +293,6 @@ const OrderCreate = () => {
     setCurrentPage(0);
   };
 
-  const handleCancel = () => {
-    navigate('/orders');
-  };
-
-  const breadcrumbItems = [
-    { label: 'Comandes', path: '/orders' },
-    { label: 'Nova comanda', active: true },
-  ];
-
   const columnsForOrderTable = [
     { key: 'name' as const, label: 'Nom', show: true },
     { key: 'category' as const, label: 'Categoria', show: true },
@@ -318,10 +329,36 @@ const OrderCreate = () => {
   return (
     <div className="order-create-container form-container">
       <div className="container-fluid py-4">
-        <PageHeader title="Nova comanda" breadcrumbItems={breadcrumbItems} />
+        <PageHeader
+          title={pageTitle}
+          breadcrumbItems={breadcrumbItems}
+          actions={
+            isReadMode ? (
+              ''
+            ) : (
+              <div className="d-flex gap-2">
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary"
+                  onClick={() => navigate(`/orders/${uuid}`)}
+                >
+                  Veure detall
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-outline-danger"
+                  onClick={() => setShowDeleteModal(true)}
+                >
+                  Eliminar
+                </button>
+              </div>
+            )
+          }
+        />
 
         {successMessage && <Alert variant="success" message={successMessage} />}
         {error && <Alert variant="danger" message={error} />}
+        {loadError && <Alert variant="danger" message={loadError} />}
 
         <div className="row">
           <div className="col-lg-8">
@@ -336,98 +373,98 @@ const OrderCreate = () => {
                         value={orderName}
                         onChange={e => setOrderName(e.target.value)}
                         placeholder="Comanda..."
+                        disabled={!canEdit}
                       />
                     </Form.Group>
                   </div>
                   <div className="col-md-6 mb-3">
-                    {isSupplierFromUrl ? (
-                      <Form.Group>
-                        <Form.Label>Proveïdor</Form.Label>
-                        <Form.Control
-                          type="text"
-                          value={supplierName || '—'}
-                          disabled
-                        />
-                      </Form.Group>
-                    ) : (
-                      <SupplierAutocomplete
-                        value={selectedSupplierUuid || ''}
-                        onChange={handleSupplierChange}
-                        placeholder="Selecciona un proveïdor"
-                        label="Proveïdor"
-                        fetchSuppliers={fetchSuppliersWithCache}
+                    <Form.Group>
+                      <Form.Label>Proveïdor</Form.Label>
+                      <Form.Control
+                        type="text"
+                        value={supplierName || '—'}
+                        disabled
                       />
-                    )}
+                    </Form.Group>
                   </div>
                 </div>
 
                 {!selectedSupplierUuid && (
                   <Alert
                     variant="info"
-                    message="Selecciona un proveïdor per poder afegir productes a la comanda. Pots explorar el catàleg mentre tant."
+                    message="Selecciona un proveïdor per poder afegir productes a la comanda."
                   />
                 )}
 
-                <SearchBar
-                  key={selectedSupplierUuid || 'no-supplier'}
-                  onSearch={handleSearch}
-                  onClear={handleClearSearch}
-                  fetchSuppliers={fetchSuppliersWithCache}
-                  supplierName={supplierName}
-                  supplierUuid={selectedSupplierUuid || undefined}
-                  placeholder="Cercar per nom, categoria..."
-                />
-
-                {isLoadingProducts ? (
-                  <div className="text-center py-5">
-                    <div className="spinner-border text-primary" role="status">
-                      <span className="visually-hidden">Carregant...</span>
-                    </div>
-                  </div>
-                ) : (
+                {canEdit && selectedSupplierUuid && (
                   <>
-                    <ProductTable
-                      products={products}
-                      columns={columnsForOrderTable}
-                      selectable
-                      showActions={false}
-                      onProductClick={handleProductClick}
-                      selectedProducts={selectedProductUuids}
+                    <SearchBar
+                      key={selectedSupplierUuid || 'no-supplier'}
+                      onSearch={handleSearch}
+                      onClear={handleClearSearch}
+                      fetchSuppliers={fetchSuppliersWithCache}
+                      supplierName={supplierName}
+                      supplierUuid={selectedSupplierUuid || undefined}
+                      placeholder="Cercar per nom, categoria..."
                     />
-                    <ProductCard
-                      products={products}
-                      fields={columnsForOrderCard.map(col => ({
-                        key: col.key,
-                        label: col.label,
-                        render: col.render,
-                        show: col.show,
-                      }))}
-                      selectable
-                      showActions={false}
-                      onProductClick={handleProductClick}
-                      selectedProducts={selectedProductUuids}
-                    />
+
+                    {isLoading ? (
+                      <div className="text-center py-5">
+                        <div
+                          className="spinner-border text-primary"
+                          role="status"
+                        >
+                          <span className="visually-hidden">Carregant...</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <ProductTable
+                          products={products}
+                          columns={columnsForOrderTable}
+                          selectable
+                          showActions={false}
+                          onProductClick={handleProductClick}
+                          selectedProducts={selectedProductUuids}
+                        />
+                        <ProductCard
+                          products={products}
+                          fields={columnsForOrderCard.map(col => ({
+                            key: col.key,
+                            label: col.label,
+                            render: col.render,
+                            show: col.show,
+                          }))}
+                          selectable
+                          showActions={false}
+                          onProductClick={handleProductClick}
+                          selectedProducts={selectedProductUuids}
+                        />
+                      </>
+                    )}
+
+                    {!isLoading &&
+                      selectedSupplierUuid &&
+                      products.length > 0 && (
+                        <Pagination
+                          type="producte"
+                          currentPage={currentPage + 1}
+                          totalPages={totalPages}
+                          onPageChange={handlePageChange}
+                          itemsPerPage={itemsPerPage}
+                          totalItems={totalElements}
+                          onItemsPerPageChange={handleItemsPerPageChange}
+                        />
+                      )}
+
+                    {!isLoading &&
+                      selectedSupplierUuid &&
+                      products.length === 0 && (
+                        <div className="text-center py-4 text-muted">
+                          No s'han trobat productes per aquest proveïdor
+                        </div>
+                      )}
                   </>
-                )}
-
-                {!isLoadingProducts && products.length > 0 && (
-                  <Pagination
-                    type="producte"
-                    currentPage={currentPage + 1}
-                    totalPages={totalPages}
-                    onPageChange={handlePageChange}
-                    itemsPerPage={itemsPerPage}
-                    totalItems={totalElements}
-                    onItemsPerPageChange={handleItemsPerPageChange}
-                  />
-                )}
-
-                {!isLoadingProducts && products.length === 0 && (
-                  <div className="text-center py-4 text-muted">
-                    {selectedSupplierUuid
-                      ? "No s'han trobat productes per aquest proveïdor"
-                      : "No s'han trobat productes"}
-                  </div>
                 )}
               </div>
             </div>
@@ -443,9 +480,10 @@ const OrderCreate = () => {
                 onUpdateItem={handleUpdateItem}
                 onRemoveItem={handleRemoveItem}
                 onSubmit={handlePrepareToSend}
-                onSave={handleSave}
                 onCancel={handleCancel}
                 isSubmitting={isSending}
+                canSend={canSend}
+                onSave={canEdit ? handleSave : undefined}
               />
             </div>
           </div>
@@ -482,8 +520,17 @@ const OrderCreate = () => {
         onConfirm={handleConfirmSupplierChange}
         variant="warning"
       />
+
+      <DeleteModal
+        show={showDeleteModal}
+        entityType="comanda"
+        itemName={orderName}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteConfirm}
+        isDeleting={isDeleting}
+      />
     </div>
   );
 };
 
-export default OrderCreate;
+export default OrderManager;

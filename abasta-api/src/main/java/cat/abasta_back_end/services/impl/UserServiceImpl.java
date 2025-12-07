@@ -12,6 +12,8 @@ import cat.abasta_back_end.security.JwtUtil;
 import cat.abasta_back_end.services.EmailService;
 import cat.abasta_back_end.services.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import static cat.abasta_back_end.entities.User.UserRole.ADMIN;
 
 /**
  * Implementació del servei UserService.
@@ -83,6 +87,11 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserResponseDTO registerUser(UserRegistrationDTO registrationDTO) {
+        //Validar que el rol sigui administrador
+        if (!isAdminUser()) {
+            throw new BadRequestException("L'usuari ha de ser Administrador");
+        }
+
         if (userRepository.existsByEmail(registrationDTO.getEmail())) {
             throw new DuplicateResourceException("Ja existeix un usuari amb l'email: " + registrationDTO.getEmail());
         }
@@ -105,6 +114,7 @@ public class UserServiceImpl implements UserService {
                 .role(registrationDTO.getRole() != null ? registrationDTO.getRole() : User.UserRole.USER)
                 .phone(registrationDTO.getPhone())
                 .isActive(true)
+                .isDeleted(false)
                 .emailVerified(false)
                 .emailVerificationToken(verificationToken)
                 .emailVerificationExpires(LocalDateTime.now().plusHours(24))
@@ -129,6 +139,7 @@ public class UserServiceImpl implements UserService {
      * <ul>
      *   <li>Comprova que l'usuari existeixi segons l'email proporcionat.</li>
      *   <li>Verifica que el compte estigui actiu.</li>
+     *   <li>Verifica que el compte no s'ha esborrat.</li>
      *   <li>Comprova que l'email hagi estat verificat.</li>
      *   <li>Valida que la contrasenya introduïda coincideixi amb la guardada a la base de dades.</li>
      * </ul>
@@ -146,6 +157,10 @@ public class UserServiceImpl implements UserService {
 
         if (!user.getIsActive()) {
             throw new BadRequestException("L'usuari està inactiu");
+        }
+
+        if (user.getIsDeleted()) {
+            throw new BadRequestException("L'usuari està eliminat");
         }
 
         if (!user.getEmailVerified()) {
@@ -222,7 +237,7 @@ public class UserServiceImpl implements UserService {
         user.setEmailVerificationExpires(null);
 
         // Activar l'empresa si l'usuari és administrador
-        if (user.getRole() == User.UserRole.ADMIN) {
+        if (user.getRole() == ADMIN) {
             Company company = user.getCompany();
             if (company != null && company.getStatus() == Company.CompanyStatus.PENDING) {
                 company.setStatus(Company.CompanyStatus.ACTIVE);
@@ -260,6 +275,172 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
+     * {@inheritDoc}
+     *
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<UserResponseDTO> getAllUsersPaginated(Pageable pageable) {
+        //Validar que el rol sigui administrador
+        if (!isAdminUser()) {
+            throw new BadRequestException("L'usuari ha de ser Administrador");
+        }
+        String companyUuid = getCompanyUuidFromAuthenticatedUser();
+
+        // Mètode automàtic de Spring Data
+        Page<User> usersPage = userRepository.findByCompanyUuidAndIsDeletedFalse(companyUuid, pageable);
+
+        return usersPage.map(this::mapToResponseDTO);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public UserResponseDTO getUserByUuid(String uuid) {
+        //Validar que el rol sigui administrador
+        if (!isAdminUser()) {
+            throw new BadRequestException("L'usuari ha de ser Administrador");
+        }
+        User user = userRepository.findByUuid(uuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat amb UUID: " + uuid));
+        return mapToResponseDTO(user);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<UserResponseDTO> searchUsersByText(String searchText, Pageable pageable) {
+        String companyUuid = getCompanyUuidFromAuthenticatedUser();
+
+        // Verificar que l'empresa existeix
+        Company company = companyRepository.findByUuid(companyUuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb UUID: " + companyUuid));
+
+        // Mètode de cerca en múltiples camps
+        Page<User> users = userRepository.findByCompanyIdAndMultipleFieldsContainingNoDeleted(
+                company.getId(), searchText, pageable);
+
+        return users.map(this::mapToResponseDTO);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<UserResponseDTO> searchUsersWithFilters(UserFilterDTO filterDTO, Pageable pageable) {
+        String companyUuid = getCompanyUuidFromAuthenticatedUser();
+
+        // Verificar que l'empresa existeix
+        Company company = companyRepository.findByUuid(companyUuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb UUID: " + companyUuid));
+
+        // Usar el mètode del repositori amb tots els filtres expandits
+        Page<User> users = userRepository.findByCompanyIdAndCriteriaActive(
+                company.getId(),
+                filterDTO.getEmail(),
+                filterDTO.getFirstName(),
+                filterDTO.getLastName(),
+                filterDTO.getPhone(),
+                filterDTO.getIsActive(),
+                pageable
+        );
+
+        return users.map(this::mapToResponseDTO);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     */
+    @Override
+    public UserResponseDTO updateUser(String uuid, UserRequestDTO userRequestDTO) {
+        //Validar que el rol sigui administrador
+        if (!isAdminUser()) {
+            throw new BadRequestException("L'usuari ha de ser Administrador");
+        }
+        User user = userRepository.findByUuid(uuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat amb UUID: " + uuid));
+
+        if (!user.getEmail().equals(userRequestDTO.getEmail()) && userRepository.existsByEmail(userRequestDTO.getEmail())) {
+            throw new DuplicateResourceException("Ja existeix un usuari amb l'email: " + userRequestDTO.getEmail());
+        }
+
+        user.setEmail(userRequestDTO.getEmail());
+        user.setFirstName(userRequestDTO.getFirstName());
+        user.setLastName(userRequestDTO.getLastName());
+        user.setPhone(userRequestDTO.getPhone());
+
+        if (userRequestDTO.getRole() != null) {
+            user.setRole(userRequestDTO.getRole());
+        }
+
+        if (userRequestDTO.getIsActive() != null) {
+            user.setIsActive(userRequestDTO.getIsActive());
+        }
+
+        User updatedUser = userRepository.save(user);
+        return mapToResponseDTO(updatedUser);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     */
+    @Override
+    public UserResponseDTO changeUserStatus(String uuid, Boolean isActive) {
+        //Validar que el rol sigui administrador
+        if (!isAdminUser()) {
+            throw new BadRequestException("L'usuari ha de ser Administrador");
+        }
+        User user = userRepository.findByUuid(uuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat amb UUID: " + uuid));
+        user.setIsActive(isActive);
+        User updatedUser = userRepository.save(user);
+        return mapToResponseDTO(updatedUser);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     */
+    @Override
+    public void changePassword(String uuid, PasswordChangeDTO passwordChangeDTO) {
+        User user = userRepository.findByUuid(uuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat amb UUID: " + uuid));
+
+        if (!passwordEncoder.matches(passwordChangeDTO.getCurrentPassword(), user.getPassword())) {
+            throw new BadRequestException("La contrasenya actual és incorrecta");
+        }
+
+        user.setPassword(passwordEncoder.encode(passwordChangeDTO.getNewPassword()));
+        userRepository.save(user);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     */
+    @Override
+    public void deleteUser(String uuid) {
+        //Validar que el rol sigui administrador
+        if (!isAdminUser()) {
+            throw new BadRequestException("L'usuari ha de ser Administrador");
+        }
+        User user = userRepository.findByUuid(uuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat amb UUID: " + uuid));
+        user.setIsDeleted(true);
+        userRepository.save(user);
+    }
+
+    /**
      * Obté l'UUID de l'empresa de l'usuari autenticat des del context de Spring Security.
      * Aquest mètode s'utilitza per garantir que l'usuari
      * només pugui accedir als empleats de la seva pròpia empresa.
@@ -280,6 +461,29 @@ public class UserServiceImpl implements UserService {
         }
 
         return user.getCompany().getUuid();
+    }
+
+
+    /**
+     * Verifica si l'usuari autenticat actual té rol d'administrador.
+     * <p>
+     * Obté l'usuari actual del context de seguretat de Spring Security
+     * i comprova si el seu rol és {@link User.UserRole#ADMIN}.
+     * </p>
+     *
+     * @return {@code true} si l'usuari autenticat és administrador,
+     * {@code false} en cas contrari
+     * @throws ResourceNotFoundException si l'usuari autenticat no existeix a la base de dades
+     */
+    private Boolean isAdminUser() {
+        String username = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat: " + username));
+
+        return user.getRole() == ADMIN;
     }
 
     /**
@@ -317,6 +521,7 @@ public class UserServiceImpl implements UserService {
                 .role(user.getRole())
                 .phone(user.getPhone())
                 .isActive(user.getIsActive())
+                .isDeleted(user.getIsDeleted())
                 .emailVerified(user.getEmailVerified())
                 .lastLogin(user.getLastLogin())
                 .createdAt(user.getCreatedAt())

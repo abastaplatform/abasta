@@ -1,11 +1,10 @@
-// si ja tens variables, importa-les
-
+@import '../../../../assets/styles/variables';
 
 .action-dropdown {
   display: inline-block;
+  position: relative;
 }
 
-/* Botón tres puntos */
 .action-dropdown-toggle {
   border: none;
   background: transparent;
@@ -23,17 +22,20 @@
   }
 }
 
-/* Menú flotante (va en document.body via portal) */
 .action-dropdown-menu {
+  position: absolute;   
+  top: 100%;   
+  right: 0;    
+  margin-top: 0.25rem;
+
   min-width: 180px;
   background-color: #ffffff;
   border-radius: 0.75rem;
   box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
   padding: 0.4rem 0;
-  z-index: 1200;
+  z-index: 1200; 
 }
 
-/* Items del menú */
 .action-dropdown-item {
   width: 100%;
   border: none;
@@ -57,14 +59,12 @@
   }
 }
 
-/* Separador */
 .action-dropdown-divider {
   height: 1px;
   background-color: #e5e7eb;
   margin: 0.3rem 0;
 }
 
-/* Eliminar */
 .action-dropdown-item-danger {
   color: #dc2626;
 

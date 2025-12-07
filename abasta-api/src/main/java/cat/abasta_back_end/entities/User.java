@@ -104,6 +104,13 @@ public class User {
     private Boolean isActive = true;
 
     /**
+     * Indica si el compte ha set esborrat o no.
+     */
+    @Column(name = "is_deleted")
+    @Builder.Default
+    private Boolean isDeleted = false;
+
+    /**
      * Indica si el correu electrònic ha estat verificat.
      */
     @Column(name = "email_verified")

@@ -49,6 +49,14 @@ public interface OrderService {
     Page<OrderResponseDTO> filterOrders(OrderFilterDTO dto, Pageable pageable);
 
     /**
+     * Retorna les dades d'una comanda concreta
+     *
+     * @param uuid de la comanda
+     * @return OrderResponse amb la comanda
+     */
+    OrderResponseDTO getOrderByUuid(String uuid);
+
+    /**
      * Elimina una comanda (de manera lògica).
      * Posa la comanda en estat DELETED i l'elimina lògicament.
      *
