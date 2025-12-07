@@ -80,6 +80,7 @@ const AppRoutes = () => {
         <Route path="/company" element={<CompanyConfigForm />} />
         <Route path="/users" element={<UserList />} />
         <Route path="/users/new" element={<UserManager mode="create" />} />
+        <Route path="/users/:uuid" element={<UserManager mode="detail" />} />
         <Route path="/users/edit/:uuid" element={<UserManager mode="edit" />} />
       </Route>
     </Routes>

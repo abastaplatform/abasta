@@ -45,7 +45,7 @@ const UserManager = ({ mode }: UserManagerProps) => {
         if (response.success && response.data) {
           const user = response.data;
           setUserDetails(user);
-          setInitialData(response.data);
+          setInitialData(user);
         } else {
           setLoadError(response.message || "Error al carregar l'usuari.");
         }
@@ -59,11 +59,13 @@ const UserManager = ({ mode }: UserManagerProps) => {
     };
 
     fetchUser(uuid);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, uuid]);
 
   const formInitialData = useMemo(() => {
     if (!initialData) return undefined;
     return {
+      uuid: initialData.uuid || '',
       firstName: initialData.firstName || '',
       lastName: initialData.lastName || '',
       email: initialData.email || '',
@@ -134,6 +136,22 @@ const UserManager = ({ mode }: UserManagerProps) => {
   const handleDeleteConfirm = async () => {
     if (!userDetails) return;
     setIsDeleting(true);
+    setLoadError('');
+    try {
+      await userService.deleteUser(userDetails.uuid);
+
+      setShowDeleteModal(false);
+      const successMessage = `Usuari "${userDetails.firstName}" eliminat correctament`;
+
+      navigate('/users', { state: { successMessage } });
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Error al eliminar l'usuari";
+      setLoadError(errorMessage);
+      console.error('Delete user error:', err);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleDeleteCancel = () => {

@@ -18,7 +18,7 @@ const SearchBar = ({ onSearch, onClear }: SearchBarProps) => {
     lastName: '',
     email: '',
     phone: '',
-    role: 'USER',
+    role: null,
     isActive: null,
     emailVerified: null,
   });
@@ -119,7 +119,7 @@ const SearchBar = ({ onSearch, onClear }: SearchBarProps) => {
               <Form.Group>
                 <Form.Label>Rol</Form.Label>
                 <Form.Select
-                  value={filters.role}
+                  value={filters.role === null ? '' : filters.role}
                   onChange={e =>
                     setFilters({
                       ...filters,
@@ -127,7 +127,7 @@ const SearchBar = ({ onSearch, onClear }: SearchBarProps) => {
                     })
                   }
                 >
-                  <option value="">Tots</option>
+                  <option value="">-</option>
                   <option value="ADMIN">Admin</option>
                   <option value="USER">User</option>
                 </Form.Select>
@@ -177,7 +177,7 @@ const SearchBar = ({ onSearch, onClear }: SearchBarProps) => {
                     });
                   }}
                 >
-                  <option value="">Tots</option>
+                  <option value="">-</option>
                   <option value="true">Actiu</option>
                   <option value="false">Inactiu</option>
                 </Form.Select>
@@ -201,7 +201,7 @@ const SearchBar = ({ onSearch, onClear }: SearchBarProps) => {
                     });
                   }}
                 >
-                  <option value="">Tots</option>
+                  <option value="">-</option>
                   <option value="true">Sí</option>
                   <option value="false">No</option>
                 </Form.Select>

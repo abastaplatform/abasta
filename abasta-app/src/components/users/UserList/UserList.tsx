@@ -4,6 +4,9 @@ import PageHeader from '../../common/PageHeader/PageHeader';
 import Alert from '../../common/Alert/Alert';
 import { useEffect, useState } from 'react';
 import type {
+  AdvancedSearchParams,
+  BasicSearchParams,
+  PaginatedResponse,
   PaginationParams,
   SearchFilters,
   User,
@@ -35,7 +38,7 @@ const UserList = () => {
     lastName: '',
     email: '',
     phone: '',
-    role: 'USER',
+    role: null,
     isActive: null,
     emailVerified: null,
   });
@@ -76,7 +79,7 @@ const UserList = () => {
         const paginationParams: PaginationParams = {
           page: currentPage,
           size: itemsPerPage,
-          sortBy: 'name',
+          sortBy: 'firstName',
           sortDir: 'asc',
         };
 
@@ -102,52 +105,56 @@ const UserList = () => {
       currentFilters.firstName ||
       currentFilters.lastName ||
       currentFilters.email ||
-      currentFilters.phone
+      currentFilters.phone ||
+      currentFilters.isActive ||
+      currentFilters.role ||
+      currentFilters.emailVerified
     );
   };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const performSearch = async (filters: SearchFilters, isAdvanced: boolean) => {
-    /*    try {
-        let response;
-  
-        if (isAdvanced) {
-          const filterParams: AdvancedSearchParams = {
-            name: filters.name || undefined,
-            contactName: filters.contactName || undefined,
-            email: filters.email || undefined,
-            phone: filters.phone || undefined,
-            page: currentPage,
-            size: itemsPerPage,
-            sortBy: 'name',
-            sortDir: 'asc',
-          };
-          response = await supplierService.filterSuppliers(filterParams);
-          setIsAdvancedSearch(true);
-        } else {
-          const searchParams: BasicSearchParams = {
-            searchText: filters.query,
-            page: currentPage,
-            size: itemsPerPage,
-            sortBy: 'name',
-            sortDir: 'asc',
-          };
-          response = await supplierService.searchSuppliers(searchParams);
-          setIsAdvancedSearch(false);
-        }
-  
-        if (response.success && response.data) {
-          const paginatedData = response.data as PaginatedResponse<Supplier>;
-          setSuppliers(paginatedData.content);
-          setTotalElements(paginatedData.pageable.totalElements);
-          setTotalPages(paginatedData.pageable.totalPages);
-        }
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : 'Error al cercar proveïdors';
-        setError(errorMessage);
-        console.error('Search suppliers error:', err);
-      } */
+    try {
+      let response;
+
+      if (isAdvanced) {
+        const filterParams: AdvancedSearchParams = {
+          firstName: filters.firstName || undefined,
+          lastName: filters.lastName || undefined,
+          email: filters.email || undefined,
+          phone: filters.phone || undefined,
+          isActive: filters.isActive !== null ? filters.isActive : undefined,
+          page: currentPage,
+          size: itemsPerPage,
+          sortBy: 'firstName',
+          sortDir: 'asc',
+        };
+        response = await userService.filterUsers(filterParams);
+        setIsAdvancedSearch(true);
+      } else {
+        const searchParams: BasicSearchParams = {
+          searchText: filters.query,
+          page: currentPage,
+          size: itemsPerPage,
+          sortBy: 'firstName',
+          sortDir: 'asc',
+        };
+        response = await userService.searchUsers(searchParams);
+        setIsAdvancedSearch(false);
+      }
+
+      if (response.success && response.data) {
+        const paginatedData = response.data as PaginatedResponse<User>;
+        setUsers(paginatedData.content);
+        setTotalElements(paginatedData.pageable.totalElements);
+        setTotalPages(paginatedData.pageable.totalPages);
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Error al cercar usuaris';
+      setError(errorMessage);
+      console.error('Search users error:', err);
+    }
   };
 
   const handleSearch = async (
@@ -168,7 +175,7 @@ const UserList = () => {
       lastName: '',
       email: '',
       phone: '',
-      role: 'USER',
+      role: null,
       isActive: null,
       emailVerified: null,
     };
@@ -189,7 +196,7 @@ const UserList = () => {
     setIsDeleting(true);
     setError('');
     try {
-      //await userService.deleteUser(userToDelete.uuid);
+      await userService.deleteUser(userToDelete.uuid);
       setSuccessMessage(`Usuari "${userToDelete.name}" eliminat correctament`);
 
       setShowDeleteModal(false);
@@ -223,7 +230,7 @@ const UserList = () => {
     setCurrentPage(0);
   };
 
-  const breadcrumbItems = [{ label: 'Users', active: true }];
+  const breadcrumbItems = [{ label: 'Usuaris', active: true }];
 
   return (
     <div className="user-list-container form-container">

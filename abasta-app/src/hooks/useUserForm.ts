@@ -48,6 +48,7 @@ export const useUserForm = ({
 
     try {
       if (mode === 'edit' && data.uuid) {
+        await userService.updateUser(data.uuid, data);
         setSuccessMessage('Usuari actualitzat correctament');
       } else {
         await userService.createUser(data);

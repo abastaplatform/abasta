@@ -80,7 +80,29 @@ export interface SearchFilters {
   lastName: string;
   email: string;
   phone: string;
-  role: 'ADMIN' | 'USER';
+  role: 'ADMIN' | 'USER' | null;
   isActive: boolean | null;
   emailVerified: boolean | null;
+}
+
+export interface BasicSearchParams {
+  searchText?: string;
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  sortDir?: 'asc' | 'desc';
+}
+
+export interface AdvancedSearchParams {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  isActive?: boolean;
+  role?: 'ADMIN' | 'USER';
+  emailVerified?: boolean;
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  sortDir?: 'asc' | 'desc';
 }
