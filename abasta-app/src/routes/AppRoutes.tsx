@@ -23,6 +23,7 @@ import OrderCreate from '../components/orders/OrderCreate/OrderCreate';
 import UserManager from '../components/users/UserManager/UserManager';
 import UserList from '../components/users/UserList/UserList';
 import OrderManager from '../components/orders/OrderManager/OrderManager';
+import Dashboard from '../components/dashboard/Dashboard';
 
 const AppRoutes = () => {
   return (
@@ -41,7 +42,7 @@ const AppRoutes = () => {
       </Route>
 
       <Route element={<PrivateLayout />}>
-        <Route path="/dashboard" element={<div>Dashboard page</div>} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/suppliers" element={<SupplierList />} />
         <Route
           path="/suppliers/new"
@@ -76,7 +77,7 @@ const AppRoutes = () => {
           path="/products/edit/:uuid"
           element={<ProductManager mode="edit" />}
         />
-        <Route path="/reports" element={<div>Reports page</div>} />
+        <Route path="/reports" element={<div>Estadístiques</div>} />
         <Route path="/company" element={<CompanyConfigForm />} />
         <Route path="/users" element={<UserList />} />
         <Route path="/users/new" element={<UserManager mode="create" />} />
