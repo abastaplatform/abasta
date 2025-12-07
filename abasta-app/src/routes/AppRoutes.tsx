@@ -20,6 +20,8 @@ import ProductList from '../components/products/ProductList/ProductList';
 import ProductManager from '../components/products/ProductManager/ProductManager';
 import OrderList from '../components/orders/OrderList/OrderList';
 import OrderCreate from '../components/orders/OrderCreate/OrderCreate';
+import UserManager from '../components/users/UserManager/UserManager';
+import UserList from '../components/users/UserList/UserList';
 import OrderManager from '../components/orders/OrderManager/OrderManager';
 
 const AppRoutes = () => {
@@ -56,7 +58,10 @@ const AppRoutes = () => {
         <Route path="/orders" element={<OrderList />} />
         <Route path="/orders/new" element={<OrderCreate />} />
         <Route path="/orders/:uuid" element={<OrderManager mode="detail" />} />
-        <Route path="/orders/edit/:uuid" element={<OrderManager mode="edit" />} />
+        <Route
+          path="/orders/edit/:uuid"
+          element={<OrderManager mode="edit" />}
+        />
 
         <Route path="/products" element={<ProductList />} />
         <Route
@@ -72,8 +77,11 @@ const AppRoutes = () => {
           element={<ProductManager mode="edit" />}
         />
         <Route path="/reports" element={<div>Reports page</div>} />
-        <Route path="/Company" element={<CompanyConfigForm />} />
-        <Route path="/Users" element={<div>Users page</div>} />
+        <Route path="/company" element={<CompanyConfigForm />} />
+        <Route path="/users" element={<UserList />} />
+        <Route path="/users/new" element={<UserManager mode="create" />} />
+        <Route path="/users/:uuid" element={<UserManager mode="detail" />} />
+        <Route path="/users/edit/:uuid" element={<UserManager mode="edit" />} />
       </Route>
     </Routes>
   );
