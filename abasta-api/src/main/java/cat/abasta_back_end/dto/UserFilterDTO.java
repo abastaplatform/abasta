@@ -1,5 +1,6 @@
 package cat.abasta_back_end.dto;
 
+import cat.abasta_back_end.entities.User;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
@@ -27,9 +28,11 @@ import lombok.NoArgsConstructor;
  *       <li>Telèfon de contacte</li>
  *     </ul>
  *   </li>
- *   <li><strong>Filtre d'estat (opcional):</strong>
+ *   <li><strong>Filtres d'estat (opcionals):</strong>
  *     <ul>
  *       <li>isActive: null = tots els usuaris, true = només actius, false = només inactius</li>
+ *       <li>emailVerified: null = tots, true = només verificats, false = només no verificats</li>
+ *       <li>role: null = tots els rols, ADMIN = només administradors, USER = només usuaris</li>
  *     </ul>
  *   </li>
  *   <li><strong>Paràmetres de paginació i ordenació</strong></li>
@@ -95,6 +98,8 @@ import lombok.NoArgsConstructor;
  *   "lastName": "Doe",
  *   "phone": "555",
  *   "isActive": true,
+ *   "emailVerified": true,
+ *   "role": "ADMIN",
  *   "page": 0,
  *   "size": 20,
  *   "sortBy": "email",
@@ -135,8 +140,10 @@ public class UserFilterDTO {
     private String lastName;    // Cognom
     private String phone;       // Telèfon
 
-    // Filtre d'estat
-    private Boolean isActive;   // Estat actiu (null = tots, true = actius, false = inactius)
+    // Filtres d'estat
+    private Boolean isActive;       // Estat actiu (null = tots, true = actius, false = inactius)
+    private Boolean emailVerified;  // Email verificat (null = tots, true = verificats, false = no verificats)
+    private User.UserRole role;     // Rol de l'usuari (null = tots, ADMIN o USER)
 
     // Paginació
     @Min(value = 0, message = "El número de pàgina ha de ser 0 o superior")

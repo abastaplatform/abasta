@@ -205,6 +205,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
      *   <li><strong>lastName</strong>: cerca parcial en els cognoms de l'usuari</li>
      *   <li><strong>phone</strong>: cerca parcial en el número de telèfon</li>
      *   <li><strong>isActive</strong>: filtre d'estat actiu (null, true o false)</li>
+     *   <li><strong>emailVerified</strong>: filtre d'email verificat (null, true o false)</li>
+     *   <li><strong>role</strong>: filtre de rol (null, ADMIN o USER)</li>
      * </ul>
      * </p>
      *
@@ -230,6 +232,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @param lastName els cognoms a cercar (opcional, cerca parcial)
      * @param phone el telèfon a cercar (opcional, cerca parcial)
      * @param isActive l'estat actiu a filtrar (null = tots, true = actius, false = inactius)
+     * @param emailVerified l'estat de verificació d'email (null = tots, true = verificats, false = no verificats)
+     * @param role el rol a filtrar (null = tots, ADMIN o USER)
      * @param pageable informació de paginació i ordenació
      * @return pàgina d'usuaris que compleixen els criteris especificats
      * @see Pageable
@@ -240,7 +244,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "(:firstName IS NULL OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :firstName, '%'))) AND " +
             "(:lastName IS NULL OR LOWER(u.lastName) LIKE LOWER(CONCAT('%', :lastName, '%'))) AND " +
             "(:phone IS NULL OR LOWER(u.phone) LIKE LOWER(CONCAT('%', :phone, '%'))) AND " +
-            "(:isActive IS NULL OR u.isActive = :isActive)")
+            "(:isActive IS NULL OR u.isActive = :isActive) AND " +
+            "(:emailVerified IS NULL OR u.emailVerified = :emailVerified) AND " +
+            "(:role IS NULL OR u.role = :role)")
     Page<User> findByCompanyIdAndCriteriaActive(
             @Param("companyId") Long companyId,
             @Param("email") String email,
@@ -248,5 +254,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
             @Param("lastName") String lastName,
             @Param("phone") String phone,
             @Param("isActive") Boolean isActive,
+            @Param("emailVerified") Boolean emailVerified,
+            @Param("role") User.UserRole role,
             Pageable pageable);
 }
