@@ -133,7 +133,8 @@ public class ReportServiceImpl implements ReportService {
         BigDecimal despesaTotal = activeOrders.stream()
                 .flatMap(order -> order.getItems().stream())
                 .map(item -> item.getUnitPrice().multiply(item.getQuantity()))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .setScale(2, RoundingMode.HALF_UP);;
 
         // Comanda mitjana
         BigDecimal comandaMitjana = totalComandes > 0

@@ -103,13 +103,15 @@ public class ReportController {
 
         byte[] pdfBytes = reportService.generateGlobalInfoPDF(report);
 
-        // Retorn
-        //return ResponseEntity.ok(ApiResponseDTO.success(report, "Informació per el report correcta."));
-        // Devolver PDF como respuesta
+        // Retornem pdf com resposta
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy_MM_dd");
+        String startStr = start.format(formatter);
+        String endStr = end.format(formatter);
+        String titolPdf = "Report_Global_Abasta_de_" + startStr + "_a_" + endStr + ".pdf";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
         headers.setContentDisposition(ContentDisposition.builder("inline")
-                .filename("report.pdf").build());
+                .filename(titolPdf).build());
 
         return ResponseEntity.ok().headers(headers).body(pdfBytes);
     }
