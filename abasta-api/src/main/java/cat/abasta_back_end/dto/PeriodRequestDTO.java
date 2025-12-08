@@ -1,5 +1,6 @@
 package cat.abasta_back_end.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,11 +27,13 @@ public class PeriodRequestDTO {
     /**
      * Data inicial del període
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime dataInicial;
 
     /**
      * Data final del període
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime dataFinal;
 
 }

@@ -1,10 +1,14 @@
 package cat.abasta_back_end.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.cglib.core.Local;
+
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -24,15 +28,28 @@ import java.util.List;
 @Builder
 public class ReportGlobalResponseDTO {
 
-    // --- Resum del període ---
+    /**
+     * Data inicial del període seleccionat
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime dataInicial;
+
+    /**
+     * Data final del període seleccionat
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime dataFinal;
+
     /**
      * Nombre de comandes
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private int totalComandes;
 
     /**
      * Despesa total de comandes
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private BigDecimal despesaTotal;
 
     /**

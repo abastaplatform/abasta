@@ -8,15 +8,22 @@ import cat.abasta_back_end.repositories.OrderRepository;
 import cat.abasta_back_end.repositories.ProductRepository;
 import cat.abasta_back_end.repositories.UserRepository;
 import cat.abasta_back_end.services.ReportService;
+import com.lowagie.text.Font;
+import com.lowagie.text.Image;
+import org.springframework.cglib.core.Local;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
@@ -202,6 +209,8 @@ public class ReportServiceImpl implements ReportService {
 
         //Retornar el resultat com a DTO
         return mapToReportResponseDTO(
+                dto.getDataInicial(),
+                dto.getDataFinal(),
                 totalComandes,
                 despesaTotal,
                 comandaMitjana,
@@ -219,53 +228,85 @@ public class ReportServiceImpl implements ReportService {
 
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 
+            // Logo Abasta
+            Image img = Image.getInstance(getClass().getResource("/images/logo_pdf.png"));
+            img.scaleToFit(100,100);
+            img.setAlignment(Image.ALIGN_RIGHT);
+
+
             Document document = new Document();
             PdfWriter.getInstance(document, out);
             document.open();
 
-            document.add(new Paragraph("Report Global"));
-            document.add(new Paragraph("Total comandes: " + report.getTotalComandes()));
-            document.add(new Paragraph("Despesa total: " + report.getDespesaTotal()));
-            document.add(new Paragraph("Comanda mitjana: " + report.getComandaMitjana()));
-            document.add(new Paragraph(""));
+            // Logo al document
+            document.add(img);
 
-            // Tabla de proveedores
+            // Fonts
+            Font titleFont = new Font(Font.HELVETICA, 18, Font.BOLD, Color.BLUE);
+            Font subtitleFont = new Font(Font.HELVETICA, 16, Font.BOLD, Color.BLACK);
+
+            // Títol
+            Paragraph title = new Paragraph("Report Global", titleFont);
+            document.add(title);
+
+            // Periode
+            document.add(new Paragraph("\n"));
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            document.add(new Paragraph("Període: de " + report.getDataInicial().format(formatter) + " a " + report.getDataFinal().format(formatter) ));
+
+            // Informació general
+            document.add(new Paragraph("\n"));
+            Paragraph subtitleGlobal = new Paragraph("Resum global", subtitleFont);
+            document.add(subtitleGlobal);
+            document.add(new Paragraph("\n"));
+            document.add(new Paragraph("Total comandes: " + report.getTotalComandes()));
+            DecimalFormat df = new DecimalFormat("#0.00");
+            String despesaTotalFormatada = df.format(report.getDespesaTotal());
+            document.add(new Paragraph("Despesa total: " + despesaTotalFormatada));
+            document.add(new Paragraph("Comanda mitjana: " + report.getComandaMitjana()));
+            document.add(new Paragraph("\n"));
+
+            // Tabla de proveïdors
+            document.add(new Paragraph("\n"));
+            Paragraph subtitle2 = new Paragraph("Despesa proveïdors", subtitleFont);
+            document.add(subtitle2);
+            document.add(new Paragraph("\n"));
             PdfPTable table = new PdfPTable(4);
-            table.addCell("Proveidor");
+            table.addCell("Proveïdor");
             table.addCell("Num Comandes");
             table.addCell("Despesa Total");
             table.addCell("% del total");
-
             for (var p : report.getDespesaProveidors()) {
                 table.addCell(p.getProveidor());
                 table.addCell(String.valueOf(p.getNumComandes()));
                 table.addCell(p.getDespesaTotal().toString());
                 table.addCell(p.getPercentatge().toString());
             }
-
             document.add(table);
 
-            // Tabla de top productos
+            // Taula de productes top
+            document.add(new Paragraph("\n"));
+            document.add(new Paragraph("\n"));
+            Paragraph subtitle1 = new Paragraph("Top Productes", subtitleFont);
+            document.add(subtitle1);
+            document.add(new Paragraph("\n"));
             PdfPTable prodTable = new PdfPTable(3);
             prodTable.addCell("Nom Producte");
             prodTable.addCell("Quantitat Total");
             prodTable.addCell("Despesa Total");
-
             for (var p : report.getTopProductes()) {
                 prodTable.addCell(p.getNomProducte());
                 prodTable.addCell(p.getQuantitatTotal().toString());
                 prodTable.addCell(p.getDespesaTotal().toString());
             }
-
             document.add(prodTable);
 
             document.close();
             return out.toByteArray();
         } catch (Exception e) {
-            throw new BadRequestException("Error generant PDF");
+            throw new BadRequestException("Error generant PDF" + e.getMessage());
         }
     }
-
 
     /**
      * Converteix una sèrie d'informació en un {@link DashboardResponseDTO}.
@@ -288,9 +329,11 @@ public class ReportServiceImpl implements ReportService {
      *
      * @return DTO amb la informació global creada
      */
-    private ReportGlobalResponseDTO mapToReportResponseDTO(int totalComandes, BigDecimal despesaTotal, BigDecimal comandaMitjana, List<DespesaPerProveidorDTO> despesaProveidors,  List<ProducteTopDTO> topProductes
+    private ReportGlobalResponseDTO mapToReportResponseDTO(LocalDateTime dataInicial, LocalDateTime dataFinal, int totalComandes, BigDecimal despesaTotal, BigDecimal comandaMitjana, List<DespesaPerProveidorDTO> despesaProveidors, List<ProducteTopDTO> topProductes
     ) {
         return ReportGlobalResponseDTO.builder()
+                .dataInicial(dataInicial)
+                .dataFinal(dataFinal)
                 .totalComandes(totalComandes)
                 .despesaTotal(despesaTotal)
                 .comandaMitjana(comandaMitjana)
