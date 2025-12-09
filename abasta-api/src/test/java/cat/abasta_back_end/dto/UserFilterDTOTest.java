@@ -1,5 +1,6 @@
 package cat.abasta_back_end.dto;
 
+import cat.abasta_back_end.entities.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -259,6 +260,8 @@ class UserFilterDTOTest {
                 "Martínez",
                 "600777666",
                 true,
+                true,
+                User.UserRole.ADMIN,
                 3,
                 15,
                 "phone",

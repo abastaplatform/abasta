@@ -548,7 +548,7 @@ class UserServiceImplTest {
 
         when(companyRepository.findByUuid("company-uuid")).thenReturn(Optional.of(testCompany));
         when(userRepository.findByCompanyIdAndCriteriaActive(
-                eq(1L), eq("test@abasta.com"), isNull(), isNull(), isNull(), eq(true), eq(pageable)))
+                eq(1L), eq("test@abasta.com"), isNull(), isNull(), isNull(), eq(true), isNull(), isNull(), eq(pageable)))
                 .thenReturn(usersPage);
 
         // When
