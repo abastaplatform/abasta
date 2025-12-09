@@ -1,6 +1,7 @@
 package cat.abasta_back_end.repositories;
 
 import cat.abasta_back_end.entities.*;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -158,14 +159,19 @@ class OrderRepositoryTest {
         assertThat(found).isNotPresent();
     }
 
-
+    /**
+     * Comprova trobar comanda per uuid
+     */
     @Test
-    @DisplayName("Comprova findByUuid amb UUID inexistant")
+    @DisplayName("Comprova findByUuid amb UUID inexistent")
     void findByUuid_notFound() {
         Optional<Order> found = orderRepository.findByUuid("nonexistent-uuid");
         assertThat(found).isNotPresent();
     }
 
+    /**
+     * Comprova guardar comanda amb items
+     */
     @Test
     @DisplayName("Comprova guardar Order amb OrderItems")
     void saveOrderWithItems_success() {
@@ -185,6 +191,9 @@ class OrderRepositoryTest {
         assertThat(found.get().getItems().get(0).getProduct().getUuid()).isEqualTo("test-product-uuid");
     }
 
+    /**
+     * Comprova trobar totes les comandes amb paginació i ordenació
+     */
     @Test
     @DisplayName("Comprova findAll amb Pageable i Sort")
     void findAllWithPageable_success() {
@@ -201,6 +210,9 @@ class OrderRepositoryTest {
         assertThat(page.getContent().getLast().getName()).isEqualTo("Test Comanda 1");
     }
 
+    /**
+     * Comprova trobar totes les comandes amb specification
+     */
     @Test
     @DisplayName("Comprova findAll amb Specification")
     void findAllWithSpecification_success() {
@@ -217,6 +229,9 @@ class OrderRepositoryTest {
         assertThat(result.get(0).getUuid()).isEqualTo("test-order-uuid");
     }
 
+    /**
+     * Comprova actualització d'una comanda
+     */
     @Test
     @DisplayName("Comprova actualització d'una Order")
     void updateOrder_success() {
@@ -233,6 +248,75 @@ class OrderRepositoryTest {
         assertThat(found.get().getName()).isEqualTo("Nou Nom");
     }
 
+    /**
+     * Comprova retorn de comandes per període amb items
+     */
+    @Test
+    @DisplayName("Comprova retorn de comandes per període amb items")
+    void getOrdersByCompanyIdAndPeriodWithOrderItems_success() {
 
+        // Guardem dades necessàries
+        companyRepository.save(testCompany);
+        userRepository.save(testUser);
+        supplierRepository.save(testSupplier);
+        productRepository.save(testProduct);
+
+        // Afegim items
+        testOrder.getItems().add(testOrderItem);
+
+        // Assignem data dins del període
+        LocalDateTime now = LocalDateTime.now();
+        testOrder.setCreatedAt(now);
+
+        orderRepository.save(testOrder);
+        orderItemRepository.save(testOrderItem);
+
+        // Cridem al mètode del repository
+        List<Order> result = orderRepository.getOrdersByCompanyIdAndPeriodWithOrderItems(
+                testCompany.getId(),
+                now.minusDays(1),
+                now.plusDays(1)
+        );
+
+        // Assert
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getUuid()).isEqualTo("test-order-uuid");
+        assertThat(result.get(0).getItems()).hasSize(1);
+        assertThat(result.get(0).getItems().get(0).getProduct().getUuid())
+                .isEqualTo("test-product-uuid");
+    }
+
+    /**
+     * Comprova retorn de comandes per període sense items
+     */
+    @Test
+    @DisplayName("Comprova retorn de comandes per període sense items")
+    void getOrdersByCompanyIdAndPeriodWithoutOrderItems_success() {
+
+        // Guardem dades necessàries
+        companyRepository.save(testCompany);
+        userRepository.save(testUser);
+        supplierRepository.save(testSupplier);
+
+        // Assignem data dins del període
+        LocalDateTime now = LocalDateTime.now();
+        testOrder.setCreatedAt(now);
+
+        orderRepository.save(testOrder);
+
+        // Cridem al mètode del repository
+        List<Order> result = orderRepository.getOrdersByCompanyIdAndPeriodWithoutOrderItems(
+                testCompany.getId(),
+                now.minusDays(1),
+                now.plusDays(1)
+        );
+
+        // Assert
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getUuid()).isEqualTo("test-order-uuid");
+
+        // Aquest mètode NO fa FETCH d'items → la llista pot estar buida o lazy, però no carregada
+        assertThat(result.get(0).getItems()).isEmpty();
+    }
 
 }

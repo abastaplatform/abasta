@@ -486,7 +486,7 @@ class UserRepositoryTest {
 
         // When
         Page<User> result = userRepository.findByCompanyIdAndCriteriaActive(
-                testCompany.getId(), "john", null, null, null, null, pageable);
+                testCompany.getId(), "john", null, null, null, null, null, null,  pageable);
 
         // Then
         assertThat(result.getTotalElements()).isEqualTo(1);
@@ -507,7 +507,7 @@ class UserRepositoryTest {
 
         // When
         Page<User> result = userRepository.findByCompanyIdAndCriteriaActive(
-                testCompany.getId(), null, "Joan", null, null, null, pageable);
+                testCompany.getId(), null, "Joan", null, null, null, null, null, pageable);
 
         // Then
         assertThat(result.getTotalElements()).isEqualTo(1);
@@ -528,7 +528,7 @@ class UserRepositoryTest {
 
         // When
         Page<User> result = userRepository.findByCompanyIdAndCriteriaActive(
-                testCompany.getId(), null, null, "López", null, null, pageable);
+                testCompany.getId(), null, null, "López", null, null, null, null, pageable);
 
         // Then
         assertThat(result.getTotalElements()).isEqualTo(1);
@@ -549,7 +549,7 @@ class UserRepositoryTest {
 
         // When
         Page<User> result = userRepository.findByCompanyIdAndCriteriaActive(
-                testCompany.getId(), null, null, null, null, true, pageable);
+                testCompany.getId(), null, null, null, null, true, null, null, pageable);
 
         // Then
         assertThat(result.getTotalElements()).isEqualTo(1);
@@ -570,7 +570,7 @@ class UserRepositoryTest {
 
         // When
         Page<User> result = userRepository.findByCompanyIdAndCriteriaActive(
-                testCompany.getId(), null, null, null, null, false, pageable);
+                testCompany.getId(), null, null, null, null, false,null, null, pageable);
 
         // Then
         assertThat(result.getTotalElements()).isEqualTo(1);
@@ -593,7 +593,7 @@ class UserRepositoryTest {
 
         // When
         Page<User> result = userRepository.findByCompanyIdAndCriteriaActive(
-                testCompany.getId(), "john", "Joan", "García", null, true, pageable);
+                testCompany.getId(), "john", "Joan", "García", null, true,null, null, pageable);
 
         // Then
         assertThat(result.getTotalElements()).isEqualTo(1);
@@ -614,7 +614,7 @@ class UserRepositoryTest {
 
         // When
         Page<User> result = userRepository.findByCompanyIdAndCriteriaActive(
-                testCompany.getId(), null, null, null, null, null, pageable);
+                testCompany.getId(), null, null, null, null, null,null, null, pageable);
 
         // Then
         assertThat(result.getTotalElements()).isEqualTo(2);
@@ -634,7 +634,7 @@ class UserRepositoryTest {
 
         // When
         Page<User> result = userRepository.findByCompanyIdAndCriteriaActive(
-                testCompany.getId(), null, "Joan", null, null, null, pageable);
+                testCompany.getId(), null, "Joan", null, null, null,null, null, pageable);
 
         // Then
         assertThat(result.getTotalElements()).isEqualTo(1);
