@@ -138,11 +138,13 @@ public class SwaggerConfig {
                     - 🚚 Gestió integral de proveïdors
                     - 📦 Catàleg de productes amb imatges
                     - 🛒 Sistema de comandes amb notificacions
+                    - 📊 Sistema de reports i estadístiques
                     - 🔐 Autenticació JWT
                     - ✉️ Verificació d'email
                     - 🔑 Recuperació de contrasenya
                     - 🔍 Cerca avançada amb filtres
                     - 📄 Paginació i ordenació
+                    - 📑 Generació de PDF per reports
                     
                     ## Autenticació:
                     1. Fes login a `/api/auth/login` amb email i contrasenya
@@ -152,11 +154,27 @@ public class SwaggerConfig {
                     5. Ara pots provar tots els endpoints protegits
                     
                     ## Flux típic:
-                    1. **Registre:** `POST /api/companies/register`
-                    2. **Verificació:** `POST /api/auth/verify-email`
-                    3. **Login:** `POST /api/auth/login`
-                    4. **Gestió empresa:** `GET/PUT /api/companies`
-                    5. **Gestió proveïdors:** 
+                    1. **Autenticació:**
+                       - Registre: `POST /api/companies/register`
+                       - Verificació email: `POST /api/auth/verify-email`
+                       - Reenviar verificació: `POST /api/auth/resend-verification`
+                       - Login: `POST /api/auth/login`
+                       - Oblidar contrasenya: `POST /api/auth/forgot-password`
+                       - Restablir contrasenya: `POST /api/auth/reset-password`
+                    2. **Gestió empresa:**
+                       - Consultar: `GET /api/companies`
+                       - Actualitzar: `PUT /api/companies`
+                    3. **Gestió usuaris (només ADMIN):**
+                       - Llistar tots: `GET /api/users`
+                       - Consultar: `GET /api/users/{uuid}`
+                       - Crear: `POST /api/users`
+                       - Actualitzar: `PUT /api/users/{uuid}`
+                       - Canviar estat: `PATCH /api/users/{uuid}/status`
+                       - Canviar contrasenya: `PATCH /api/users/{uuid}/change-password`
+                       - Eliminar: `DELETE /api/users/{uuid}`
+                       - Cerca bàsica: `GET /api/users/search?searchText=text`
+                       - Cerca avançada: `GET /api/users/filter?email=...&firstName=...`
+                    4. **Gestió proveïdors:**
                        - Llistar: `GET /api/suppliers`
                        - Crear: `POST /api/suppliers`
                        - Consultar: `GET /api/suppliers/{uuid}`
@@ -164,7 +182,7 @@ public class SwaggerConfig {
                        - Canviar estat: `PATCH /api/suppliers/{uuid}/status`
                        - Cerca bàsica: `GET /api/suppliers/search?searchText=text`
                        - Cerca avançada: `GET /api/suppliers/filter?name=...&email=...`
-                    6. **Gestió productes:**
+                    5. **Gestió productes:**
                        - Llistar per empresa: `GET /api/products`
                        - Crear: `POST /api/products/create`
                        - Consultar: `GET /api/products/{uuid}`
@@ -174,9 +192,17 @@ public class SwaggerConfig {
                        - Filtre avançat: `GET /api/products/filter?category=...`
                        - Pujar imatge: `POST /api/products/upload/{productUuid}`
                        - Imatge temporal: `POST /api/products/upload-temp`
-                    7. **Gestió comandes:**
-                       - Crear comanda: `POST /api/orders/create`
+                    6. **Gestió comandes:**
+                       - Crear: `POST /api/orders/create`
+                       - Consultar: `GET /api/orders/{uuid}`
+                       - Llistar/Filtrar: `GET /api/orders/filter?name=...&createdAfter=...`
+                       - Actualitzar: `PUT /api/orders/{uuid}`
                        - Enviar al proveïdor: `POST /api/orders/{uuid}/send`
+                       - Eliminar: `PATCH /api/orders/delete/{uuid}`
+                    7. **Reports i estadístiques:**
+                       - Dashboard: `GET /api/reports/dashboard`
+                       - Report global: `GET /api/reports/global?startDate=...&endDate=...`
+                       - Descarregar PDF: `GET /api/reports/global/pdf?startDate=...&endDate=...`
                     
                     ## Paginació i ordenació:
                     Tots els endpoints de llistat suporten:
