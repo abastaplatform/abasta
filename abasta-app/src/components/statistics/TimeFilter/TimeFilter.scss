@@ -1,0 +1,41 @@
+.time-filter {
+  border: none;
+  border-radius: 1.2rem;
+
+  .btn {
+    min-width: 140px;
+  }
+}
+
+.time-filter-input {
+  border-radius: 10px;
+  padding: 0.55rem 0.9rem;
+}
+
+.active-filter {
+  background-color: var(--bs-primary) !important;
+  border-color: var(--bs-primary) !important;
+  color: #fff !important;
+}
+
+@media (max-width: 576px) {
+  .time-filter {
+    padding: 1.5rem 1.25rem !important;
+    border-radius: 0.75rem;
+  }
+
+  .time-filter .btn {
+    min-width: 100%;
+  }
+
+  .time-filter .d-flex.gap-2.flex-wrap {
+    flex-direction: column;
+  }
+
+  .time-filter-actions {
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+    margin-top: 1rem;
+  }
+}

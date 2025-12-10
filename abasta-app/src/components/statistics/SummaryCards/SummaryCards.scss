@@ -1,0 +1,28 @@
+.summary-cards {
+  &__period {
+    font-weight: 700;
+  }
+
+  &__card {
+    border-radius: 0.5rem;
+    border: 1px solid #c7c7c7;
+    padding: 1.6rem 1.4rem;
+    box-shadow: 0 10px 30px rgba(15, 35, 52, 0.04);
+  }
+
+  &__card-text {
+    margin-bottom: 0.45rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    color: #73777a;
+    font-weight: 700;
+  }
+
+  &__card-value {
+    margin: 0;
+    font-size: 2.1rem;
+    font-weight: 600;
+    color: var(--bs-primary);
+  }
+
+}

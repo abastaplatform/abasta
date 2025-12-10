@@ -125,6 +125,59 @@ class ApiService {
     headers: {}
   });
 }
+async getBlob(endpoint: string): Promise<Blob> {
+    const token = localStorage.getItem('token');
+
+    const headers: HeadersInit = {
+      ...this.defaultHeaders,
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        method: 'GET',
+        headers,
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+        throw new ApiError('Sessió expirada. Torna a iniciar sessió.', 401);
+      }
+
+      if (!response.ok) {
+        const errorData: ApiErrorResponse = await response
+          .json()
+          .catch(() => ({} as ApiErrorResponse));
+
+        const errorMessage =
+          errorData.message ||
+          errorData.error ||
+          this.getGenericErrorMessage(response.status);
+
+        throw new ApiError(errorMessage, response.status, errorData);
+      }
+
+      return await response.blob();
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+
+      if (error instanceof TypeError) {
+        throw new ApiError(
+          'No es pot connectar amb el servidor. Comprova la teva connexió a internet.',
+          0
+        );
+      }
+
+      throw new ApiError(
+        "S'ha produït un error inesperat. Torna-ho a provar més tard.",
+        500
+      );
+    }
+  }
 }
 
 export default new ApiService();
