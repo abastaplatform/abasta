@@ -1,0 +1,159 @@
+.provider-spend {
+  &__title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--bs-primary);
+  }
+
+  &__card {
+    border-radius: 9px;
+    border: 1px solid #afafaf;
+  }
+
+  &__th {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #8b93a2;
+  }
+
+  &__table tbody td {
+    font-size: 0.9rem;
+    color: #3b3b3b;
+    border-bottom: 1px solid #f1f3f7;
+  }
+
+  &__table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  &__percent-cell {
+    min-width: 190px;
+  }
+
+  &__percent-row {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 0.25rem;
+    gap: 0.35rem;
+  }
+
+  &__percent-label {
+    display: none; 
+  }
+
+  &__percent-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #3b3b3b;
+  }
+
+  &__bar-bg {
+    width: 100%;
+    height: 15px;
+    background-color: #e3e7ee;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-left: 0;
+  }
+
+  &__bar-fill {
+    height: 100%;
+    background-color: #c9c9c9;
+  }
+}
+
+@media (max-width: 576px) {
+  .provider-spend__card {
+    border: none;
+    box-shadow: none;
+  }
+
+  .provider-spend__table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .provider-spend__table thead {
+    display: none;
+  }
+
+  .provider-spend__table tbody tr {
+    display: block;
+    border: 1px solid #afafaf;
+    border-radius: 9px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .provider-spend__table tbody td {
+    border-bottom: none;
+    padding: 0.15rem 0;
+    font-size: 0.9rem;
+  }
+
+  .provider-spend__table tbody td:first-child {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+  }
+
+  .provider-spend__table tbody td:first-child::before {
+    content: '';
+  }
+
+  .provider-spend__table tbody td:nth-child(2),
+  .provider-spend__table tbody td:nth-child(3) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .provider-spend__table tbody td:nth-child(2)::before,
+  .provider-spend__table tbody td:nth-child(3)::before {
+    content: attr(data-label);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #4e4e4e;
+    margin-right: 0.5rem;
+  }
+
+  .provider-spend__percent-cell {
+    display: block;
+    padding-top: 0.3rem;
+  }
+
+  .provider-spend__percent-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
+  }
+
+  .provider-spend__percent-label {
+    display: inline-block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #4e4e4e;
+  }
+
+  .provider-spend__percent-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #3b3b3b;
+  }
+
+  .provider-spend__bar-bg {
+    width: 130px;  
+    height: 8px;
+    background-color: #e3e7ee;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-left: auto; 
+  }
+
+  .provider-spend__bar-fill {
+    height: 100%;
+    background-color: #c9c9c9;
+  }
+}

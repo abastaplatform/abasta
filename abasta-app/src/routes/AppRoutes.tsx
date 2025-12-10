@@ -24,6 +24,7 @@ import UserManager from '../components/users/UserManager/UserManager';
 import UserList from '../components/users/UserList/UserList';
 import OrderManager from '../components/orders/OrderManager/OrderManager';
 import Dashboard from '../components/dashboard/Dashboard';
+import StatisticsPage from '../components/statistics/StatisticsPage';
 
 const AppRoutes = () => {
   return (
@@ -77,7 +78,7 @@ const AppRoutes = () => {
           path="/products/edit/:uuid"
           element={<ProductManager mode="edit" />}
         />
-        <Route path="/reports" element={<div>Estadístiques</div>} />
+        <Route path="/reports" element={<StatisticsPage />} />
         <Route path="/company" element={<CompanyConfigForm />} />
         <Route path="/users" element={<UserList />} />
         <Route path="/users/new" element={<UserManager mode="create" />} />
