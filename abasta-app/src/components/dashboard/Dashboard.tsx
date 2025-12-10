@@ -15,6 +15,8 @@ import OrdersTable from '../orders/OrderList/OrdersTable/OrdersTable';
 import OrderCard from '../orders/OrderList/OrderCard/OrderCard';
 import Button from '../common/Button/Button';
 
+import './Dashboard.scss';
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -109,7 +111,7 @@ const Dashboard = () => {
             <Col md={4}>
               <Card className="mb-4">
                 <Card.Body className="text-center">
-                  <h5>TOTAL COMANDES</h5>
+                  <h2 className="as-h5">TOTAL COMANDES</h2>
                   <p className="display-6 mb-0">
                     {dashboardData.totalComandes}
                   </p>
@@ -119,7 +121,7 @@ const Dashboard = () => {
             <Col md={4}>
               <Card className="mb-4">
                 <Card.Body className="text-center">
-                  <h5>DESPESA MES</h5>
+                  <h2 className="as-h5">DESPESA MES</h2>
                   <p className="display-6 mb-0">
                     {dashboardData.despesaComandes.toFixed(2)}€
                   </p>
@@ -129,7 +131,7 @@ const Dashboard = () => {
             <Col md={4}>
               <Card className="mb-4">
                 <Card.Body className="text-center">
-                  <h5>COMANDES PENDENTS</h5>
+                  <h2 className="as-h5">COMANDES PENDENTS</h2>
                   <p className="display-6 mb-0">
                     {dashboardData.comandesPendents}
                   </p>
@@ -142,9 +144,9 @@ const Dashboard = () => {
         {!isLoading && (
           <div>
             <div className="d-flex justify-content-between w-100 mb-4">
-              <h4 className="mb-3 mt-4 text-primary">
+              <h3 className="mb-3 mt-4 text-primary">
                 Comandes del mes actual
-              </h4>
+              </h3>
               <Button
                 title="Nova comanda"
                 onClick={() => navigate('/orders/new')}
