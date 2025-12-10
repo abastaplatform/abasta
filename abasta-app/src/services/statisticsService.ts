@@ -72,10 +72,8 @@ export const statisticsService = {
     return response as unknown as ApiResponse<StatisticsData>;
   },
 
-  // PDF para el botón "Exportar PDF"
   exportStatisticsPdf: async (dateRange: DateRange): Promise<Blob> => {
     const query = buildQueryFromDateRange(dateRange);
-    // aquí usamos el método getBlob que comentamos antes
     const blob = await api.getBlob(`/reports/global/pdf?${query}`);
     return blob;
   },

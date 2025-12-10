@@ -37,8 +37,8 @@ const TimeFilter: FC<TimeFilterProps> = ({
     <div className="time-filter shadow-sm p-4">
 
       <p className="text-muted mb-4">Analitza el rendiment de les teves comandes</p>
-
-      <h5 className="fw-semibold text-primary mb-1">Filtre temporal</h5>
+      <h2></h2>
+      <h3 className="fw-semibold text-primary mb-1">Filtre temporal</h3>
       <p className="text-muted small mb-3">Selecciona el període a analitzar</p>
 
       <div className="row g-3 mb-3">
@@ -49,6 +49,7 @@ const TimeFilter: FC<TimeFilterProps> = ({
             className="form-control time-filter-input"
             value={dateRange.from}
             onChange={e => onDateChange('from', e.target.value)}
+            aria-label='Data, des de'
           />
         </div>
 
@@ -59,6 +60,7 @@ const TimeFilter: FC<TimeFilterProps> = ({
             className="form-control time-filter-input"
             value={dateRange.to}
             onChange={e => onDateChange('to', e.target.value)}
+            aria-label='Data, fins a'
           />
         </div>
       </div>
